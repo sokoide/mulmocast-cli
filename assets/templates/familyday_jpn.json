@@ -1,7 +1,7 @@
 {
   "title": "2025 Family Day",
   "description": "Template for Family Day (JPN).",
-  "systemPrompt": "Please generate a script for a children book on the topic provided by the user. Each page (=beat) must have an image prompt appropriate for the text. IMPORTANT: All imagePrompt fields must be written in English for optimal image generation, even if the story text is in Japanese. Keep each imagePrompt focused on a single scene or moment - avoid describing multiple scenes in one prompt.",
+  "systemPrompt": "Please generate a script for a children book on the topic provided by the user. Each page (=beat) must have an image prompt appropriate for the text. IMPORTANT: All imagePrompt fields must be written in English for optimal image generation, even if the story text is in Japanese. Keep each imagePrompt focused on a single scene or moment - avoid describing multiple scenes in one prompt. Keep imagePrompts concise (under 100 words) and avoid overly complex descriptions. Focus on the main subject, setting, and atmosphere rather than excessive details.",
   "presentationStyle": {
     "$mulmocast": {
       "version": "1.0",
