@@ -11,19 +11,24 @@ const getLanguageFromContext = (context: MulmoStudioContext): string | undefined
   
   // First check if script has lang property
   if (script.lang) {
+    GraphAILogger.info(`Language from script.lang: ${script.lang}`);
     return script.lang;
   }
   
   // Then check template name patterns
   // Look for template name in the script metadata or filename
   const filename = context.studio.filename.toLowerCase();
+  GraphAILogger.info(`Checking filename for language: ${filename}`);
   
   if (filename.includes('familyday_jpn')) {
+    GraphAILogger.info(`Detected Japanese from filename pattern`);
     return 'ja';
   } else if (filename.includes('familyday_eng')) {
+    GraphAILogger.info(`Detected English from filename pattern`);
     return 'en';
   }
   
+  GraphAILogger.info(`No language pattern detected from filename`);
   // Could add more template patterns here in the future
   return undefined;
 };
@@ -247,10 +252,13 @@ export const movie = async (context: MulmoStudioContext) => {
     
     // Auto-detect language from template and update context if not already set
     const detectedLang = getLanguageFromContext(context);
+    GraphAILogger.info(`Language detection: detected=${detectedLang}, context.lang=${context.lang}, context.caption=${context.caption}`);
+    
     if (detectedLang && !context.lang && !context.caption) {
       GraphAILogger.info(`Auto-detected language: ${detectedLang}`);
       context.lang = detectedLang;
       context.caption = detectedLang; // Set caption to the same language for subtitle generation
+      GraphAILogger.info(`Updated context: lang=${context.lang}, caption=${context.caption}`);
     }
     
     // Check if images exist, if not, generate them first
@@ -268,6 +276,15 @@ export const movie = async (context: MulmoStudioContext) => {
       GraphAILogger.info(`Audio not found. Generating audio first...`);
       const { audio } = await import("./audio.js");
       await audio(context);
+    }
+    
+    // Generate captions if caption language is set
+    if (context.caption) {
+      GraphAILogger.info(`Generating captions for language: ${context.caption}`);
+      const { captions } = await import("./captions.js");
+      await captions(context);
+    } else {
+      GraphAILogger.info(`No caption language set, skipping caption generation`);
     }
     
     const outputVideoPath = movieFilePath(context);

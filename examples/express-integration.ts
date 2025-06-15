@@ -70,21 +70,16 @@ console.log = (...args: any[]) => {
     typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
   ).join(' ');
 
-  // Only broadcast meaningful messages (filter out verbose logs)
-  if (message.includes('Agent:') ||
-    message.includes('ERROR:') ||
-    message.includes('Generated') ||
-    message.includes('Creating') ||
-    message.includes('Processing') ||
-    message.includes('Retry') ||
-    message.includes('Images not found') ||
-    message.includes('Audio not found') ||
-    message.includes('Auto-detected language') ||
-    message.includes('script was broken') ||
-    message.includes('Generating') ||
-    message.includes('Video created') ||
-    message.includes('completing') ||
-    message.includes('starting')) {
+  // Filter out debug messages and verbose logs, but allow most other messages
+  const isDebugMessage = message.includes('GraphAI.debug') || 
+                         message.includes('[DEBUG]') ||
+                         message.includes('debug:') ||
+                         message.toLowerCase().includes('filtercomplex') ||
+                         message.includes('🚀 Mulmocast API server running') ||
+                         message.includes('📋 API Endpoints') ||
+                         message.includes('🌐 Web Client');
+
+  if (!isDebugMessage) {
     broadcastToClients(message);
   }
 
@@ -110,6 +105,47 @@ console.warn = (...args: any[]) => {
   broadcastToClients(`WARNING: ${message}`);
   originalConsoleWarn.apply(console, args);
 };
+
+// Override GraphAILogger to broadcast messages
+const setupGraphAILogger = async () => {
+  try {
+    const { GraphAILogger } = await import('graphai');
+    
+    // Override info method
+    const originalInfo = GraphAILogger.info;
+    GraphAILogger.info = (...args: any[]) => {
+      const message = args.map(arg =>
+        typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+      ).join(' ');
+      
+      if (!message.includes('[DEBUG]') && !message.toLowerCase().includes('filtercomplex')) {
+        broadcastToClients(`INFO: ${message}`);
+      }
+      
+      return originalInfo.apply(GraphAILogger, args);
+    };
+    
+    // Override log method
+    const originalLog = GraphAILogger.log;
+    GraphAILogger.log = (...args: any[]) => {
+      const message = args.map(arg =>
+        typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+      ).join(' ');
+      
+      if (!message.includes('[DEBUG]') && !message.toLowerCase().includes('filtercomplex')) {
+        broadcastToClients(`LOG: ${message}`);
+      }
+      
+      return originalLog.apply(GraphAILogger, args);
+    };
+    
+  } catch (error) {
+    console.log('GraphAILogger not available yet, will override when loaded');
+  }
+};
+
+// Setup GraphAI logger override
+setupGraphAILogger();
 
 interface ScriptRequest {
   input: string;

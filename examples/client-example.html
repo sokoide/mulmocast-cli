@@ -273,10 +273,10 @@
             <div id="fileList"></div>
         </div>
 
-        <div id="realTimeMessages" style="margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; background: #f9f9f9; max-height: 300px; overflow-y: auto; display: none;">
+        <div id="realTimeMessages" style="margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; background: #f9f9f9; display: none;">
             <h3>🔄 リアルタイム処理状況</h3>
-            <div id="messagesList" style="font-family: monospace; font-size: 12px; line-height: 1.4;"></div>
-            <button onclick="clearMessages()" style="margin-top: 10px; padding: 5px 10px; font-size: 12px;">クリア</button>
+            <div id="messagesList" style="font-family: monospace; font-size: 12px; line-height: 1.6; height: 400px; overflow-y: auto; background: white; border: 1px solid #ccc; border-radius: 3px; padding: 10px; margin-bottom: 10px;"></div>
+            <button onclick="clearMessages()" style="padding: 5px 10px; font-size: 12px;">クリア</button>
         </div>
 
         <div id="result"></div>
@@ -291,14 +291,14 @@
         function connectToSSE() {
             const userName = document.getElementById('uniqueUserName').value.trim();
             const url = `${API_BASE}/mulmocast/events${userName ? `?userId=${userName}` : ''}`;
-            
+
             eventSource = new EventSource(url);
-            
+
             eventSource.onopen = function(event) {
                 console.log('SSE connection opened');
                 showRealTimeMessage('🔗 サーバーに接続しました', 'info');
             };
-            
+
             eventSource.onmessage = function(event) {
                 try {
                     const data = JSON.parse(event.data);
@@ -307,7 +307,7 @@
                     showRealTimeMessage(event.data, 'server');
                 }
             };
-            
+
             eventSource.onerror = function(event) {
                 console.error('SSE error:', event);
                 showRealTimeMessage('❌ サーバー接続エラー', 'error');
@@ -325,17 +325,17 @@
         function showRealTimeMessage(message, type = 'info') {
             const messagesContainer = document.getElementById('realTimeMessages');
             const messagesList = document.getElementById('messagesList');
-            
+
             // Show container if hidden
             messagesContainer.style.display = 'block';
-            
+
             // Create message element
             const messageElement = document.createElement('div');
             const timestamp = new Date().toLocaleTimeString('ja-JP');
-            
+
             let color = '#333';
             let prefix = '';
-            
+
             switch(type) {
                 case 'error':
                     color = '#d32f2f';
@@ -350,17 +350,17 @@
                     prefix = '🖥️ ';
                     break;
             }
-            
+
             messageElement.style.color = color;
             messageElement.style.marginBottom = '2px';
             messageElement.innerHTML = `[${timestamp}] ${prefix}${message}`;
-            
+
             messagesList.appendChild(messageElement);
-            
+
             // Auto-scroll to bottom
             messagesList.scrollTop = messagesList.scrollHeight;
-            
-            // Limit to 100 messages
+
+            // Limit to 100 messages (approximately 20 lines visible)
             while (messagesList.children.length > 100) {
                 messagesList.removeChild(messagesList.firstChild);
             }
@@ -668,7 +668,7 @@
                 let result;
                 if (generateType === 'video') {
                     const videoCaption = document.getElementById('videoCaption').value;
-                    
+
                     showLoading(`動画生成中... (ファイル: ${jsonFilePath})`);
                     result = await makeRequest('/mulmocast/video', {
                         scriptPath: jsonFilePath,
@@ -703,7 +703,7 @@
             const generateType = document.querySelector('input[name="generateType"]:checked').value;
             const pdfOptions = document.getElementById('pdfOptions');
             const videoOptions = document.getElementById('videoOptions');
-            
+
             pdfOptions.style.display = generateType === 'pdf' ? 'block' : 'none';
             videoOptions.style.display = generateType === 'video' ? 'block' : 'none';
         }
@@ -815,7 +815,7 @@
             loadUserNameFromStorage(); // ユーザー名を復元
             checkHealth();
             loadFiles(); // 初期化時にファイル履歴も読み込み
-            
+
             // SSE接続を開始
             connectToSSE();
 
@@ -825,7 +825,7 @@
                 setTimeout(() => loadUserFiles(), 1000);
             }
         });
-        
+
         // ページを離れる時にSSE接続を切断
         window.addEventListener('beforeunload', () => {
             disconnectSSE();
