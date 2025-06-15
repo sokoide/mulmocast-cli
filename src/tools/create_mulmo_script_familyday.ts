@@ -259,6 +259,8 @@ export const createMulmoScriptFamilyday = async ({
 
 IMPORTANT: You must create a children's book script in JSON format about the user's topic. Follow the exact structure shown in the example above. Do not provide advice or explanations - only generate the JSON script.
 
+CRITICAL: The story must be exactly 6-8 pages (beats) total. Structure the narrative to fit within this limit: introduction (1-2 beats), development (2-3 beats), climax (1-2 beats), conclusion (1-2 beats).
+
 Your response must be a valid JSON script wrapped in \`\`\`json code blocks.`;
 
   graph.injectValue("messages", [
