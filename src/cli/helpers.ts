@@ -40,7 +40,8 @@ export interface FileObject {
 export const getFileObject = (args: { basedir?: string; outdir?: string; imagedir?: string; audiodir?: string; file: string }): FileObject => {
   const { basedir, outdir, imagedir, audiodir, file } = args;
   const baseDirPath = getBaseDirPath(basedir);
-  const outDirPath = getFullPath(baseDirPath, outdir ?? outDirName);
+  const defaultOutDirPath = getFullPath(baseDirPath, outdir ?? outDirName);
+  
   const { fileOrUrl, fileName } = (() => {
     if (file === "__clipboard") {
       // We generate a new unique script file from clipboard text in the output directory
@@ -48,8 +49,8 @@ export const getFileObject = (args: { basedir?: string; outdir?: string; imagedi
       const pad = (n: number) => n.toString().padStart(2, "0");
       const fileName = `script_${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
       const clipboardText = clipboardy.readSync();
-      const fileOrUrl = resolveDirPath(outDirPath, `${fileName}.json`);
-      mkdir(outDirPath);
+      const fileOrUrl = resolveDirPath(defaultOutDirPath, `${fileName}.json`);
+      mkdir(defaultOutDirPath);
       fs.writeFileSync(fileOrUrl, clipboardText, "utf8");
       return { fileOrUrl, fileName };
     }
@@ -57,12 +58,29 @@ export const getFileObject = (args: { basedir?: string; outdir?: string; imagedi
     const fileName = path.parse(fileOrUrl).name;
     return { fileOrUrl, fileName };
   })();
+  
   const isHttpPath = isHttp(fileOrUrl);
   const mulmoFilePath = isHttpPath ? "" : getFullPath(baseDirPath, fileOrUrl);
   const mulmoFileDirPath = path.dirname(isHttpPath ? baseDirPath : mulmoFilePath);
+  
+  // If the JSON file is in a user directory structure (e.g., output/user123/file.json),
+  // use that directory as the base for all output files
+  const outDirPath = (() => {
+    if (!isHttpPath && mulmoFilePath) {
+      // Check if the JSON file is already in a user directory structure
+      const relativePath = path.relative(baseDirPath, mulmoFileDirPath);
+      if (relativePath.startsWith(outDirName + path.sep) || relativePath === outDirName) {
+        // Use the same directory as the JSON file for all outputs
+        return mulmoFileDirPath;
+      }
+    }
+    return defaultOutDirPath;
+  })();
+  
   const imageDirPath = getFullPath(outDirPath, imagedir ?? imageDirName);
   const audioDirPath = getFullPath(outDirPath, audiodir ?? audioDirName);
   const outputStudioFilePath = getOutputStudioFilePath(outDirPath, fileName);
+  
   return {
     baseDirPath,
     mulmoFilePath,

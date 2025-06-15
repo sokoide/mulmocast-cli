@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mulmocast API Client Example</title>
+    <title>2025 Family Day: Make your own video!</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -86,7 +86,7 @@
             align-items: center;
             font-weight: normal;
         }
-        .checkbox-group input[type="checkbox"], 
+        .checkbox-group input[type="checkbox"],
         .checkbox-group input[type="radio"] {
             width: auto;
             margin-right: 5px;
@@ -142,24 +142,23 @@
 </head>
 <body>
     <div class="container">
-        <h1>🎬 Mulmocast API Client Example</h1>
-        <p>このページはブラウザからMulmocast REST APIを呼び出すクライアントサイドの例です。<br>
-        API_KEYはサーバーサイドで管理されるため、クライアントでは不要です。</p>
-        
+        <h1>🎬 2025 Family Day: Make your own video!</h1>
+
         <form id="storyForm">
             <div class="form-group">
                 <label for="storyInput">ストーリー入力:</label>
                 <textarea id="storyInput" placeholder="例: 小さな丸い宇宙人プーニが地球にやってきて、人間の少年と友達になる物語。" required>小さな丸い宇宙人プーニが地球にやってきて、人間の少年と友達になる物語。プーニは最初は言葉が通じず困っていたが、少年の優しさに触れて次第に心を開いていく。二人は一緒に冒険し、最後にプーニは故郷の星に帰ることになるが、友情は永遠に続く。</textarea>
             </div>
-            
+
             <div class="form-group">
                 <label for="template">テンプレート:</label>
                 <select id="template">
                     <option value="familyday_jpn">familyday_jpn</option>
+                    <option value="familyday_eng">familyday_eng</option>
                     <option value="children_book">children_book</option>
                 </select>
             </div>
-            
+
             <div class="form-group">
                 <label for="llm">LLM:</label>
                 <select id="llm">
@@ -169,7 +168,7 @@
                     <option value="groq">Groq</option>
                 </select>
             </div>
-            
+
             <div class="form-group">
                 <label for="uniqueUserName">Unique User名:</label>
                 <input type="text" id="uniqueUserName" placeholder="例: user001, john_doe" required>
@@ -177,12 +176,12 @@
                     このユーザー名でディレクトリが作成され、ファイルが管理されます
                 </small>
             </div>
-            
+
             <div class="form-group">
                 <label for="filename">ファイル名:</label>
                 <input type="text" id="filename" value="story" placeholder="例: my-story">
             </div>
-            
+
             <div class="form-group">
                 <label>生成する出力:</label>
                 <div class="checkbox-group">
@@ -191,17 +190,17 @@
                     <label><input type="checkbox" id="outputPdf"> PDF</label>
                 </div>
             </div>
-            
+
             <button type="button" onclick="generateScript()">スクリプト生成</button>
             <button type="button" onclick="generateAll()">一括生成</button>
             <button type="button" onclick="checkHealth()">ヘルスチェック</button>
             <button type="button" onclick="loadFiles()">ファイル履歴を読み込み</button>
         </form>
-        
+
         <div class="container" style="margin-top: 30px; padding: 20px; border: 1px solid #ddd; border-radius: 5px; background: #f8f9fa;">
             <h2>📄 JSONファイル指定生成</h2>
             <p>既存のJSONファイルパスを指定して動画またはPDFを生成します。</p>
-            
+
             <div class="form-group">
                 <label for="userDirectoryInput">ユーザーディレクトリ:</label>
                 <div style="display: flex; gap: 10px; align-items: center;">
@@ -212,23 +211,23 @@
                     ユーザー名を入力して、そのユーザーのJSONファイル一覧を取得
                 </small>
             </div>
-            
+
             <div class="form-group" id="userFileSelectGroup" style="display: none;">
                 <label for="userFileSelect">JSONファイル選択:</label>
                 <select id="userFileSelect" onchange="updateJsonPathFromSelect()">
                     <option value="">-- ファイルを選択 --</option>
                 </select>
             </div>
-            
+
             <div class="form-group">
                 <label for="jsonFilePath">JSONファイルパス（手動入力）:</label>
-                <input type="text" id="jsonFilePath" placeholder="例: output/user001/story-1749978050780.json" 
+                <input type="text" id="jsonFilePath" placeholder="例: output/user001/story-1749978050780.json"
                        style="font-family: monospace;">
                 <small style="display: block; color: #666; margin-top: 5px;">
                     上でファイル選択するか、直接パスを入力してください
                 </small>
             </div>
-            
+
             <div class="form-group">
                 <label>生成タイプ:</label>
                 <div class="checkbox-group">
@@ -236,7 +235,7 @@
                     <label><input type="radio" name="generateType" value="pdf"> PDF</label>
                 </div>
             </div>
-            
+
             <div id="pdfOptions" style="display: none;">
                 <div class="form-group">
                     <label for="pdfMode">PDFモード:</label>
@@ -254,31 +253,123 @@
                     </select>
                 </div>
             </div>
-            
+
             <button type="button" onclick="generateFromJsonPath()">ファイル指定で生成</button>
         </div>
-        
+
         <div id="fileHistory" style="display: none;">
             <h2>📁 生成済みファイル</h2>
             <div id="fileList"></div>
         </div>
-        
+
+        <div id="realTimeMessages" style="margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; background: #f9f9f9; max-height: 300px; overflow-y: auto; display: none;">
+            <h3>🔄 リアルタイム処理状況</h3>
+            <div id="messagesList" style="font-family: monospace; font-size: 12px; line-height: 1.4;"></div>
+            <button onclick="clearMessages()" style="margin-top: 10px; padding: 5px 10px; font-size: 12px;">クリア</button>
+        </div>
+
         <div id="result"></div>
     </div>
 
     <script>
         const API_BASE = 'http://localhost:3000/api';
-        
+
+        // SSE (Server-Sent Events) for real-time updates
+        let eventSource = null;
+
+        function connectToSSE() {
+            const userName = document.getElementById('uniqueUserName').value.trim();
+            const url = `${API_BASE}/mulmocast/events${userName ? `?userId=${userName}` : ''}`;
+            
+            eventSource = new EventSource(url);
+            
+            eventSource.onopen = function(event) {
+                console.log('SSE connection opened');
+                showRealTimeMessage('🔗 サーバーに接続しました', 'info');
+            };
+            
+            eventSource.onmessage = function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    showRealTimeMessage(data.message, 'server');
+                } catch (error) {
+                    showRealTimeMessage(event.data, 'server');
+                }
+            };
+            
+            eventSource.onerror = function(event) {
+                console.error('SSE error:', event);
+                showRealTimeMessage('❌ サーバー接続エラー', 'error');
+            };
+        }
+
+        function disconnectSSE() {
+            if (eventSource) {
+                eventSource.close();
+                eventSource = null;
+                showRealTimeMessage('🔌 サーバーから切断しました', 'info');
+            }
+        }
+
+        function showRealTimeMessage(message, type = 'info') {
+            const messagesContainer = document.getElementById('realTimeMessages');
+            const messagesList = document.getElementById('messagesList');
+            
+            // Show container if hidden
+            messagesContainer.style.display = 'block';
+            
+            // Create message element
+            const messageElement = document.createElement('div');
+            const timestamp = new Date().toLocaleTimeString('ja-JP');
+            
+            let color = '#333';
+            let prefix = '';
+            
+            switch(type) {
+                case 'error':
+                    color = '#d32f2f';
+                    prefix = '❌ ';
+                    break;
+                case 'info':
+                    color = '#1976d2';
+                    prefix = 'ℹ️ ';
+                    break;
+                case 'server':
+                    color = '#388e3c';
+                    prefix = '🖥️ ';
+                    break;
+            }
+            
+            messageElement.style.color = color;
+            messageElement.style.marginBottom = '2px';
+            messageElement.innerHTML = `[${timestamp}] ${prefix}${message}`;
+            
+            messagesList.appendChild(messageElement);
+            
+            // Auto-scroll to bottom
+            messagesList.scrollTop = messagesList.scrollHeight;
+            
+            // Limit to 100 messages
+            while (messagesList.children.length > 100) {
+                messagesList.removeChild(messagesList.firstChild);
+            }
+        }
+
+        function clearMessages() {
+            const messagesList = document.getElementById('messagesList');
+            messagesList.innerHTML = '';
+        }
+
         function showResult(message, type = 'success') {
             const resultDiv = document.getElementById('result');
             resultDiv.className = `result ${type}`;
             resultDiv.textContent = message;
         }
-        
+
         function showLoading(message) {
             showResult(message, 'loading');
         }
-        
+
         async function makeRequest(endpoint, data = null) {
             try {
                 const options = {
@@ -287,25 +378,25 @@
                         'Content-Type': 'application/json',
                     }
                 };
-                
+
                 if (data) {
                     options.body = JSON.stringify(data);
                 }
-                
+
                 const response = await fetch(`${API_BASE}${endpoint}`, options);
                 const result = await response.json();
-                
+
                 if (!response.ok) {
                     throw new Error(result.error || `HTTP ${response.status}`);
                 }
-                
+
                 return result;
             } catch (error) {
                 console.error('API Error:', error);
                 throw error;
             }
         }
-        
+
         async function checkHealth() {
             showLoading('ヘルスチェック中...');
             try {
@@ -315,33 +406,33 @@
                 showResult(`❌ ヘルスチェック失敗: ${error.message}`, 'error');
             }
         }
-        
+
         async function generateScript() {
             const input = document.getElementById('storyInput').value;
             const template = document.getElementById('template').value;
             const llm = document.getElementById('llm').value;
             const uniqueUserName = document.getElementById('uniqueUserName').value.trim();
             const filename = document.getElementById('filename').value;
-            
+
             const scriptButton = document.querySelector('button[onclick="generateScript()"]');
             const originalText = scriptButton.textContent;
-            
+
             if (!input.trim()) {
                 showResult('❌ ストーリーを入力してください', 'error');
                 return;
             }
-            
+
             if (!uniqueUserName) {
                 showResult('❌ Unique User名を入力してください', 'error');
                 return;
             }
-            
+
             // ボタンを無効化して「生成中」表示
             scriptButton.disabled = true;
             scriptButton.textContent = '🔄 スクリプト生成中...';
             scriptButton.style.backgroundColor = '#6c757d';
             scriptButton.style.cursor = 'not-allowed';
-            
+
             showLoading('スクリプト生成中...');
             try {
                 const result = await makeRequest('/mulmocast/script', {
@@ -353,9 +444,9 @@
                         uniqueUserName
                     }
                 });
-                
+
                 showResult(`✅ スクリプト生成成功!\n${JSON.stringify(result, null, 2)}`);
-                
+
                 // 生成後、自動でユーザーファイルを更新
                 const userDirInput = document.getElementById('userDirectoryInput');
                 if (!userDirInput.value) {
@@ -372,43 +463,43 @@
                 scriptButton.style.cursor = '';
             }
         }
-        
+
         async function generateAll() {
             const input = document.getElementById('storyInput').value;
             const template = document.getElementById('template').value;
             const llm = document.getElementById('llm').value;
             const uniqueUserName = document.getElementById('uniqueUserName').value.trim();
             const filename = document.getElementById('filename').value;
-            
+
             const allButton = document.querySelector('button[onclick="generateAll()"]');
             const originalText = allButton.textContent;
-            
+
             const outputs = [];
             if (document.getElementById('outputScript').checked) outputs.push('script');
             if (document.getElementById('outputVideo').checked) outputs.push('video');
             if (document.getElementById('outputPdf').checked) outputs.push('pdf');
-            
+
             if (!input.trim()) {
                 showResult('❌ ストーリーを入力してください', 'error');
                 return;
             }
-            
+
             if (!uniqueUserName) {
                 showResult('❌ Unique User名を入力してください', 'error');
                 return;
             }
-            
+
             if (outputs.length === 0) {
                 showResult('❌ 少なくとも1つの出力を選択してください', 'error');
                 return;
             }
-            
+
             // ボタンを無効化して「生成中」表示
             allButton.disabled = true;
             allButton.textContent = `🔄 一括生成中... (${outputs.join(', ')})`;
             allButton.style.backgroundColor = '#6c757d';
             allButton.style.cursor = 'not-allowed';
-            
+
             showLoading(`一括生成中... (${outputs.join(', ')})`);
             try {
                 const result = await makeRequest('/mulmocast/generate-all', {
@@ -421,9 +512,9 @@
                         uniqueUserName
                     }
                 });
-                
+
                 showResult(`✅ 一括生成成功!\n${JSON.stringify(result, null, 2)}`);
-                
+
                 // 生成後、自動でユーザーファイルを更新
                 const userDirInput = document.getElementById('userDirectoryInput');
                 if (!userDirInput.value) {
@@ -440,7 +531,7 @@
                 allButton.style.cursor = '';
             }
         }
-        
+
         async function loadFiles() {
             showLoading('ファイル履歴を読み込み中...');
             try {
@@ -451,11 +542,11 @@
                 showResult(`❌ ファイル履歴の読み込み失敗: ${error.message}`, 'error');
             }
         }
-        
+
         function displayFiles(files) {
             const fileHistoryDiv = document.getElementById('fileHistory');
             const fileListDiv = document.getElementById('fileList');
-            
+
             if (files.length === 0) {
                 fileListDiv.innerHTML = '<p>生成されたファイルがありません。</p>';
             } else {
@@ -467,7 +558,7 @@
                         </div>
                         <div class="file-input">${file.input}</div>
                         <div style="font-size: 12px; color: #999; margin-bottom: 10px;">
-                            テンプレート: ${file.template} | 
+                            テンプレート: ${file.template} |
                             生成日時: ${new Date(file.timestamp).toLocaleString('ja-JP')}
                         </div>
                         <div class="file-actions">
@@ -478,26 +569,26 @@
                     </div>
                 `).join('');
             }
-            
+
             fileHistoryDiv.style.display = 'block';
         }
-        
+
         async function generateVideoFromFile(fileId) {
             const button = event.target;
             const originalText = button.textContent;
-            
+
             // ボタンを無効化して「生成中」表示
             button.disabled = true;
             button.textContent = '🔄 動画生成中...';
             button.style.backgroundColor = '#6c757d';
             button.style.cursor = 'not-allowed';
-            
+
             showLoading(`動画生成中... (ファイル: ${fileId})`);
             try {
                 const result = await makeRequest('/mulmocast/video-from-file', {
                     fileId
                 });
-                
+
                 showResult(`✅ 動画生成成功!\n${JSON.stringify(result, null, 2)}`);
                 // Reload files to update status
                 await loadFiles();
@@ -511,17 +602,17 @@
                 button.style.cursor = '';
             }
         }
-        
+
         async function generatePdfFromFile(fileId) {
             const button = event.target;
             const originalText = button.textContent;
-            
+
             // ボタンを無効化して「生成中」表示
             button.disabled = true;
             button.textContent = '🔄 PDF生成中...';
             button.style.backgroundColor = '#6c757d';
             button.style.cursor = 'not-allowed';
-            
+
             showLoading(`PDF生成中... (ファイル: ${fileId})`);
             try {
                 const result = await makeRequest('/mulmocast/pdf-from-file', {
@@ -529,7 +620,7 @@
                     pdfMode: 'slide',
                     pdfSize: 'letter'
                 });
-                
+
                 showResult(`✅ PDF生成成功!\n${JSON.stringify(result, null, 2)}`);
                 // Reload files to update status
                 await loadFiles();
@@ -543,25 +634,25 @@
                 button.style.cursor = '';
             }
         }
-        
+
         async function generateFromJsonPath() {
             const jsonFilePath = document.getElementById('jsonFilePath').value.trim();
             const generateType = document.querySelector('input[name="generateType"]:checked').value;
-            
+
             const jsonButton = document.querySelector('button[onclick="generateFromJsonPath()"]');
             const originalText = jsonButton.textContent;
-            
+
             if (!jsonFilePath) {
                 showResult('❌ JSONファイルパスを入力してください', 'error');
                 return;
             }
-            
+
             // ボタンを無効化して「生成中」表示
             jsonButton.disabled = true;
             jsonButton.textContent = `🔄 ${generateType === 'video' ? '動画' : 'PDF'}生成中...`;
             jsonButton.style.backgroundColor = '#6c757d';
             jsonButton.style.cursor = 'not-allowed';
-            
+
             try {
                 let result;
                 if (generateType === 'video') {
@@ -573,7 +664,7 @@
                 } else if (generateType === 'pdf') {
                     const pdfMode = document.getElementById('pdfMode').value;
                     const pdfSize = document.getElementById('pdfSize').value;
-                    
+
                     showLoading(`PDF生成中... (ファイル: ${jsonFilePath})`);
                     result = await makeRequest('/mulmocast/pdf', {
                         scriptPath: jsonFilePath,
@@ -592,22 +683,22 @@
                 jsonButton.style.cursor = '';
             }
         }
-        
+
         // PDF/動画タイプ選択時の処理
         function handleGenerateTypeChange() {
             const generateType = document.querySelector('input[name="generateType"]:checked').value;
             const pdfOptions = document.getElementById('pdfOptions');
             pdfOptions.style.display = generateType === 'pdf' ? 'block' : 'none';
         }
-        
+
         async function loadUserFiles() {
             const userName = document.getElementById('userDirectoryInput').value.trim();
-            
+
             if (!userName) {
                 showResult('❌ ユーザー名を入力してください', 'error');
                 return;
             }
-            
+
             showLoading(`${userName}のファイルを読み込み中...`);
             try {
                 const result = await makeRequest(`/mulmocast/user-files/${userName}`);
@@ -617,20 +708,20 @@
                 showResult(`❌ ${userName}のファイル読み込み失敗: ${error.message}`, 'error');
             }
         }
-        
+
         function displayUserFiles(files) {
             const userFileSelectGroup = document.getElementById('userFileSelectGroup');
             const userFileSelect = document.getElementById('userFileSelect');
-            
+
             // セレクトボックスをクリア
             userFileSelect.innerHTML = '<option value="">-- ファイルを選択 --</option>';
-            
+
             if (files.length === 0) {
                 userFileSelectGroup.style.display = 'none';
                 showResult('このユーザーのファイルが見つかりませんでした', 'error');
                 return;
             }
-            
+
             // ファイルを追加
             files.forEach(file => {
                 const option = document.createElement('option');
@@ -638,16 +729,16 @@
                 option.textContent = `${file.name} (${new Date(file.timestamp).toLocaleString('ja-JP')})`;
                 userFileSelect.appendChild(option);
             });
-            
+
             userFileSelectGroup.style.display = 'block';
         }
-        
+
         function updateJsonPathFromSelect() {
             const selectedPath = document.getElementById('userFileSelect').value;
             if (selectedPath) {
                 const jsonFilePathInput = document.getElementById('jsonFilePath');
                 jsonFilePathInput.value = selectedPath;
-                
+
                 // ハイライト表示
                 jsonFilePathInput.style.backgroundColor = '#fff3cd';
                 setTimeout(() => {
@@ -655,21 +746,21 @@
                 }, 1000);
             }
         }
-        
+
         function copyPathToInput(scriptPath) {
             const jsonFilePathInput = document.getElementById('jsonFilePath');
             jsonFilePathInput.value = scriptPath;
             jsonFilePathInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            
+
             // 入力フィールドを一時的にハイライト
             jsonFilePathInput.style.backgroundColor = '#fff3cd';
             setTimeout(() => {
                 jsonFilePathInput.style.backgroundColor = '';
             }, 1000);
-            
+
             showResult(`✅ パスをコピーしました: ${scriptPath}`, 'success');
         }
-        
+
         // ラジオボタンのイベントリスナーを設定
         document.addEventListener('DOMContentLoaded', () => {
             const radioButtons = document.querySelectorAll('input[name="generateType"]');
@@ -677,7 +768,7 @@
                 radio.addEventListener('change', handleGenerateTypeChange);
             });
         });
-        
+
         // ローカルストレージからユーザー名を復元
         function loadUserNameFromStorage() {
             const savedUserName = localStorage.getItem('mulmocast_user_name');
@@ -686,12 +777,12 @@
                 document.getElementById('userDirectoryInput').value = savedUserName;
             }
         }
-        
+
         // ユーザー名をローカルストレージに保存
         function saveUserNameToStorage(userName) {
             localStorage.setItem('mulmocast_user_name', userName);
         }
-        
+
         // ユーザー名入力時に自動保存
         document.addEventListener('DOMContentLoaded', () => {
             const uniqueUserNameInput = document.getElementById('uniqueUserName');
@@ -701,18 +792,26 @@
                 }
             });
         });
-        
+
         // 初期化時にヘルスチェック
         window.addEventListener('load', () => {
             loadUserNameFromStorage(); // ユーザー名を復元
             checkHealth();
             loadFiles(); // 初期化時にファイル履歴も読み込み
             
+            // SSE接続を開始
+            connectToSSE();
+
             // 保存されたユーザー名があれば、そのユーザーのファイルも読み込み
             const savedUserName = localStorage.getItem('mulmocast_user_name');
             if (savedUserName) {
                 setTimeout(() => loadUserFiles(), 1000);
             }
+        });
+        
+        // ページを離れる時にSSE接続を切断
+        window.addEventListener('beforeunload', () => {
+            disconnectSSE();
         });
     </script>
 </body>

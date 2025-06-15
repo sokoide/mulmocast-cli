@@ -179,18 +179,46 @@ const graphData = {
         text: ":reply.chatAgent.text.codeBlock()",
       },
     },
+    processedJson: {
+      agent: (namedInputs: { json: any }) => {
+        const { json } = namedInputs;
+        if (json && typeof json === 'object') {
+          // Add $mulmocast if missing
+          if (!json.$mulmocast) {
+            json.$mulmocast = {
+              version: "1.0",
+              credit: "closing"
+            };
+          }
+          // Ensure canvasSize exists
+          if (!json.canvasSize) {
+            json.canvasSize = {
+              width: 1536,
+              height: 1024
+            };
+          }
+        }
+        return { 
+          json: json,
+          text: JSON.stringify(json, null, 2)
+        };
+      },
+      inputs: {
+        json: ":json.json",
+      },
+    },
     debugJson: {
       agent: "consoleAgent",
       inputs: {
-        text: "JSON detected: ${:json.json}",
+        text: "JSON detected: ${:processedJson.json}",
       },
     },
     writeJSON: {
-      if: ":json.json",
+      if: ":processedJson.json",
       agent: "fileWriteAgent",
       inputs: {
         file: "${:outdir}/${:fileName}-${@now}.json",
-        text: ":json.text",
+        text: ":processedJson.text",
       },
     },
     writeLog: {

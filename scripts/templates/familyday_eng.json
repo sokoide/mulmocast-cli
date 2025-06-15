@@ -1,0 +1,42 @@
+{
+  "$mulmocast": {
+    "version": "1.0",
+    "credit": "closing"
+  },
+  "title": "Momotaro",
+  "lang": "en",
+  "beats": [
+    {
+      "text": "Once upon a time, there lived an old man and an old woman. The old man went to the mountains to cut grass, and the old woman went to the river to do laundry.",
+      "imagePrompt": "An old Japanese house with a thatched roof. A clear river flows nearby, and lush green mountains rise in the background. An elderly man with a sickle heads toward the mountains, while an elderly woman with a laundry basket walks toward the river. Gentle spring sunlight illuminates the peaceful countryside scene."
+    },
+    {
+      "text": "While the old woman was washing clothes at the river, a large peach came floating down from upstream. 'Oh my, what a big peach!' the old woman exclaimed in surprise.",
+      "imagePrompt": "An elderly woman washing clothes by the river. Blue sky and white clouds reflect on the water surface. An unusually large, vibrant red peach floating downstream. The grandmother looks at it with surprise. Laundry and stones scattered around the riverbank."
+    },
+    {
+      "text": "The old woman brought the peach home and said, 'Old man, I found a big peach!' When they tried to cut the peach, a healthy baby boy was born from inside.",
+      "imagePrompt": "Inside the house, an elderly couple lifts a baby high up with expressions of surprise and joy."
+    },
+    {
+      "text": "The couple named the boy 'Momotaro' and raised him with great care. Momotaro grew up strong and healthy, becoming a very powerful child.",
+      "imagePrompt": "A four-panel sequence showing the passage of time. Momotaro growing from baby to toddler to boy to young man. At each stage, the grandparents watch over him with loving care. In the final image, the strong grown-up Momotaro demonstrates his strength by lifting trees and carrying heavy stones."
+    },
+    {
+      "text": "One day, Momotaro heard that demons from Demon Island were attacking the village. He told his grandparents, 'I will go defeat the demons.'",
+      "imagePrompt": "Momotaro with his grandparents inside the house. Through the window, villagers run in terror, with flames and smoke visible in the distance. Momotaro stands with a determined expression, speaking to his grandparents. The elderly couple shows mixed expressions of concern and pride."
+    },
+    {
+      "text": "The grandmother made the finest kibidango dumplings in Japan for Momotaro. The grandfather gave him a magnificent sword and kimono.",
+      "imagePrompt": "Inside the house. Grandmother makes kibidango dumplings in the kitchen while grandfather takes out a sword and bright kimono from a paulownia box. Momotaro prepares himself. On the table, kibidango are wrapped in a small cloth bundle. Morning sunlight warmly illuminates the room through the shoji screens."
+    },
+    {
+      "text": "Saying 'I'm off!' Momotaro took the kibidango and headed toward Demon Island.",
+      "imagePrompt": "Momotaro departing from the front of the house. At his waist are a bag of kibidango and a sword, with a small flag on his back. Grandparents and villagers see him off. Momotaro gazes forward with a confident expression. In the morning mist, the path continues toward the mountains."
+    },
+    {
+      "text": "On the way, Momotaro met a dog. 'Momotaro, Momotaro, please give me one of those kibidango at your waist,' said the dog.",
+      "imagePrompt": "Momotaro walking along a mountain path. A large brown dog stands beside him. The dog wags its tail and looks up at Momotaro with an expectant expression. Spring flowers and lush green nature surround them. Momotaro smiles at the dog."
+    }
+  ]
+}

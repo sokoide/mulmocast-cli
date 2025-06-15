@@ -5,6 +5,29 @@ import { getAudioArtifactFilePath, getOutputVideoFilePath, writingMessage } from
 import { FfmpegContextAddInput, FfmpegContextInit, FfmpegContextPushFormattedAudio, FfmpegContextGenerateOutput } from "../utils/ffmpeg_utils.js";
 import { MulmoStudioContextMethods } from "../methods/mulmo_studio_context.js";
 
+// Helper function to determine language from template or script
+const getLanguageFromContext = (context: MulmoStudioContext): string | undefined => {
+  const script = context.studio.script;
+  
+  // First check if script has lang property
+  if (script.lang) {
+    return script.lang;
+  }
+  
+  // Then check template name patterns
+  // Look for template name in the script metadata or filename
+  const filename = context.studio.filename.toLowerCase();
+  
+  if (filename.includes('familyday_jpn')) {
+    return 'ja';
+  } else if (filename.includes('familyday_eng')) {
+    return 'en';
+  }
+  
+  // Could add more template patterns here in the future
+  return undefined;
+};
+
 // const isMac = process.platform === "darwin";
 const videoCodec = "libx264"; // "h264_videotoolbox" (macOS only) is too noisy
 
@@ -211,7 +234,9 @@ const createVideo = async (audioArtifactFilePath: string, outputVideoPath: strin
 
 export const movieFilePath = (context: MulmoStudioContext) => {
   const { studio, fileDirs, caption } = context;
-  return getOutputVideoFilePath(fileDirs.outDirPath, studio.filename, context.lang, caption);
+  // Use the same directory as the JSON file (which includes the user directory)
+  const outputDir = fileDirs.mulmoFileDirPath;
+  return getOutputVideoFilePath(outputDir, studio.filename, context.lang, caption);
 };
 
 export const movie = async (context: MulmoStudioContext) => {
@@ -219,6 +244,14 @@ export const movie = async (context: MulmoStudioContext) => {
   try {
     const { studio, fileDirs, caption } = context;
     const { outDirPath } = fileDirs;
+    
+    // Auto-detect language from template and update context if not already set
+    const detectedLang = getLanguageFromContext(context);
+    if (detectedLang && !context.lang && !context.caption) {
+      GraphAILogger.info(`Auto-detected language: ${detectedLang}`);
+      context.lang = detectedLang;
+      context.caption = detectedLang; // Set caption to the same language for subtitle generation
+    }
     
     // Check if images exist, if not, generate them first
     const missingImageIndex = studio.beats.findIndex((beat) => !beat.imageFile && !beat.movieFile);
@@ -229,7 +262,7 @@ export const movie = async (context: MulmoStudioContext) => {
     }
     
     // Check if audio exists, if not, generate it first
-    const audioArtifactFilePath = getAudioArtifactFilePath(outDirPath, studio.filename);
+    const audioArtifactFilePath = getAudioArtifactFilePath(fileDirs.mulmoFileDirPath, studio.filename);
     const fs = await import("fs");
     if (!fs.existsSync(audioArtifactFilePath)) {
       GraphAILogger.info(`Audio not found. Generating audio first...`);

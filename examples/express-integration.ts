@@ -36,6 +36,81 @@ interface GeneratedFile {
 
 const generatedFiles = new Map<string, GeneratedFile>();
 
+// SSE (Server-Sent Events) for real-time updates
+interface SSEClient {
+  response: Response;
+  userId?: string;
+}
+
+const sseClients: SSEClient[] = [];
+
+// Function to broadcast messages to all connected clients
+function broadcastToClients(message: string, userId?: string) {
+  const targetClients = userId 
+    ? sseClients.filter(client => client.userId === userId)
+    : sseClients;
+    
+  targetClients.forEach(client => {
+    try {
+      client.response.write(`data: ${JSON.stringify({ message, timestamp: Date.now(), userId })}\n\n`);
+    } catch (error) {
+      // Remove disconnected clients
+      const index = sseClients.indexOf(client);
+      if (index > -1) {
+        sseClients.splice(index, 1);
+      }
+    }
+  });
+}
+
+// Override console.log to broadcast messages to clients
+const originalConsoleLog = console.log;
+console.log = (...args: any[]) => {
+  const message = args.map(arg => 
+    typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+  ).join(' ');
+  
+  // Only broadcast meaningful messages (filter out verbose logs)
+  if (message.includes('Agent:') || 
+      message.includes('ERROR:') || 
+      message.includes('Generated') ||
+      message.includes('Creating') ||
+      message.includes('Processing') ||
+      message.includes('Retry') ||
+      message.includes('Images not found') ||
+      message.includes('Audio not found') ||
+      message.includes('Auto-detected language') ||
+      message.includes('script was broken') ||
+      message.includes('Generating') ||
+      message.includes('Video created') ||
+      message.includes('completing') ||
+      message.includes('starting')) {
+    broadcastToClients(message);
+  }
+  
+  // Call original console.log
+  originalConsoleLog.apply(console, args);
+};
+
+// Also override console.error and console.warn
+const originalConsoleError = console.error;
+console.error = (...args: any[]) => {
+  const message = args.map(arg => 
+    typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+  ).join(' ');
+  broadcastToClients(`ERROR: ${message}`);
+  originalConsoleError.apply(console, args);
+};
+
+const originalConsoleWarn = console.warn;
+console.warn = (...args: any[]) => {
+  const message = args.map(arg => 
+    typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+  ).join(' ');
+  broadcastToClients(`WARNING: ${message}`);
+  originalConsoleWarn.apply(console, args);
+};
+
 interface ScriptRequest {
   input: string;
   template?: string;
@@ -303,6 +378,39 @@ app.post('/api/mulmocast/pdf-from-file', async (req: Request<{}, {}, FileBasedRe
       details: (error as Error).message 
     });
   }
+});
+
+// SSE endpoint for real-time updates
+app.get('/api/mulmocast/events', (req: Request, res: Response) => {
+  const userId = req.query.userId as string;
+  
+  // Set up SSE headers
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Cache-Control'
+  });
+
+  // Add client to the list
+  const client: SSEClient = { response: res, userId };
+  sseClients.push(client);
+
+  // Send initial connection message
+  res.write(`data: ${JSON.stringify({ 
+    message: `Connected to real-time updates${userId ? ` for user ${userId}` : ''}`, 
+    timestamp: Date.now(),
+    type: 'connection'
+  })}\n\n`);
+
+  // Handle client disconnect
+  req.on('close', () => {
+    const index = sseClients.indexOf(client);
+    if (index > -1) {
+      sseClients.splice(index, 1);
+    }
+  });
 });
 
 // Health check

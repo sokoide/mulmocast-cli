@@ -198,8 +198,8 @@ const agentFilters = [
 
 export const audioFilePath = (context: MulmoStudioContext) => {
   const { studio, fileDirs } = context;
-  const { outDirPath } = fileDirs;
-  return getAudioArtifactFilePath(outDirPath, studio.filename);
+  const { mulmoFileDirPath } = fileDirs;
+  return getAudioArtifactFilePath(mulmoFileDirPath, studio.filename);
 };
 
 export const audio = async (context: MulmoStudioContext, callbacks?: CallbackFunction[]) => {
