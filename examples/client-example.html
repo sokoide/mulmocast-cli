@@ -170,7 +170,7 @@
             </div> -->
 
             <div class="form-group">
-                <label for="uniqueUserName">Unique User名:</label>
+                <label for="uniqueUserName">Unique User Name:</label>
                 <input type="text" id="uniqueUserName" placeholder="e.g.: john_doe" required>
                 <small style="display: block; color: #666; margin-top: 5px;">
                     This will be a directory name. Only English characters + '_' is allowed.
@@ -202,7 +202,7 @@
             <p>Generate Video or PDF using an existing JSON File</p>
 
             <div class="form-group">
-                <label for="userDirectoryInput">ユーザーディレクトリ:</label>
+                <label for="userDirectoryInput">User Directory:</label>
                 <div style="display: flex; gap: 10px; align-items: center;">
                     <input type="text" id="userDirectoryInput" placeholder="e.g.: john_doe" style="flex: 1;">
                     <button type="button" onclick="loadUserFiles()" style="flex: 0 0 auto;">Get Files</button>
@@ -272,6 +272,15 @@
         <div id="fileHistory" style="display: none;">
             <h2>📁 生成済みファイル</h2>
             <div id="fileList"></div>
+        </div>
+
+        <div id="mediaHistory" style="display: none; margin-top: 30px;">
+            <h2>🎬 生成済みメディアファイル</h2>
+            <div style="margin-bottom: 15px;">
+                <input type="text" id="mediaUserInput" placeholder="ユーザー名を入力" style="padding: 8px; margin-right: 10px;">
+                <button onclick="loadUserMedia()" style="padding: 8px 15px;">メディアファイル取得</button>
+            </div>
+            <div id="mediaList"></div>
         </div>
 
         <div id="realTimeMessages" style="margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; background: #f9f9f9; display: none;">
@@ -802,6 +811,111 @@
             localStorage.setItem('mulmocast_user_name', userName);
         }
 
+        // メディアファイル読み込み
+        async function loadUserMedia() {
+            const userName = document.getElementById('mediaUserInput').value.trim();
+
+            if (!userName) {
+                showResult('❌ ユーザー名を入力してください', 'error');
+                return;
+            }
+
+            showLoading(`${userName}のメディアファイルを読み込み中...`);
+            try {
+                const result = await makeRequest(`/mulmocast/user-media/${userName}`);
+                displayUserMedia(result.data);
+                showResult(`✅ ${userName}のメディアファイルを読み込みました`);
+                
+                // メディアセクションを表示
+                document.getElementById('mediaHistory').style.display = 'block';
+            } catch (error) {
+                showResult(`❌ ${userName}のメディアファイル読み込み失敗: ${error.message}`, 'error');
+            }
+        }
+
+        // メディアファイル表示
+        function displayUserMedia(mediaFiles) {
+            const mediaListDiv = document.getElementById('mediaList');
+
+            if (mediaFiles.length === 0) {
+                mediaListDiv.innerHTML = '<p>メディアファイルがありません。</p>';
+                return;
+            }
+
+            // ファイルサイズをフォーマット
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+
+            mediaListDiv.innerHTML = mediaFiles.map(file => `
+                <div class="file-item" style="margin-bottom: 15px;">
+                    <div class="file-header">
+                        <span class="file-id">${file.name}</span>
+                        <span class="file-status status-${file.type}">${file.type.toUpperCase()}</span>
+                    </div>
+                    <div style="font-size: 12px; color: #999; margin-bottom: 10px;">
+                        サイズ: ${formatFileSize(file.size)} | 
+                        生成日時: ${new Date(file.timestamp).toLocaleString('ja-JP')}
+                    </div>
+                    <div class="file-actions">
+                        <button onclick="downloadFile('${file.path}')" style="background: #28a745;">
+                            ${file.type === 'video' ? '🎬' : '📄'} ダウンロード
+                        </button>
+                        ${file.type === 'video' ? `<button onclick="previewVideo('${file.path}')" style="background: #17a2b8;">👁️ プレビュー</button>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ファイルダウンロード
+        function downloadFile(filePath) {
+            // filePath format: "output/userName/fileName"
+            const pathParts = filePath.split('/');
+            const userName = pathParts[1];
+            const fileName = pathParts[2];
+            
+            const downloadUrl = `${API_BASE}/mulmocast/download/${userName}/${fileName}`;
+            
+            // ダウンロードリンクを作成してクリック
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showResult(`✅ ${fileName} のダウンロードを開始しました`, 'success');
+        }
+
+        // 動画プレビュー
+        function previewVideo(filePath) {
+            const pathParts = filePath.split('/');
+            const userName = pathParts[1];
+            const fileName = pathParts[2];
+            
+            const videoUrl = `http://localhost:3000/${filePath}`;
+            
+            // 新しいウィンドウで動画を開く
+            const previewWindow = window.open('', '_blank', 'width=800,height=600');
+            previewWindow.document.write(`
+                <html>
+                    <head><title>Video Preview: ${fileName}</title></head>
+                    <body style="margin: 0; padding: 20px; font-family: Arial, sans-serif;">
+                        <h2>Video Preview: ${fileName}</h2>
+                        <video width="100%" height="auto" controls>
+                            <source src="${videoUrl}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    </body>
+                </html>
+            `);
+            previewWindow.document.close();
+        }
+
         // ユーザー名入力時に自動保存
         document.addEventListener('DOMContentLoaded', () => {
             const uniqueUserNameInput = document.getElementById('uniqueUserName');
@@ -825,6 +939,10 @@
             const savedUserName = localStorage.getItem('mulmocast_user_name');
             if (savedUserName) {
                 setTimeout(() => loadUserFiles(), 1000);
+                
+                // メディアファイル入力欄にもユーザー名を設定
+                document.getElementById('mediaUserInput').value = savedUserName;
+                setTimeout(() => loadUserMedia(), 1500);
             }
         });
 

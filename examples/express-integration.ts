@@ -8,6 +8,9 @@ app.use(express.json());
 // Serve static files (HTML, CSS, JS) from examples directory
 app.use('/client', express.static('./examples'));
 
+// Serve output files for download and preview
+app.use('/output', express.static('./output'));
+
 // CORS configuration for browser clients
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
@@ -346,6 +349,69 @@ app.get('/api/mulmocast/user-files/:userName', async (req: Request, res: Respons
     console.error('Get user files error:', error);
     res.status(500).json({
       error: 'Failed to get user files',
+      details: (error as Error).message
+    });
+  }
+});
+
+// Get user's media files (MP4, PDF)
+app.get('/api/mulmocast/user-media/:userName', async (req: Request, res: Response) => {
+  try {
+    const { userName } = req.params;
+
+    if (!userName) {
+      return res.status(400).json({ error: 'User name is required' });
+    }
+
+    const mediaFiles = await mulmocastService.getUserMediaFiles(userName);
+
+    res.json({
+      success: true,
+      data: mediaFiles
+    });
+  } catch (error) {
+    console.error('Get user media files error:', error);
+    res.status(500).json({
+      error: 'Failed to get user media files',
+      details: (error as Error).message
+    });
+  }
+});
+
+// Download file endpoint
+app.get('/api/mulmocast/download/:userName/:fileName', async (req: Request, res: Response) => {
+  try {
+    const { userName, fileName } = req.params;
+    const path = await import('path');
+    const fs = await import('fs');
+
+    if (!userName || !fileName) {
+      return res.status(400).json({ error: 'User name and file name are required' });
+    }
+
+    // Security check: only allow mp4 and pdf files
+    if (!fileName.endsWith('.mp4') && !fileName.endsWith('.pdf')) {
+      return res.status(400).json({ error: 'Only MP4 and PDF files are allowed for download' });
+    }
+
+    const filePath = path.join(process.cwd(), 'output', userName, fileName);
+    
+    // Check if file exists
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+
+    // Set appropriate headers for download
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+    res.setHeader('Content-Type', fileName.endsWith('.mp4') ? 'video/mp4' : 'application/pdf');
+    
+    // Stream the file
+    const fileStream = fs.createReadStream(filePath);
+    fileStream.pipe(res);
+  } catch (error) {
+    console.error('Download file error:', error);
+    res.status(500).json({
+      error: 'Failed to download file',
       details: (error as Error).message
     });
   }
