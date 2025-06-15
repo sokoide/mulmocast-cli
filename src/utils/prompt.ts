@@ -3,7 +3,11 @@ import { mulmoScriptSchema } from "../types/schema.js";
 import { zodToJsonSchema } from "zod-to-json-schema";
 
 export const imagePrompt = (beat: MulmoBeat, style?: string) => {
-  return (beat.imagePrompt || `generate image appropriate for the text. text: ${beat.text}`) + "\n" + (style || "");
+  const basePrompt = beat.imagePrompt || `generate image appropriate for the text. text: ${beat.text}`;
+  
+  // For Google Imagen3, keep prompts concise and don't append long style descriptions
+  // The style will be handled separately in the image generation parameters
+  return basePrompt;
 };
 
 // sourceTextInput: ${:sourceText.text}

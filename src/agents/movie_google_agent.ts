@@ -11,9 +11,9 @@ async function generateMovie(
   aspectRatio: string,
   duration: number,
 ): Promise<Buffer | undefined> {
-  // TODO: sokoide
-  // const GOOGLE_IMAGEN_ENDPOINT = `https://us-central1-aiplatform.googleapis.com/v1/projects/${projectId}/locations/us-central1/publishers/google/models/${model}`;
-  const GOOGLE_IMAGEN_ENDPOINT = `https://asia-northeast1-aiplatform.googleapis.com/v1/projects/${projectId}/locations/asia-northeast1/publishers/google/models/${model}`;
+  const GOOGLE_IMAGEN_ENDPOINT = `https://us-central1-aiplatform.googleapis.com/v1/projects/${projectId}/locations/us-central1/publishers/google/models/${model}`;
+  // TODO: sokoide, Vertex API doesn't work in Asia
+  // const GOOGLE_IMAGEN_ENDPOINT = `https://asia-northeast1-aiplatform.googleapis.com/v1/projects/${projectId}/locations/asia-northeast1/publishers/google/models/${model}`;
 
   const payload = {
     instances: [
