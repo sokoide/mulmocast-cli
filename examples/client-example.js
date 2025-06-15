@@ -75,6 +75,26 @@ class MulmocastClient {
       }
     });
   }
+
+  async getFiles() {
+    return await this.makeRequest('/mulmocast/files');
+  }
+
+  async generateVideoFromFile(fileId, options = {}) {
+    return await this.makeRequest('/mulmocast/video-from-file', {
+      fileId,
+      options
+    });
+  }
+
+  async generatePdfFromFile(fileId, pdfMode = 'slide', pdfSize = 'letter', options = {}) {
+    return await this.makeRequest('/mulmocast/pdf-from-file', {
+      fileId,
+      pdfMode,
+      pdfSize,
+      options
+    });
+  }
 }
 
 // Usage example (for browser console or module)

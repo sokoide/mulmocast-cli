@@ -23,6 +23,19 @@ app.use((req, res, next) => {
 
 const mulmocastService = new MulmocastService();
 
+// Store generated files in memory (in production, use database)
+interface GeneratedFile {
+  id: string;
+  filename: string;
+  scriptPath: string;
+  timestamp: number;
+  input: string;
+  template: string;
+  status: 'script' | 'video' | 'pdf' | 'all';
+}
+
+const generatedFiles = new Map<string, GeneratedFile>();
+
 interface ScriptRequest {
   input: string;
   template?: string;
@@ -47,6 +60,11 @@ interface GenerateAllRequest {
   options?: any;
 }
 
+interface FileBasedRequest {
+  fileId: string;
+  options?: any;
+}
+
 // Generate script only
 app.post('/api/mulmocast/script', async (req: Request<{}, {}, ScriptRequest>, res: Response) => {
   try {
@@ -61,9 +79,25 @@ app.post('/api/mulmocast/script', async (req: Request<{}, {}, ScriptRequest>, re
       ...options
     });
 
+    // Store generated file info
+    const fileId = `${options.filename || 'story'}-${result.timestamp}`;
+    const generatedFile: GeneratedFile = {
+      id: fileId,
+      filename: options.filename || 'story',
+      scriptPath: result.scriptPath,
+      timestamp: parseInt(result.timestamp),
+      input,
+      template: template || 'familyday_jpn',
+      status: 'script'
+    };
+    generatedFiles.set(fileId, generatedFile);
+
     res.json({
       success: true,
-      data: result
+      data: {
+        ...result,
+        fileId
+      }
     });
   } catch (error) {
     console.error('Script generation error:', error);
@@ -155,6 +189,122 @@ app.post('/api/mulmocast/generate-all', async (req: Request<{}, {}, GenerateAllR
   }
 });
 
+// Get list of generated files
+app.get('/api/mulmocast/files', (req: Request, res: Response) => {
+  const files = Array.from(generatedFiles.values()).map(file => ({
+    id: file.id,
+    filename: file.filename,
+    timestamp: file.timestamp,
+    input: file.input.substring(0, 100) + (file.input.length > 100 ? '...' : ''),
+    template: file.template,
+    status: file.status,
+    scriptPath: file.scriptPath
+  }));
+  
+  res.json({
+    success: true,
+    data: files.sort((a, b) => b.timestamp - a.timestamp) // newest first
+  });
+});
+
+// Get user's JSON files
+app.get('/api/mulmocast/user-files/:userName', async (req: Request, res: Response) => {
+  try {
+    const { userName } = req.params;
+    
+    if (!userName) {
+      return res.status(400).json({ error: 'User name is required' });
+    }
+
+    const files = await mulmocastService.getUserFiles(userName);
+
+    res.json({
+      success: true,
+      data: files
+    });
+  } catch (error) {
+    console.error('Get user files error:', error);
+    res.status(500).json({ 
+      error: 'Failed to get user files',
+      details: (error as Error).message 
+    });
+  }
+});
+
+// Generate video from existing script file
+app.post('/api/mulmocast/video-from-file', async (req: Request<{}, {}, FileBasedRequest>, res: Response) => {
+  try {
+    const { fileId, options = {} } = req.body;
+    
+    if (!fileId) {
+      return res.status(400).json({ error: 'File ID is required' });
+    }
+
+    const generatedFile = generatedFiles.get(fileId);
+    if (!generatedFile) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+
+    const result = await mulmocastService.generateVideo(generatedFile.scriptPath, options);
+
+    // Update status
+    generatedFile.status = 'video';
+    generatedFiles.set(fileId, generatedFile);
+
+    res.json({
+      success: true,
+      data: {
+        ...result,
+        fileId,
+        scriptPath: generatedFile.scriptPath
+      }
+    });
+  } catch (error) {
+    console.error('Video generation error:', error);
+    res.status(500).json({ 
+      error: 'Failed to generate video',
+      details: (error as Error).message 
+    });
+  }
+});
+
+// Generate PDF from existing script file
+app.post('/api/mulmocast/pdf-from-file', async (req: Request<{}, {}, FileBasedRequest & { pdfMode?: string; pdfSize?: string }>, res: Response) => {
+  try {
+    const { fileId, pdfMode = 'slide', pdfSize = 'letter', options = {} } = req.body;
+    
+    if (!fileId) {
+      return res.status(400).json({ error: 'File ID is required' });
+    }
+
+    const generatedFile = generatedFiles.get(fileId);
+    if (!generatedFile) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+
+    const result = await mulmocastService.generatePdf(generatedFile.scriptPath, pdfMode, pdfSize);
+
+    // Update status
+    generatedFile.status = 'pdf';
+    generatedFiles.set(fileId, generatedFile);
+
+    res.json({
+      success: true,
+      data: {
+        ...result,
+        fileId,
+        scriptPath: generatedFile.scriptPath
+      }
+    });
+  } catch (error) {
+    console.error('PDF generation error:', error);
+    res.status(500).json({ 
+      error: 'Failed to generate PDF',
+      details: (error as Error).message 
+    });
+  }
+});
+
 // Health check
 app.get('/api/health', (req: Request, res: Response) => {
   res.json({ status: 'OK', service: 'mulmocast-api' });
@@ -165,7 +315,11 @@ app.listen(PORT, () => {
   console.log(`🚀 Mulmocast API server running on port ${PORT}`);
   console.log(`📋 API Endpoints:`);
   console.log(`   - Health: http://localhost:${PORT}/api/health`);
+  console.log(`   - Files: http://localhost:${PORT}/api/mulmocast/files`);
+  console.log(`   - User Files: http://localhost:${PORT}/api/mulmocast/user-files/:userName`);
   console.log(`   - Script: http://localhost:${PORT}/api/mulmocast/script`);
+  console.log(`   - Video (from file): http://localhost:${PORT}/api/mulmocast/video-from-file`);
+  console.log(`   - PDF (from file): http://localhost:${PORT}/api/mulmocast/pdf-from-file`);
   console.log(`   - All: http://localhost:${PORT}/api/mulmocast/generate-all`);
   console.log(`🌐 Web Client: http://localhost:${PORT}/client/client-example.html`);
   console.log('');

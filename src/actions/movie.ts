@@ -80,9 +80,10 @@ const createVideo = async (audioArtifactFilePath: string, outputVideoPath: strin
   const start = performance.now();
   const ffmpegContext = FfmpegContextInit();
 
+  // Final check after potential image generation
   const missingIndex = studio.beats.findIndex((beat) => !beat.imageFile && !beat.movieFile);
   if (missingIndex !== -1) {
-    GraphAILogger.info(`ERROR: beat.imageFile or beat.movieFile is not set on beat ${missingIndex}.`);
+    GraphAILogger.info(`ERROR: beat.imageFile or beat.movieFile is not set on beat ${missingIndex} after image generation.`);
     return false;
   }
 
@@ -218,7 +219,24 @@ export const movie = async (context: MulmoStudioContext) => {
   try {
     const { studio, fileDirs, caption } = context;
     const { outDirPath } = fileDirs;
+    
+    // Check if images exist, if not, generate them first
+    const missingImageIndex = studio.beats.findIndex((beat) => !beat.imageFile && !beat.movieFile);
+    if (missingImageIndex !== -1) {
+      GraphAILogger.info(`Images not found. Generating images first...`);
+      const { images } = await import("./images.js");
+      await images(context);
+    }
+    
+    // Check if audio exists, if not, generate it first
     const audioArtifactFilePath = getAudioArtifactFilePath(outDirPath, studio.filename);
+    const fs = await import("fs");
+    if (!fs.existsSync(audioArtifactFilePath)) {
+      GraphAILogger.info(`Audio not found. Generating audio first...`);
+      const { audio } = await import("./audio.js");
+      await audio(context);
+    }
+    
     const outputVideoPath = movieFilePath(context);
 
     if (await createVideo(audioArtifactFilePath, outputVideoPath, studio, caption)) {

@@ -51,8 +51,9 @@
             background: #0056b3;
         }
         button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
+            background: #6c757d !important;
+            cursor: not-allowed !important;
+            opacity: 0.8;
         }
         .result {
             margin-top: 20px;
@@ -85,9 +86,57 @@
             align-items: center;
             font-weight: normal;
         }
-        .checkbox-group input[type="checkbox"] {
+        .checkbox-group input[type="checkbox"], 
+        .checkbox-group input[type="radio"] {
             width: auto;
             margin-right: 5px;
+        }
+        #fileHistory {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: #f9f9f9;
+        }
+        .file-item {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #e0e0e0;
+        }
+        .file-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .file-id {
+            font-weight: bold;
+            color: #007bff;
+        }
+        .file-status {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-script { background: #d4edda; color: #155724; }
+        .status-video { background: #d1ecf1; color: #0c5460; }
+        .status-pdf { background: #f8d7da; color: #721c24; }
+        .status-all { background: #e2e3e5; color: #383d41; }
+        .file-input {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .file-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .file-actions button {
+            padding: 6px 12px;
+            font-size: 12px;
         }
     </style>
 </head>
@@ -122,8 +171,16 @@
             </div>
             
             <div class="form-group">
+                <label for="uniqueUserName">Unique User名:</label>
+                <input type="text" id="uniqueUserName" placeholder="例: user001, john_doe" required>
+                <small style="display: block; color: #666; margin-top: 5px;">
+                    このユーザー名でディレクトリが作成され、ファイルが管理されます
+                </small>
+            </div>
+            
+            <div class="form-group">
                 <label for="filename">ファイル名:</label>
-                <input type="text" id="filename" value="client-test" placeholder="例: my-story">
+                <input type="text" id="filename" value="story" placeholder="例: my-story">
             </div>
             
             <div class="form-group">
@@ -138,7 +195,73 @@
             <button type="button" onclick="generateScript()">スクリプト生成</button>
             <button type="button" onclick="generateAll()">一括生成</button>
             <button type="button" onclick="checkHealth()">ヘルスチェック</button>
+            <button type="button" onclick="loadFiles()">ファイル履歴を読み込み</button>
         </form>
+        
+        <div class="container" style="margin-top: 30px; padding: 20px; border: 1px solid #ddd; border-radius: 5px; background: #f8f9fa;">
+            <h2>📄 JSONファイル指定生成</h2>
+            <p>既存のJSONファイルパスを指定して動画またはPDFを生成します。</p>
+            
+            <div class="form-group">
+                <label for="userDirectoryInput">ユーザーディレクトリ:</label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="text" id="userDirectoryInput" placeholder="例: user001" style="flex: 1;">
+                    <button type="button" onclick="loadUserFiles()" style="flex: 0 0 auto;">ファイル取得</button>
+                </div>
+                <small style="display: block; color: #666; margin-top: 5px;">
+                    ユーザー名を入力して、そのユーザーのJSONファイル一覧を取得
+                </small>
+            </div>
+            
+            <div class="form-group" id="userFileSelectGroup" style="display: none;">
+                <label for="userFileSelect">JSONファイル選択:</label>
+                <select id="userFileSelect" onchange="updateJsonPathFromSelect()">
+                    <option value="">-- ファイルを選択 --</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="jsonFilePath">JSONファイルパス（手動入力）:</label>
+                <input type="text" id="jsonFilePath" placeholder="例: output/user001/story-1749978050780.json" 
+                       style="font-family: monospace;">
+                <small style="display: block; color: #666; margin-top: 5px;">
+                    上でファイル選択するか、直接パスを入力してください
+                </small>
+            </div>
+            
+            <div class="form-group">
+                <label>生成タイプ:</label>
+                <div class="checkbox-group">
+                    <label><input type="radio" name="generateType" value="video" checked> 動画</label>
+                    <label><input type="radio" name="generateType" value="pdf"> PDF</label>
+                </div>
+            </div>
+            
+            <div id="pdfOptions" style="display: none;">
+                <div class="form-group">
+                    <label for="pdfMode">PDFモード:</label>
+                    <select id="pdfMode">
+                        <option value="slide">slide</option>
+                        <option value="book">book</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="pdfSize">PDFサイズ:</label>
+                    <select id="pdfSize">
+                        <option value="letter">letter</option>
+                        <option value="a4">a4</option>
+                        <option value="legal">legal</option>
+                    </select>
+                </div>
+            </div>
+            
+            <button type="button" onclick="generateFromJsonPath()">ファイル指定で生成</button>
+        </div>
+        
+        <div id="fileHistory" style="display: none;">
+            <h2>📁 生成済みファイル</h2>
+            <div id="fileList"></div>
+        </div>
         
         <div id="result"></div>
     </div>
@@ -197,12 +320,27 @@
             const input = document.getElementById('storyInput').value;
             const template = document.getElementById('template').value;
             const llm = document.getElementById('llm').value;
+            const uniqueUserName = document.getElementById('uniqueUserName').value.trim();
             const filename = document.getElementById('filename').value;
+            
+            const scriptButton = document.querySelector('button[onclick="generateScript()"]');
+            const originalText = scriptButton.textContent;
             
             if (!input.trim()) {
                 showResult('❌ ストーリーを入力してください', 'error');
                 return;
             }
+            
+            if (!uniqueUserName) {
+                showResult('❌ Unique User名を入力してください', 'error');
+                return;
+            }
+            
+            // ボタンを無効化して「生成中」表示
+            scriptButton.disabled = true;
+            scriptButton.textContent = '🔄 スクリプト生成中...';
+            scriptButton.style.backgroundColor = '#6c757d';
+            scriptButton.style.cursor = 'not-allowed';
             
             showLoading('スクリプト生成中...');
             try {
@@ -211,13 +349,27 @@
                     template,
                     options: {
                         llm,
-                        filename
+                        filename,
+                        uniqueUserName
                     }
                 });
                 
                 showResult(`✅ スクリプト生成成功!\n${JSON.stringify(result, null, 2)}`);
+                
+                // 生成後、自動でユーザーファイルを更新
+                const userDirInput = document.getElementById('userDirectoryInput');
+                if (!userDirInput.value) {
+                    userDirInput.value = uniqueUserName;
+                    await loadUserFiles();
+                }
             } catch (error) {
                 showResult(`❌ スクリプト生成失敗: ${error.message}`, 'error');
+            } finally {
+                // ボタンを元に戻す
+                scriptButton.disabled = false;
+                scriptButton.textContent = originalText;
+                scriptButton.style.backgroundColor = '';
+                scriptButton.style.cursor = '';
             }
         }
         
@@ -225,7 +377,11 @@
             const input = document.getElementById('storyInput').value;
             const template = document.getElementById('template').value;
             const llm = document.getElementById('llm').value;
+            const uniqueUserName = document.getElementById('uniqueUserName').value.trim();
             const filename = document.getElementById('filename').value;
+            
+            const allButton = document.querySelector('button[onclick="generateAll()"]');
+            const originalText = allButton.textContent;
             
             const outputs = [];
             if (document.getElementById('outputScript').checked) outputs.push('script');
@@ -237,10 +393,21 @@
                 return;
             }
             
+            if (!uniqueUserName) {
+                showResult('❌ Unique User名を入力してください', 'error');
+                return;
+            }
+            
             if (outputs.length === 0) {
                 showResult('❌ 少なくとも1つの出力を選択してください', 'error');
                 return;
             }
+            
+            // ボタンを無効化して「生成中」表示
+            allButton.disabled = true;
+            allButton.textContent = `🔄 一括生成中... (${outputs.join(', ')})`;
+            allButton.style.backgroundColor = '#6c757d';
+            allButton.style.cursor = 'not-allowed';
             
             showLoading(`一括生成中... (${outputs.join(', ')})`);
             try {
@@ -250,19 +417,302 @@
                     outputs,
                     options: {
                         llm,
-                        filename
+                        filename,
+                        uniqueUserName
                     }
                 });
                 
                 showResult(`✅ 一括生成成功!\n${JSON.stringify(result, null, 2)}`);
+                
+                // 生成後、自動でユーザーファイルを更新
+                const userDirInput = document.getElementById('userDirectoryInput');
+                if (!userDirInput.value) {
+                    userDirInput.value = uniqueUserName;
+                    await loadUserFiles();
+                }
             } catch (error) {
                 showResult(`❌ 一括生成失敗: ${error.message}`, 'error');
+            } finally {
+                // ボタンを元に戻す
+                allButton.disabled = false;
+                allButton.textContent = originalText;
+                allButton.style.backgroundColor = '';
+                allButton.style.cursor = '';
             }
         }
         
+        async function loadFiles() {
+            showLoading('ファイル履歴を読み込み中...');
+            try {
+                const result = await makeRequest('/mulmocast/files');
+                displayFiles(result.data);
+                showResult('✅ ファイル履歴を読み込みました');
+            } catch (error) {
+                showResult(`❌ ファイル履歴の読み込み失敗: ${error.message}`, 'error');
+            }
+        }
+        
+        function displayFiles(files) {
+            const fileHistoryDiv = document.getElementById('fileHistory');
+            const fileListDiv = document.getElementById('fileList');
+            
+            if (files.length === 0) {
+                fileListDiv.innerHTML = '<p>生成されたファイルがありません。</p>';
+            } else {
+                fileListDiv.innerHTML = files.map(file => `
+                    <div class="file-item">
+                        <div class="file-header">
+                            <span class="file-id">${file.id}</span>
+                            <span class="file-status status-${file.status}">${file.status.toUpperCase()}</span>
+                        </div>
+                        <div class="file-input">${file.input}</div>
+                        <div style="font-size: 12px; color: #999; margin-bottom: 10px;">
+                            テンプレート: ${file.template} | 
+                            生成日時: ${new Date(file.timestamp).toLocaleString('ja-JP')}
+                        </div>
+                        <div class="file-actions">
+                            <button onclick="generateVideoFromFile('${file.id}')">動画生成</button>
+                            <button onclick="generatePdfFromFile('${file.id}')">PDF生成</button>
+                            <button onclick="copyPathToInput('${file.scriptPath}')">パスをコピー</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            fileHistoryDiv.style.display = 'block';
+        }
+        
+        async function generateVideoFromFile(fileId) {
+            const button = event.target;
+            const originalText = button.textContent;
+            
+            // ボタンを無効化して「生成中」表示
+            button.disabled = true;
+            button.textContent = '🔄 動画生成中...';
+            button.style.backgroundColor = '#6c757d';
+            button.style.cursor = 'not-allowed';
+            
+            showLoading(`動画生成中... (ファイル: ${fileId})`);
+            try {
+                const result = await makeRequest('/mulmocast/video-from-file', {
+                    fileId
+                });
+                
+                showResult(`✅ 動画生成成功!\n${JSON.stringify(result, null, 2)}`);
+                // Reload files to update status
+                await loadFiles();
+            } catch (error) {
+                showResult(`❌ 動画生成失敗: ${error.message}`, 'error');
+            } finally {
+                // ボタンを元に戻す
+                button.disabled = false;
+                button.textContent = originalText;
+                button.style.backgroundColor = '';
+                button.style.cursor = '';
+            }
+        }
+        
+        async function generatePdfFromFile(fileId) {
+            const button = event.target;
+            const originalText = button.textContent;
+            
+            // ボタンを無効化して「生成中」表示
+            button.disabled = true;
+            button.textContent = '🔄 PDF生成中...';
+            button.style.backgroundColor = '#6c757d';
+            button.style.cursor = 'not-allowed';
+            
+            showLoading(`PDF生成中... (ファイル: ${fileId})`);
+            try {
+                const result = await makeRequest('/mulmocast/pdf-from-file', {
+                    fileId,
+                    pdfMode: 'slide',
+                    pdfSize: 'letter'
+                });
+                
+                showResult(`✅ PDF生成成功!\n${JSON.stringify(result, null, 2)}`);
+                // Reload files to update status
+                await loadFiles();
+            } catch (error) {
+                showResult(`❌ PDF生成失敗: ${error.message}`, 'error');
+            } finally {
+                // ボタンを元に戻す
+                button.disabled = false;
+                button.textContent = originalText;
+                button.style.backgroundColor = '';
+                button.style.cursor = '';
+            }
+        }
+        
+        async function generateFromJsonPath() {
+            const jsonFilePath = document.getElementById('jsonFilePath').value.trim();
+            const generateType = document.querySelector('input[name="generateType"]:checked').value;
+            
+            const jsonButton = document.querySelector('button[onclick="generateFromJsonPath()"]');
+            const originalText = jsonButton.textContent;
+            
+            if (!jsonFilePath) {
+                showResult('❌ JSONファイルパスを入力してください', 'error');
+                return;
+            }
+            
+            // ボタンを無効化して「生成中」表示
+            jsonButton.disabled = true;
+            jsonButton.textContent = `🔄 ${generateType === 'video' ? '動画' : 'PDF'}生成中...`;
+            jsonButton.style.backgroundColor = '#6c757d';
+            jsonButton.style.cursor = 'not-allowed';
+            
+            try {
+                let result;
+                if (generateType === 'video') {
+                    showLoading(`動画生成中... (ファイル: ${jsonFilePath})`);
+                    result = await makeRequest('/mulmocast/video', {
+                        scriptPath: jsonFilePath
+                    });
+                    showResult(`✅ 動画生成成功!\n${JSON.stringify(result, null, 2)}`);
+                } else if (generateType === 'pdf') {
+                    const pdfMode = document.getElementById('pdfMode').value;
+                    const pdfSize = document.getElementById('pdfSize').value;
+                    
+                    showLoading(`PDF生成中... (ファイル: ${jsonFilePath})`);
+                    result = await makeRequest('/mulmocast/pdf', {
+                        scriptPath: jsonFilePath,
+                        pdfMode,
+                        pdfSize
+                    });
+                    showResult(`✅ PDF生成成功!\n${JSON.stringify(result, null, 2)}`);
+                }
+            } catch (error) {
+                showResult(`❌ ${generateType === 'video' ? '動画' : 'PDF'}生成失敗: ${error.message}`, 'error');
+            } finally {
+                // ボタンを元に戻す
+                jsonButton.disabled = false;
+                jsonButton.textContent = originalText;
+                jsonButton.style.backgroundColor = '';
+                jsonButton.style.cursor = '';
+            }
+        }
+        
+        // PDF/動画タイプ選択時の処理
+        function handleGenerateTypeChange() {
+            const generateType = document.querySelector('input[name="generateType"]:checked').value;
+            const pdfOptions = document.getElementById('pdfOptions');
+            pdfOptions.style.display = generateType === 'pdf' ? 'block' : 'none';
+        }
+        
+        async function loadUserFiles() {
+            const userName = document.getElementById('userDirectoryInput').value.trim();
+            
+            if (!userName) {
+                showResult('❌ ユーザー名を入力してください', 'error');
+                return;
+            }
+            
+            showLoading(`${userName}のファイルを読み込み中...`);
+            try {
+                const result = await makeRequest(`/mulmocast/user-files/${userName}`);
+                displayUserFiles(result.data);
+                showResult(`✅ ${userName}のファイルを読み込みました`);
+            } catch (error) {
+                showResult(`❌ ${userName}のファイル読み込み失敗: ${error.message}`, 'error');
+            }
+        }
+        
+        function displayUserFiles(files) {
+            const userFileSelectGroup = document.getElementById('userFileSelectGroup');
+            const userFileSelect = document.getElementById('userFileSelect');
+            
+            // セレクトボックスをクリア
+            userFileSelect.innerHTML = '<option value="">-- ファイルを選択 --</option>';
+            
+            if (files.length === 0) {
+                userFileSelectGroup.style.display = 'none';
+                showResult('このユーザーのファイルが見つかりませんでした', 'error');
+                return;
+            }
+            
+            // ファイルを追加
+            files.forEach(file => {
+                const option = document.createElement('option');
+                option.value = file.path;
+                option.textContent = `${file.name} (${new Date(file.timestamp).toLocaleString('ja-JP')})`;
+                userFileSelect.appendChild(option);
+            });
+            
+            userFileSelectGroup.style.display = 'block';
+        }
+        
+        function updateJsonPathFromSelect() {
+            const selectedPath = document.getElementById('userFileSelect').value;
+            if (selectedPath) {
+                const jsonFilePathInput = document.getElementById('jsonFilePath');
+                jsonFilePathInput.value = selectedPath;
+                
+                // ハイライト表示
+                jsonFilePathInput.style.backgroundColor = '#fff3cd';
+                setTimeout(() => {
+                    jsonFilePathInput.style.backgroundColor = '';
+                }, 1000);
+            }
+        }
+        
+        function copyPathToInput(scriptPath) {
+            const jsonFilePathInput = document.getElementById('jsonFilePath');
+            jsonFilePathInput.value = scriptPath;
+            jsonFilePathInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // 入力フィールドを一時的にハイライト
+            jsonFilePathInput.style.backgroundColor = '#fff3cd';
+            setTimeout(() => {
+                jsonFilePathInput.style.backgroundColor = '';
+            }, 1000);
+            
+            showResult(`✅ パスをコピーしました: ${scriptPath}`, 'success');
+        }
+        
+        // ラジオボタンのイベントリスナーを設定
+        document.addEventListener('DOMContentLoaded', () => {
+            const radioButtons = document.querySelectorAll('input[name="generateType"]');
+            radioButtons.forEach(radio => {
+                radio.addEventListener('change', handleGenerateTypeChange);
+            });
+        });
+        
+        // ローカルストレージからユーザー名を復元
+        function loadUserNameFromStorage() {
+            const savedUserName = localStorage.getItem('mulmocast_user_name');
+            if (savedUserName) {
+                document.getElementById('uniqueUserName').value = savedUserName;
+                document.getElementById('userDirectoryInput').value = savedUserName;
+            }
+        }
+        
+        // ユーザー名をローカルストレージに保存
+        function saveUserNameToStorage(userName) {
+            localStorage.setItem('mulmocast_user_name', userName);
+        }
+        
+        // ユーザー名入力時に自動保存
+        document.addEventListener('DOMContentLoaded', () => {
+            const uniqueUserNameInput = document.getElementById('uniqueUserName');
+            uniqueUserNameInput.addEventListener('change', (e) => {
+                if (e.target.value.trim()) {
+                    saveUserNameToStorage(e.target.value.trim());
+                }
+            });
+        });
+        
         // 初期化時にヘルスチェック
         window.addEventListener('load', () => {
+            loadUserNameFromStorage(); // ユーザー名を復元
             checkHealth();
+            loadFiles(); // 初期化時にファイル履歴も読み込み
+            
+            // 保存されたユーザー名があれば、そのユーザーのファイルも読み込み
+            const savedUserName = localStorage.getItem('mulmocast_user_name');
+            if (savedUserName) {
+                setTimeout(() => loadUserFiles(), 1000);
+            }
         });
     </script>
 </body>
