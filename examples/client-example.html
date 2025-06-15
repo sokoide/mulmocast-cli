@@ -146,12 +146,12 @@
 
         <form id="storyForm">
             <div class="form-group">
-                <label for="storyInput">ストーリー入力:</label>
+                <label for="storyInput">Story:</label>
                 <textarea id="storyInput" placeholder="例: 小さな丸い宇宙人プーニが地球にやってきて、人間の少年と友達になる物語。" required>小さな丸い宇宙人プーニが地球にやってきて、人間の少年と友達になる物語。プーニは最初は言葉が通じず困っていたが、少年の優しさに触れて次第に心を開いていく。二人は一緒に冒険し、最後にプーニは故郷の星に帰ることになるが、友情は永遠に続く。</textarea>
             </div>
 
             <div class="form-group">
-                <label for="template">テンプレート:</label>
+                <label for="template">Template:</label>
                 <select id="template">
                     <option value="familyday_jpn">familyday_jpn</option>
                     <option value="familyday_eng">familyday_eng</option>
@@ -159,7 +159,7 @@
                 </select>
             </div>
 
-            <div class="form-group">
+            <!-- <div class="form-group">
                 <label for="llm">LLM:</label>
                 <select id="llm">
                     <option value="openAI">OpenAI</option>
@@ -167,48 +167,48 @@
                     <option value="gemini">Gemini</option>
                     <option value="groq">Groq</option>
                 </select>
-            </div>
+            </div> -->
 
             <div class="form-group">
                 <label for="uniqueUserName">Unique User名:</label>
-                <input type="text" id="uniqueUserName" placeholder="例: user001, john_doe" required>
+                <input type="text" id="uniqueUserName" placeholder="e.g.: john_doe" required>
                 <small style="display: block; color: #666; margin-top: 5px;">
-                    このユーザー名でディレクトリが作成され、ファイルが管理されます
+                    This will be a directory name. Only English characters + '_' is allowed.
                 </small>
             </div>
 
             <div class="form-group">
-                <label for="filename">ファイル名:</label>
-                <input type="text" id="filename" value="story" placeholder="例: my-story">
+                <label for="filename">Story Header:</label>
+                <input type="text" id="filename" value="story" placeholder="e.g.: my-story">
             </div>
 
             <div class="form-group">
-                <label>生成する出力:</label>
+                <label>Generate:</label>
                 <div class="checkbox-group">
-                    <label><input type="checkbox" id="outputScript" checked> スクリプト</label>
-                    <label><input type="checkbox" id="outputVideo"> 動画</label>
+                    <label><input type="checkbox" id="outputScript" checked> Script</label>
+                    <label><input type="checkbox" id="outputVideo"> Video</label>
                     <label><input type="checkbox" id="outputPdf"> PDF</label>
                 </div>
             </div>
 
-            <button type="button" onclick="generateScript()">スクリプト生成</button>
-            <button type="button" onclick="generateAll()">一括生成</button>
-            <button type="button" onclick="checkHealth()">ヘルスチェック</button>
-            <button type="button" onclick="loadFiles()">ファイル履歴を読み込み</button>
+            <button type="button" onclick="generateScript()">Generate Script</button>
+            <button type="button" onclick="generateAll()">Generate All</button>
+            <button type="button" onclick="checkHealth()">Health Check</button>
+            <button type="button" onclick="loadFiles()">Load File History</button>
         </form>
 
         <div class="container" style="margin-top: 30px; padding: 20px; border: 1px solid #ddd; border-radius: 5px; background: #f8f9fa;">
-            <h2>📄 JSONファイル指定生成</h2>
-            <p>既存のJSONファイルパスを指定して動画またはPDFを生成します。</p>
+            <h2>📄 Generate form a JSON Script File</h2>
+            <p>Generate Video or PDF using an existing JSON File</p>
 
             <div class="form-group">
                 <label for="userDirectoryInput">ユーザーディレクトリ:</label>
                 <div style="display: flex; gap: 10px; align-items: center;">
-                    <input type="text" id="userDirectoryInput" placeholder="例: user001" style="flex: 1;">
-                    <button type="button" onclick="loadUserFiles()" style="flex: 0 0 auto;">ファイル取得</button>
+                    <input type="text" id="userDirectoryInput" placeholder="e.g.: john_doe" style="flex: 1;">
+                    <button type="button" onclick="loadUserFiles()" style="flex: 0 0 auto;">Get Files</button>
                 </div>
                 <small style="display: block; color: #666; margin-top: 5px;">
-                    ユーザー名を入力して、そのユーザーのJSONファイル一覧を取得
+                    Get all JSON files of the user
                 </small>
             </div>
 
@@ -252,7 +252,8 @@
                     <label for="pdfMode">PDFモード:</label>
                     <select id="pdfMode">
                         <option value="slide">slide</option>
-                        <option value="book">book</option>
+                        <option value="talk">talk</option>
+                        <option value="handout">handout</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -421,7 +422,8 @@
         async function generateScript() {
             const input = document.getElementById('storyInput').value;
             const template = document.getElementById('template').value;
-            const llm = document.getElementById('llm').value;
+            <!-- const llm = document.getElementById('llm').value; -->
+            const llm = "openAI"
             const uniqueUserName = document.getElementById('uniqueUserName').value.trim();
             const filename = document.getElementById('filename').value;
 
@@ -569,7 +571,7 @@
                         </div>
                         <div class="file-input">${file.input}</div>
                         <div style="font-size: 12px; color: #999; margin-bottom: 10px;">
-                            テンプレート: ${file.template} |
+                            Template: ${file.template} |
                             生成日時: ${new Date(file.timestamp).toLocaleString('ja-JP')}
                         </div>
                         <div class="file-actions">
