@@ -72,7 +72,7 @@ export const imagePreprocessAgent = async (namedInputs: {
   if (beat.moviePrompt && !beat.imagePrompt) {
     return { ...returnValue, images }; // no image prompt, only movie prompt
   }
-  const prompt = imagePrompt(beat, imageParams.style);
+  const prompt = imagePrompt(beat, imageParams.style, context.studio.script.beats, index);
   return { imagePath, prompt, ...returnValue, images };
 };
 
