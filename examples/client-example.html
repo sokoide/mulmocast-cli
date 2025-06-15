@@ -574,11 +574,11 @@
 
         // ボタンを無効化して「生成中」表示
         allButton.disabled = true;
-        allButton.textContent = `🔄 一括生成中... (${outputs.join(", ")})`;
+        allButton.textContent = `🔄 Generating... (${outputs.join(", ")})`;
         allButton.style.backgroundColor = "#6c757d";
         allButton.style.cursor = "not-allowed";
 
-        showLoading(`一括生成中... (${outputs.join(", ")})`);
+        showLoading(`Generating... (${outputs.join(", ")})`);
         try {
           const result = await makeRequest("/mulmocast/generate-all", {
             input,
@@ -591,7 +591,7 @@
             },
           });
 
-          showResult(`✅ 一括生成成功!\n${JSON.stringify(result, null, 2)}`);
+          showResult(`✅ Successfully generated!\n${JSON.stringify(result, null, 2)}`);
 
           // 生成後、自動でユーザーファイルを更新
           await loadUserFiles();
