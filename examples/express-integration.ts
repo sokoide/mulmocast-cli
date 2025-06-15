@@ -217,10 +217,36 @@ app.post('/api/mulmocast/script', async (req: Request<{}, {}, ScriptRequest>, re
     });
   } catch (error) {
     console.error('Script generation error:', error);
-    res.status(500).json({
+    
+    // エラーメッセージから壊れたJSONを抽出して警告として表示
+    const errorMessage = (error as Error).message;
+    let brokenJson = null;
+    
+    // JSON parse error や schema validation error の場合、詳細を抽出
+    try {
+      if (errorMessage.includes('Unexpected token') || errorMessage.includes('JSON')) {
+        // JSON parse エラーの場合は全体のエラーメッセージを保持
+        brokenJson = errorMessage;
+      } else if (errorMessage.includes('Generated script was broken')) {
+        // GraphAI からの生成エラーの場合
+        brokenJson = errorMessage;
+      }
+    } catch (e) {
+      // エラー処理中のエラーは無視
+    }
+
+    // クライアントに詳細なエラー情報を送信
+    const response: any = {
       error: 'Failed to generate script',
-      details: (error as Error).message
-    });
+      details: errorMessage
+    };
+
+    if (brokenJson) {
+      response.brokenJson = brokenJson;
+      console.warn('WARNING: Broken JSON detected during script generation:', brokenJson);
+    }
+
+    res.status(500).json(response);
   }
 });
 
@@ -305,10 +331,36 @@ app.post('/api/mulmocast/generate-all', async (req: Request<{}, {}, GenerateAllR
     });
   } catch (error) {
     console.error('Generation error:', error);
-    res.status(500).json({
+    
+    // エラーメッセージから壊れたJSONを抽出して警告として表示
+    const errorMessage = (error as Error).message;
+    let brokenJson = null;
+    
+    // JSON parse error や schema validation error の場合、詳細を抽出
+    try {
+      if (errorMessage.includes('Unexpected token') || errorMessage.includes('JSON')) {
+        // JSON parse エラーの場合は全体のエラーメッセージを保持
+        brokenJson = errorMessage;
+      } else if (errorMessage.includes('Generated script was broken')) {
+        // GraphAI からの生成エラーの場合
+        brokenJson = errorMessage;
+      }
+    } catch (e) {
+      // エラー処理中のエラーは無視
+    }
+
+    // クライアントに詳細なエラー情報を送信
+    const response: any = {
       error: 'Failed to generate content',
-      details: (error as Error).message
-    });
+      details: errorMessage
+    };
+
+    if (brokenJson) {
+      response.brokenJson = brokenJson;
+      console.warn('WARNING: Broken JSON detected during batch generation:', brokenJson);
+    }
+
+    res.status(500).json(response);
   }
 });
 
