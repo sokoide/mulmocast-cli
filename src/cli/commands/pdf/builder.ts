@@ -19,4 +19,8 @@ export const builder = (yargs: Argv) =>
       describe: "PDF paper size (default: letter)",
       choices: pdf_sizes,
       default: "letter",
+    })
+    .option("initial_input", {
+      describe: "Initial input text for script generation",
+      type: "string",
     });

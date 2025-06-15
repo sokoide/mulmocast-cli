@@ -62,5 +62,10 @@ export const builder = (yargs: Argv) => {
       description: "llm model",
       demandOption: false,
       type: "string",
+    })
+    .option("input", {
+      description: "Initial input text for script generation",
+      demandOption: false,
+      type: "string",
     });
 };

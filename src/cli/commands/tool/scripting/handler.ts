@@ -19,9 +19,10 @@ export const handler = async (
     s?: string;
     llm?: LLM;
     llm_model?: string;
+    input?: string;
   }>,
 ) => {
-  const { o: outdir, b: basedir, v: verbose, i: interactive, c: cache, s: filename, llm, llm_model } = argv;
+  const { o: outdir, b: basedir, v: verbose, i: interactive, c: cache, s: filename, llm, llm_model, input } = argv;
   let { t: template } = argv;
   const urls = argv.u || [];
 
@@ -62,7 +63,7 @@ export const handler = async (
     cacheDirPath,
     llm_model,
     llm,
-    initialInput: `風を追いかけて──ユーシャンの道
+    initialInput: input || `風を追いかけて──ユーシャンの道
 山に囲まれた小さな村に、サッカーが大好きな少年ユーシャンがいた。グラウンドもゴールもない草地で、毎日ひとり、ボールを蹴っていた。夢はただ一つ──プロサッカー選手になること。
 ある日、村を訪れた町のコーチがその姿を目にし、「この子には何かがある」と感じた。こうしてユーシャンは、町のクラブチームに通うことになる。片道2時間、冬は雪道を歩き、帰りは星空の下。それでも彼は決して練習を休まなかった。両親は貧しいながらも、息子の夢を支え続けた。
 中学、高校と進むうち、チームは強くなり、周囲のレベルも上がった。小さな村出身のユーシャンは試合に出られない日々が続いたが、それでも誰よりも早く来て、誰よりも遅くまでボールを追いかけていた。
