@@ -236,6 +236,17 @@
                 </div>
             </div>
 
+            <div id="videoOptions" style="display: block;">
+                <div class="form-group">
+                    <label for="videoCaption">字幕言語:</label>
+                    <select id="videoCaption">
+                        <option value="">字幕なし</option>
+                        <option value="ja">日本語 (ja)</option>
+                        <option value="en">英語 (en)</option>
+                    </select>
+                </div>
+            </div>
+
             <div id="pdfOptions" style="display: none;">
                 <div class="form-group">
                     <label for="pdfMode">PDFモード:</label>
@@ -656,9 +667,12 @@
             try {
                 let result;
                 if (generateType === 'video') {
+                    const videoCaption = document.getElementById('videoCaption').value;
+                    
                     showLoading(`動画生成中... (ファイル: ${jsonFilePath})`);
                     result = await makeRequest('/mulmocast/video', {
-                        scriptPath: jsonFilePath
+                        scriptPath: jsonFilePath,
+                        ...(videoCaption && { caption: videoCaption })
                     });
                     showResult(`✅ 動画生成成功!\n${JSON.stringify(result, null, 2)}`);
                 } else if (generateType === 'pdf') {
@@ -688,7 +702,10 @@
         function handleGenerateTypeChange() {
             const generateType = document.querySelector('input[name="generateType"]:checked').value;
             const pdfOptions = document.getElementById('pdfOptions');
+            const videoOptions = document.getElementById('videoOptions');
+            
             pdfOptions.style.display = generateType === 'pdf' ? 'block' : 'none';
+            videoOptions.style.display = generateType === 'video' ? 'block' : 'none';
         }
 
         async function loadUserFiles() {

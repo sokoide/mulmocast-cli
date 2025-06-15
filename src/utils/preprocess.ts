@@ -40,7 +40,19 @@ const mulmoCredit = (speaker: string) => {
 };
 
 export const createOrUpdateStudioData = (_mulmoScript: MulmoScript, currentStudio: MulmoStudio | undefined, fileName: string) => {
-  const mulmoScript = _mulmoScript.__test_invalid__ ? _mulmoScript : mulmoScriptSchema.parse(_mulmoScript); // validate and insert default value
+  // Clean runtime properties that might be present in the script
+  const cleanScript = {
+    ..._mulmoScript,
+    beats: _mulmoScript.beats?.map(beat => {
+      const { imageFile, audioFile, captionFile, duration, ...cleanBeat } = beat as any;
+      return cleanBeat;
+    }) || []
+  };
+  
+  // Remove studio-specific properties that shouldn't be in script
+  const { script, filename, multiLingual, ...scriptOnly } = cleanScript as any;
+  
+  const mulmoScript = _mulmoScript.__test_invalid__ ? _mulmoScript : mulmoScriptSchema.parse(scriptOnly); // validate and insert default value
 
   const studio: MulmoStudio = rebuildStudio(currentStudio, mulmoScript, fileName);
 

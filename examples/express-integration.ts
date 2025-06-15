@@ -13,7 +13,7 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  
+
   if (req.method === 'OPTIONS') {
     res.sendStatus(200);
   } else {
@@ -46,10 +46,10 @@ const sseClients: SSEClient[] = [];
 
 // Function to broadcast messages to all connected clients
 function broadcastToClients(message: string, userId?: string) {
-  const targetClients = userId 
+  const targetClients = userId
     ? sseClients.filter(client => client.userId === userId)
     : sseClients;
-    
+
   targetClients.forEach(client => {
     try {
       client.response.write(`data: ${JSON.stringify({ message, timestamp: Date.now(), userId })}\n\n`);
@@ -66,28 +66,28 @@ function broadcastToClients(message: string, userId?: string) {
 // Override console.log to broadcast messages to clients
 const originalConsoleLog = console.log;
 console.log = (...args: any[]) => {
-  const message = args.map(arg => 
+  const message = args.map(arg =>
     typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
   ).join(' ');
-  
+
   // Only broadcast meaningful messages (filter out verbose logs)
-  if (message.includes('Agent:') || 
-      message.includes('ERROR:') || 
-      message.includes('Generated') ||
-      message.includes('Creating') ||
-      message.includes('Processing') ||
-      message.includes('Retry') ||
-      message.includes('Images not found') ||
-      message.includes('Audio not found') ||
-      message.includes('Auto-detected language') ||
-      message.includes('script was broken') ||
-      message.includes('Generating') ||
-      message.includes('Video created') ||
-      message.includes('completing') ||
-      message.includes('starting')) {
+  if (message.includes('Agent:') ||
+    message.includes('ERROR:') ||
+    message.includes('Generated') ||
+    message.includes('Creating') ||
+    message.includes('Processing') ||
+    message.includes('Retry') ||
+    message.includes('Images not found') ||
+    message.includes('Audio not found') ||
+    message.includes('Auto-detected language') ||
+    message.includes('script was broken') ||
+    message.includes('Generating') ||
+    message.includes('Video created') ||
+    message.includes('completing') ||
+    message.includes('starting')) {
     broadcastToClients(message);
   }
-  
+
   // Call original console.log
   originalConsoleLog.apply(console, args);
 };
@@ -95,7 +95,7 @@ console.log = (...args: any[]) => {
 // Also override console.error and console.warn
 const originalConsoleError = console.error;
 console.error = (...args: any[]) => {
-  const message = args.map(arg => 
+  const message = args.map(arg =>
     typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
   ).join(' ');
   broadcastToClients(`ERROR: ${message}`);
@@ -104,7 +104,7 @@ console.error = (...args: any[]) => {
 
 const originalConsoleWarn = console.warn;
 console.warn = (...args: any[]) => {
-  const message = args.map(arg => 
+  const message = args.map(arg =>
     typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
   ).join(' ');
   broadcastToClients(`WARNING: ${message}`);
@@ -119,6 +119,7 @@ interface ScriptRequest {
 
 interface VideoRequest {
   scriptPath: string;
+  caption?: string; // Language for captions (ja, en, etc.)
   options?: any;
 }
 
@@ -137,6 +138,7 @@ interface GenerateAllRequest {
 
 interface FileBasedRequest {
   fileId: string;
+  caption?: string; // Language for captions (ja, en, etc.)
   options?: any;
 }
 
@@ -144,7 +146,7 @@ interface FileBasedRequest {
 app.post('/api/mulmocast/script', async (req: Request<{}, {}, ScriptRequest>, res: Response) => {
   try {
     const { input, template, options = {} } = req.body;
-    
+
     if (!input) {
       return res.status(400).json({ error: 'Input text is required' });
     }
@@ -176,9 +178,9 @@ app.post('/api/mulmocast/script', async (req: Request<{}, {}, ScriptRequest>, re
     });
   } catch (error) {
     console.error('Script generation error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to generate script',
-      details: (error as Error).message 
+      details: (error as Error).message
     });
   }
 });
@@ -186,13 +188,20 @@ app.post('/api/mulmocast/script', async (req: Request<{}, {}, ScriptRequest>, re
 // Generate video from existing script
 app.post('/api/mulmocast/video', async (req: Request<{}, {}, VideoRequest>, res: Response) => {
   try {
-    const { scriptPath, options = {} } = req.body;
-    
+    const { scriptPath, caption, options = {} } = req.body;
+
     if (!scriptPath) {
       return res.status(400).json({ error: 'Script path is required' });
     }
 
-    const result = await mulmocastService.generateVideo(scriptPath, options);
+    // Add caption option to the options object
+    const videoOptions = {
+      ...options,
+      ...(caption && { c: caption }) // Add -c equivalent option
+    };
+    console.info('videoOPtions:', videoOptions);
+
+    const result = await mulmocastService.generateVideo(scriptPath, videoOptions);
 
     res.json({
       success: true,
@@ -200,9 +209,9 @@ app.post('/api/mulmocast/video', async (req: Request<{}, {}, VideoRequest>, res:
     });
   } catch (error) {
     console.error('Video generation error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to generate video',
-      details: (error as Error).message 
+      details: (error as Error).message
     });
   }
 });
@@ -211,7 +220,7 @@ app.post('/api/mulmocast/video', async (req: Request<{}, {}, VideoRequest>, res:
 app.post('/api/mulmocast/pdf', async (req: Request<{}, {}, PdfRequest>, res: Response) => {
   try {
     const { scriptPath, pdfMode = 'slide', pdfSize = 'letter' } = req.body;
-    
+
     if (!scriptPath) {
       return res.status(400).json({ error: 'Script path is required' });
     }
@@ -224,9 +233,9 @@ app.post('/api/mulmocast/pdf', async (req: Request<{}, {}, PdfRequest>, res: Res
     });
   } catch (error) {
     console.error('PDF generation error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to generate PDF',
-      details: (error as Error).message 
+      details: (error as Error).message
     });
   }
 });
@@ -234,13 +243,13 @@ app.post('/api/mulmocast/pdf', async (req: Request<{}, {}, PdfRequest>, res: Res
 // Generate all outputs at once
 app.post('/api/mulmocast/generate-all', async (req: Request<{}, {}, GenerateAllRequest>, res: Response) => {
   try {
-    const { 
-      input, 
+    const {
+      input,
       template,
       outputs = ['script', 'video', 'pdf'],
-      options = {} 
+      options = {}
     } = req.body;
-    
+
     if (!input) {
       return res.status(400).json({ error: 'Input text is required' });
     }
@@ -257,9 +266,9 @@ app.post('/api/mulmocast/generate-all', async (req: Request<{}, {}, GenerateAllR
     });
   } catch (error) {
     console.error('Generation error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to generate content',
-      details: (error as Error).message 
+      details: (error as Error).message
     });
   }
 });
@@ -275,7 +284,7 @@ app.get('/api/mulmocast/files', (req: Request, res: Response) => {
     status: file.status,
     scriptPath: file.scriptPath
   }));
-  
+
   res.json({
     success: true,
     data: files.sort((a, b) => b.timestamp - a.timestamp) // newest first
@@ -286,7 +295,7 @@ app.get('/api/mulmocast/files', (req: Request, res: Response) => {
 app.get('/api/mulmocast/user-files/:userName', async (req: Request, res: Response) => {
   try {
     const { userName } = req.params;
-    
+
     if (!userName) {
       return res.status(400).json({ error: 'User name is required' });
     }
@@ -299,9 +308,9 @@ app.get('/api/mulmocast/user-files/:userName', async (req: Request, res: Respons
     });
   } catch (error) {
     console.error('Get user files error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to get user files',
-      details: (error as Error).message 
+      details: (error as Error).message
     });
   }
 });
@@ -309,8 +318,8 @@ app.get('/api/mulmocast/user-files/:userName', async (req: Request, res: Respons
 // Generate video from existing script file
 app.post('/api/mulmocast/video-from-file', async (req: Request<{}, {}, FileBasedRequest>, res: Response) => {
   try {
-    const { fileId, options = {} } = req.body;
-    
+    const { fileId, caption, options = {} } = req.body;
+
     if (!fileId) {
       return res.status(400).json({ error: 'File ID is required' });
     }
@@ -320,7 +329,13 @@ app.post('/api/mulmocast/video-from-file', async (req: Request<{}, {}, FileBased
       return res.status(404).json({ error: 'File not found' });
     }
 
-    const result = await mulmocastService.generateVideo(generatedFile.scriptPath, options);
+    // Add caption option to the options object
+    const videoOptions = {
+      ...options,
+      ...(caption && { c: caption }) // Add -c equivalent option
+    };
+
+    const result = await mulmocastService.generateVideo(generatedFile.scriptPath, videoOptions);
 
     // Update status
     generatedFile.status = 'video';
@@ -336,9 +351,9 @@ app.post('/api/mulmocast/video-from-file', async (req: Request<{}, {}, FileBased
     });
   } catch (error) {
     console.error('Video generation error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to generate video',
-      details: (error as Error).message 
+      details: (error as Error).message
     });
   }
 });
@@ -347,7 +362,7 @@ app.post('/api/mulmocast/video-from-file', async (req: Request<{}, {}, FileBased
 app.post('/api/mulmocast/pdf-from-file', async (req: Request<{}, {}, FileBasedRequest & { pdfMode?: string; pdfSize?: string }>, res: Response) => {
   try {
     const { fileId, pdfMode = 'slide', pdfSize = 'letter', options = {} } = req.body;
-    
+
     if (!fileId) {
       return res.status(400).json({ error: 'File ID is required' });
     }
@@ -373,9 +388,9 @@ app.post('/api/mulmocast/pdf-from-file', async (req: Request<{}, {}, FileBasedRe
     });
   } catch (error) {
     console.error('PDF generation error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to generate PDF',
-      details: (error as Error).message 
+      details: (error as Error).message
     });
   }
 });
@@ -383,7 +398,7 @@ app.post('/api/mulmocast/pdf-from-file', async (req: Request<{}, {}, FileBasedRe
 // SSE endpoint for real-time updates
 app.get('/api/mulmocast/events', (req: Request, res: Response) => {
   const userId = req.query.userId as string;
-  
+
   // Set up SSE headers
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
@@ -398,8 +413,8 @@ app.get('/api/mulmocast/events', (req: Request, res: Response) => {
   sseClients.push(client);
 
   // Send initial connection message
-  res.write(`data: ${JSON.stringify({ 
-    message: `Connected to real-time updates${userId ? ` for user ${userId}` : ''}`, 
+  res.write(`data: ${JSON.stringify({
+    message: `Connected to real-time updates${userId ? ` for user ${userId}` : ''}`,
     timestamp: Date.now(),
     type: 'connection'
   })}\n\n`);
