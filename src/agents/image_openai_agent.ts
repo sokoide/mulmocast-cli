@@ -70,9 +70,13 @@ export const imageOpenaiAgent: AgentFunction<
           return await toFile(fs.createReadStream(file), null, { type });
         }),
       );
-      return await openai.images.edit({ ...imageOptions, size: targetSize, image: imagelist });
+      // TODO: sokoide
+      // return await openai.images.edit({ ...imageOptions, size: targetSize, image: imagelist });
+      return { data: [{ url: "", b64_json: "" }] };
     } else {
-      return await openai.images.generate(imageOptions);
+      // TODO: sokoide
+      // return await openai.images.generate(imageOptions);
+      return { data: [{ url: "", b64_json: "" }] };
     }
   })();
 
