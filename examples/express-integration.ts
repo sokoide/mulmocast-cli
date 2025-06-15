@@ -74,13 +74,13 @@ console.log = (...args: any[]) => {
   ).join(' ');
 
   // Filter out debug messages and verbose logs, but allow most other messages
-  const isDebugMessage = message.includes('GraphAI.debug') || 
-                         message.includes('[DEBUG]') ||
-                         message.includes('debug:') ||
-                         message.toLowerCase().includes('filtercomplex') ||
-                         message.includes('🚀 Mulmocast API server running') ||
-                         message.includes('📋 API Endpoints') ||
-                         message.includes('🌐 Web Client');
+  const isDebugMessage = message.includes('GraphAI.debug') ||
+    message.includes('[DEBUG]') ||
+    message.includes('debug:') ||
+    message.toLowerCase().includes('filtercomplex') ||
+    message.includes('🚀 Mulmocast API server running') ||
+    message.includes('📋 API Endpoints') ||
+    message.includes('🌐 Web Client');
 
   if (!isDebugMessage) {
     broadcastToClients(message);
@@ -113,35 +113,35 @@ console.warn = (...args: any[]) => {
 const setupGraphAILogger = async () => {
   try {
     const { GraphAILogger } = await import('graphai');
-    
+
     // Override info method
     const originalInfo = GraphAILogger.info;
     GraphAILogger.info = (...args: any[]) => {
       const message = args.map(arg =>
         typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
       ).join(' ');
-      
+
       if (!message.includes('[DEBUG]') && !message.toLowerCase().includes('filtercomplex')) {
         broadcastToClients(`INFO: ${message}`);
       }
-      
+
       return originalInfo.apply(GraphAILogger, args);
     };
-    
+
     // Override log method
     const originalLog = GraphAILogger.log;
     GraphAILogger.log = (...args: any[]) => {
       const message = args.map(arg =>
         typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
       ).join(' ');
-      
+
       if (!message.includes('[DEBUG]') && !message.toLowerCase().includes('filtercomplex')) {
         broadcastToClients(`LOG: ${message}`);
       }
-      
+
       return originalLog.apply(GraphAILogger, args);
     };
-    
+
   } catch (error) {
     console.log('GraphAILogger not available yet, will override when loaded');
   }
@@ -217,11 +217,11 @@ app.post('/api/mulmocast/script', async (req: Request<{}, {}, ScriptRequest>, re
     });
   } catch (error) {
     console.error('Script generation error:', error);
-    
+
     // エラーメッセージから壊れたJSONを抽出して警告として表示
     const errorMessage = (error as Error).message;
     let brokenJson = null;
-    
+
     // JSON parse error や schema validation error の場合、詳細を抽出
     try {
       if (errorMessage.includes('Unexpected token') || errorMessage.includes('JSON')) {
@@ -331,11 +331,11 @@ app.post('/api/mulmocast/generate-all', async (req: Request<{}, {}, GenerateAllR
     });
   } catch (error) {
     console.error('Generation error:', error);
-    
+
     // エラーメッセージから壊れたJSONを抽出して警告として表示
     const errorMessage = (error as Error).message;
     let brokenJson = null;
-    
+
     // JSON parse error や schema validation error の場合、詳細を抽出
     try {
       if (errorMessage.includes('Unexpected token') || errorMessage.includes('JSON')) {
@@ -362,24 +362,6 @@ app.post('/api/mulmocast/generate-all', async (req: Request<{}, {}, GenerateAllR
 
     res.status(500).json(response);
   }
-});
-
-// Get list of generated files
-app.get('/api/mulmocast/files', (req: Request, res: Response) => {
-  const files = Array.from(generatedFiles.values()).map(file => ({
-    id: file.id,
-    filename: file.filename,
-    timestamp: file.timestamp,
-    input: file.input.substring(0, 100) + (file.input.length > 100 ? '...' : ''),
-    template: file.template,
-    status: file.status,
-    scriptPath: file.scriptPath
-  }));
-
-  res.json({
-    success: true,
-    data: files.sort((a, b) => b.timestamp - a.timestamp) // newest first
-  });
 });
 
 // Get user's JSON files
@@ -447,7 +429,7 @@ app.get('/api/mulmocast/download/:userName/:fileName', async (req: Request, res:
     }
 
     const filePath = path.join(process.cwd(), 'output', userName, fileName);
-    
+
     // Check if file exists
     if (!fs.existsSync(filePath)) {
       return res.status(404).json({ error: 'File not found' });
@@ -456,7 +438,7 @@ app.get('/api/mulmocast/download/:userName/:fileName', async (req: Request, res:
     // Set appropriate headers for download
     res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
     res.setHeader('Content-Type', fileName.endsWith('.mp4') ? 'video/mp4' : 'application/pdf');
-    
+
     // Stream the file
     const fileStream = fs.createReadStream(filePath);
     fileStream.pipe(res);
@@ -592,7 +574,6 @@ app.listen(PORT, () => {
   console.log(`🚀 Mulmocast API server running on port ${PORT}`);
   console.log(`📋 API Endpoints:`);
   console.log(`   - Health: http://localhost:${PORT}/api/health`);
-  console.log(`   - Files: http://localhost:${PORT}/api/mulmocast/files`);
   console.log(`   - User Files: http://localhost:${PORT}/api/mulmocast/user-files/:userName`);
   console.log(`   - Script: http://localhost:${PORT}/api/mulmocast/script`);
   console.log(`   - Video (from file): http://localhost:${PORT}/api/mulmocast/video-from-file`);

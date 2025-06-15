@@ -1,12 +1,40 @@
 import fs from "fs";
 import path from "path";
 import puppeteer from "puppeteer";
+import { GraphAILogger } from "graphai";
 import { MulmoStudioContext, PDFMode, PDFSize } from "../types/index.js";
 import { MulmoScriptMethods } from "../methods/index.js";
 import { localizedText, isHttp } from "../utils/utils.js";
 import { getOutputPdfFilePath, writingMessage, getHTMLFile } from "../utils/file.js";
 import { interpolate } from "../utils/markdown.js";
 import { MulmoStudioContextMethods } from "../methods/mulmo_studio_context.js";
+
+// Helper function to determine language from template or script (same as movie.ts)
+const getLanguageFromContext = (context: MulmoStudioContext): string => {
+  const script = context.studio.script;
+  
+  // Priority 1: Check if script has lang property (this should be the source of truth)
+  if (script.lang) {
+    GraphAILogger.info(`PDF: Language from script.lang: ${script.lang}`);
+    return script.lang;
+  }
+  
+  // Priority 2: Check template name patterns in filename
+  const filename = context.studio.filename.toLowerCase();
+  GraphAILogger.info(`PDF: Checking filename for language: ${filename}`);
+  
+  if (filename.includes('familyday_jpn')) {
+    GraphAILogger.info(`PDF: Detected Japanese from filename pattern`);
+    return 'ja';
+  } else if (filename.includes('familyday_eng')) {
+    GraphAILogger.info(`PDF: Detected English from filename pattern`);
+    return 'en';
+  }
+  
+  // Priority 3: Default to English if no language is detected
+  GraphAILogger.info(`PDF: No language pattern detected, defaulting to English`);
+  return 'en';
+};
 
 const isCI = process.env.CI === "true";
 
@@ -126,7 +154,9 @@ const getHandoutTemplateData = (isLandscapeImage: boolean): Record<string, strin
 });
 
 const generatePDFHTML = async (context: MulmoStudioContext, pdfMode: PDFMode, pdfSize: PDFSize): Promise<string> => {
-  const { studio, lang = "en" } = context;
+  const { studio } = context;
+  // Use helper function to get language consistently
+  const lang = getLanguageFromContext(context);
   const { multiLingual } = studio;
 
   const { width: imageWidth, height: imageHeight } = MulmoScriptMethods.getCanvasSize(studio.script);
@@ -168,7 +198,10 @@ const createPDFOptions = (pdfSize: PDFSize, pdfMode: PDFMode): PDFOptions => {
 };
 
 export const pdfFilePath = (context: MulmoStudioContext, pdfMode: PDFMode) => {
-  const { studio, fileDirs, lang = "en" } = context;
+  const { studio, fileDirs } = context;
+  // Use helper function to get language consistently
+  const lang = getLanguageFromContext(context);
+  GraphAILogger.info(`PDF: Using language '${lang}' for file suffix`);
   return getOutputPdfFilePath(fileDirs.outDirPath, studio.filename, pdfMode, lang);
 };
 

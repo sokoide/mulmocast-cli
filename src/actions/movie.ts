@@ -6,17 +6,16 @@ import { FfmpegContextAddInput, FfmpegContextInit, FfmpegContextPushFormattedAud
 import { MulmoStudioContextMethods } from "../methods/mulmo_studio_context.js";
 
 // Helper function to determine language from template or script
-const getLanguageFromContext = (context: MulmoStudioContext): string | undefined => {
+const getLanguageFromContext = (context: MulmoStudioContext): string => {
   const script = context.studio.script;
   
-  // First check if script has lang property
+  // Priority 1: Check if script has lang property (this should be the source of truth)
   if (script.lang) {
     GraphAILogger.info(`Language from script.lang: ${script.lang}`);
     return script.lang;
   }
   
-  // Then check template name patterns
-  // Look for template name in the script metadata or filename
+  // Priority 2: Check template name patterns in filename
   const filename = context.studio.filename.toLowerCase();
   GraphAILogger.info(`Checking filename for language: ${filename}`);
   
@@ -28,9 +27,9 @@ const getLanguageFromContext = (context: MulmoStudioContext): string | undefined
     return 'en';
   }
   
-  GraphAILogger.info(`No language pattern detected from filename`);
-  // Could add more template patterns here in the future
-  return undefined;
+  // Priority 3: Default to English if no language is detected
+  GraphAILogger.info(`No language pattern detected, defaulting to English`);
+  return 'en';
 };
 
 // const isMac = process.platform === "darwin";
@@ -241,7 +240,10 @@ export const movieFilePath = (context: MulmoStudioContext) => {
   const { studio, fileDirs, caption } = context;
   // Use the same directory as the JSON file (which includes the user directory)
   const outputDir = fileDirs.mulmoFileDirPath;
-  return getOutputVideoFilePath(outputDir, studio.filename, context.lang, caption);
+  // Get language from script, not from context.lang
+  const lang = getLanguageFromContext(context);
+  GraphAILogger.info(`Video: Using language '${lang}' for file suffix, caption: ${caption}`);
+  return getOutputVideoFilePath(outputDir, studio.filename, lang, caption);
 };
 
 export const movie = async (context: MulmoStudioContext) => {

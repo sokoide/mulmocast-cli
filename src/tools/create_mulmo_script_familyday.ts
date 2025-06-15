@@ -142,7 +142,7 @@ const graphData = {
           continue: {
             agent: ({ codeBlock, isValid, counter }: { codeBlock: string | undefined; isValid: boolean; counter: number }) => {
               if (counter >= 3) {
-                GraphAILogger.info("\n" + agentHeader + " \x1b[31mFailed to generate a valid script. Maximum retries reached.\n");
+                GraphAILogger.info("\n" + agentHeader + " Failed to generate a valid script. Maximum retries reached.\n");
                 return false;
               }
               const result = !!codeBlock && !isValid;
@@ -158,6 +158,14 @@ const graphData = {
             },
           },
         },
+      },
+    },
+    maxRetriesReached: {
+      agent: ({ counter }: { counter: number }) => {
+        return counter >= 3;
+      },
+      inputs: {
+        counter: ":reply.counter",
       },
     },
     debugResponse: {
@@ -180,8 +188,18 @@ const graphData = {
       },
     },
     processedJson: {
-      agent: (namedInputs: { json: any }) => {
-        const { json } = namedInputs;
+      agent: (namedInputs: { json: any, maxRetriesReached: boolean }) => {
+        const { json, maxRetriesReached } = namedInputs;
+        
+        // If max retries were reached, don't process the JSON
+        if (maxRetriesReached) {
+          GraphAILogger.info("\n" + agentHeader + " Skipping JSON processing due to validation failures.\n");
+          return {
+            json: null,
+            text: null
+          };
+        }
+        
         if (json && typeof json === 'object') {
           // Add $mulmocast if missing
           if (!json.$mulmocast) {
@@ -197,14 +215,38 @@ const graphData = {
               height: 1024
             };
           }
+          // Add speechParams if missing
+          if (!json.speechParams) {
+            json.speechParams = {
+              provider: "openai",
+              speakers: {
+                Presenter: {
+                  voiceId: "shimmer",
+                  displayName: {
+                    en: "Presenter"
+                  }
+                }
+              }
+            };
+          }
+          // Add audioParams if missing
+          if (!json.audioParams) {
+            json.audioParams = {
+              introPadding: 1.0,
+              padding: 0.3,
+              closingPadding: 0.8,
+              outroPadding: 1.0
+            };
+          }
         }
-        return { 
+        return {
           json: json,
           text: JSON.stringify(json, null, 2)
         };
       },
       inputs: {
         json: ":json.json",
+        maxRetriesReached: ":maxRetriesReached",
       },
     },
     debugJson: {
@@ -222,10 +264,18 @@ const graphData = {
       },
     },
     writeLog: {
+      if: ":processedJson.json",
       agent: "consoleAgent",
       inputs: {
-        text: "\n\x1b[32m🎉 Script file generated successfully!\x1b[0m\nwriting: ${:writeJSON.path}",
+        text: "Script file generated successfully! writing: ${:writeJSON.path}",
         waiting: ":writeJSON",
+      },
+    },
+    errorLog: {
+      if: ":maxRetriesReached",
+      agent: "consoleAgent",
+      inputs: {
+        text: "Script generation failed due to validation errors after maximum retries.",
       },
     },
   },
@@ -281,7 +331,7 @@ export const createMulmoScriptFamilyday = async ({
   );
 
   const prompt = readTemplatePrompt(templateName);
-  
+
   // 明示的なJSON生成指示を追加
   const explicitJsonInstruction = `
 
@@ -307,4 +357,3 @@ Your response must be a valid JSON script wrapped in \`\`\`json code blocks.`;
   GraphAILogger.info(`${agentHeader} Generating script for: ${initialInput}`);
   await graph.run();
 };
-

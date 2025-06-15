@@ -176,7 +176,7 @@
   </head>
   <body>
     <div class="container">
-      <h1>🎬 2025 Family Day: Make your own video!</h1>
+      <h1>2025 Family Day: Make your own video!</h1>
 
       <form id="storyForm">
         <div class="form-group">
@@ -196,44 +196,52 @@
                 </select>
             </div> -->
 
-        <div class="raw">
-          <div class="column20">
-            <label for="template">Template:</label>
-            <select id="template">
-              <option value="familyday_jpn">Japanese</option>
-              <option value="familyday_eng">English</option>
-            </select>
-          </div>
+        <div class="form-group">
+          <div class="raw">
+            <div class="column20">
+              <label for="template">Template:</label>
+              <select id="template">
+                <option value="familyday_jpn">Japanese</option>
+                <option value="familyday_eng">English</option>
+              </select>
+            </div>
 
-          <div class="column40">
-            <label for="uniqueUserName">Unique User Name:</label>
-            <input class="input" type="text" id="uniqueUserName" placeholder="e.g.: john_doe" required />
-            <small style="display: block; color: #666; margin-top: 5px"> This will be a directory name. Only English characters + '_' is allowed. </small>
-          </div>
+            <div class="column40">
+              <label for="uniqueUserName">Unique User Name:</label>
+              <input class="input" type="text" id="uniqueUserName" placeholder="e.g.: john_doe" required />
+              <small style="display: block; color: #666; margin-top: 5px"> This will be a directory name. Only English characters + '_' is allowed. </small>
+            </div>
 
-          <div class="column40">
-            <label for="filename">Story Header:</label>
-            <input class="input" type="text" id="filename" value="story" placeholder="e.g.: my-story" />
-            <small style="display: block; color: #666; margin-top: 5px"> File name header of the generated files (scripts, videos, PDFs). </small>
+            <div class="column40">
+              <label for="filename">Story Header:</label>
+              <input class="input" type="text" id="filename" value="story" placeholder="e.g.: my-story" />
+              <small style="display: block; color: #666; margin-top: 5px"> File name header of the generated files (scripts, videos, PDFs). </small>
+            </div>
           </div>
         </div>
 
         <div class="form-group">
-          <label>Generate:</label>
-          <div class="checkbox-group">
-            <label><input type="checkbox" id="outputScript" checked /> Script</label>
-            <label><input type="checkbox" id="outputVideo" /> Video</label>
-            <label><input type="checkbox" id="outputPdf" /> PDF</label>
-          </div>
+          <button type="button" onclick="generateScript()">Generate Script</button>
+          <button type="button" onclick="generateAll()">Generate All</button>
         </div>
-        <button type="button" onclick="generateScript()">Generate Script</button>
-        <button type="button" onclick="generateAll()">Generate All</button>
-        <button type="button" onclick="checkHealth()">Health Check</button>
-        <button type="button" onclick="loadFiles()">Load File History</button>
       </form>
 
-      <div class="container" style="margin-top: 30px; padding: 20px; border: 1px solid #ddd; border-radius: 5px; background: #f8f9fa">
-        <h2>📄 Generate form a JSON Script File</h2>
+      <div class="form-group">
+        <button id="toggleGenerateSectionButton" style="padding: 10px 20px">Show/Hide Advanced Section</button>
+      </div>
+      <script>
+        document.getElementById("toggleGenerateSectionButton").addEventListener("click", () => {
+          const generateSection = document.querySelector("#advancedSection");
+          if (generateSection.style.display === "none") {
+            generateSection.style.display = "block";
+          } else {
+            generateSection.style.display = "none";
+          }
+        });
+      </script>
+
+      <div id="advancedSection" style="display: none" class="container" style="padding: 20px; border: 1px solid #ddd; border-radius: 5px; background: #f8f9fa">
+        <h2>Advanced Section</h2>
         <p>Generate Video or PDF using an existing JSON File</p>
 
         <div class="form-group">
@@ -290,16 +298,13 @@
         <button type="button" onclick="generateFromJsonPath()">Generate from File</button>
       </div>
 
-      <div id="fileHistory" style="display: none">
-        <h2>📁 Generated Files</h2>
-        <div id="fileList"></div>
-      </div>
-
       <div id="mediaHistory" style="display: none; margin-top: 30px">
-        <h2>🎬 Generated Media Files</h2>
-        <div style="margin-bottom: 15px">
+        <h2>Generated Media Files</h2>
+        <!-- <div style="margin-bottom: 15px"> -->
+        <div class="form-group">
           <button onclick="loadUserMedia()" style="padding: 10px 20px">Update Media File List</button>
-          <small style="display: block; color: #666; margin-top: 5px"> Get all media files of the current user (uses Unique User Name above) </small>
+          <!-- <small style="display: block; color: #666; margin-top: 5px"> Get all media files of the current user (uses Unique User Name above) </small> -->
+          <button type="button" onclick="checkHealth()">Health Check</button>
         </div>
         <div id="mediaList"></div>
       </div>
@@ -312,7 +317,7 @@
             font-family: monospace;
             font-size: 12px;
             line-height: 1.6;
-            height: 400px;
+            height: 200px;
             overflow-y: auto;
             background: white;
             border: 1px solid #ccc;
@@ -494,11 +499,11 @@
 
         // ボタンを無効化して「生成中」表示
         scriptButton.disabled = true;
-        scriptButton.textContent = "🔄 スクリプト生成中...";
+        scriptButton.textContent = "🔄 Generating a script...";
         scriptButton.style.backgroundColor = "#6c757d";
         scriptButton.style.cursor = "not-allowed";
 
-        showLoading("スクリプト生成中...");
+        showLoading("Generating a script...");
         try {
           const result = await makeRequest("/mulmocast/script", {
             input,
@@ -552,10 +557,7 @@
         const allButton = document.querySelector('button[onclick="generateAll()"]');
         const originalText = allButton.textContent;
 
-        const outputs = [];
-        if (document.getElementById("outputScript").checked) outputs.push("script");
-        if (document.getElementById("outputVideo").checked) outputs.push("video");
-        if (document.getElementById("outputPdf").checked) outputs.push("pdf");
+        const outputs = ["script", "video", "pdf"];
 
         if (!input.trim()) {
           showResult("❌ Please enter a story", "error");
@@ -566,12 +568,6 @@
           showResult("❌ Please enter Unique User Name", "error");
           return;
         }
-
-        if (outputs.length === 0) {
-          showResult("❌ 少なくとも1つの出力を選択してください", "error");
-          return;
-        }
-
         // ボタンを無効化して「生成中」表示
         allButton.disabled = true;
         allButton.textContent = `🔄 Generating... (${outputs.join(", ")})`;
@@ -623,51 +619,6 @@
         }
       }
 
-      async function loadFiles() {
-        showLoading("Loading file history...");
-        try {
-          const result = await makeRequest("/mulmocast/files");
-          displayFiles(result.data);
-          showResult("✅ File history loaded");
-        } catch (error) {
-          showResult(`❌ Failed to load file history: ${error.message}`, "error");
-        }
-      }
-
-      function displayFiles(files) {
-        const fileHistoryDiv = document.getElementById("fileHistory");
-        const fileListDiv = document.getElementById("fileList");
-
-        if (files.length === 0) {
-          fileListDiv.innerHTML = "<p>No generated files found.</p>";
-        } else {
-          fileListDiv.innerHTML = files
-            .map(
-              (file) => `
-                    <div class="file-item">
-                        <div class="file-header">
-                            <span class="file-id">${file.id}</span>
-                            <span class="file-status status-${file.status}">${file.status.toUpperCase()}</span>
-                        </div>
-                        <div class="file-input">${file.input}</div>
-                        <div style="font-size: 12px; color: #999; margin-bottom: 10px;">
-                            Template: ${file.template} |
-                            Generated: ${new Date(file.timestamp).toLocaleString("en-US")}
-                        </div>
-                        <div class="file-actions">
-                            <button onclick="generateVideoFromFile('${file.id}')">Generate Video</button>
-                            <button onclick="generatePdfFromFile('${file.id}')">Generate PDF</button>
-                            <button onclick="copyPathToInput('${file.scriptPath}')">Copy Path</button>
-                        </div>
-                    </div>
-                `,
-            )
-            .join("");
-        }
-
-        fileHistoryDiv.style.display = "block";
-      }
-
       async function generateVideoFromFile(fileId) {
         const button = event.target;
         const originalText = button.textContent;
@@ -686,7 +637,7 @@
 
           showResult(`✅ 動画生成成功!\n${JSON.stringify(result, null, 2)}`);
           // Reload files to update status
-          await loadFiles();
+          await loadUserFiles();
         } catch (error) {
           showResult(`❌ 動画生成失敗: ${error.message}`, "error");
         } finally {
@@ -718,7 +669,7 @@
 
           showResult(`✅ PDF生成成功!\n${JSON.stringify(result, null, 2)}`);
           // Reload files to update status
-          await loadFiles();
+          await loadUserFiles();
         } catch (error) {
           showResult(`❌ PDF生成失敗: ${error.message}`, "error");
         } finally {
@@ -752,7 +703,7 @@
           let result;
           if (generateType === "video") {
             // テンプレートに基づいて自動的にキャプション言語を決定
-            const autoCaptionLanguage = getAutoCaptionLanguage(jsonFilePath);
+            const autoCaptionLanguage = await getAutoCaptionLanguage(jsonFilePath);
 
             showLoading(`Video generation in progress... (File: ${jsonFilePath})`);
             result = await makeRequest("/mulmocast/video", {
@@ -794,9 +745,22 @@
       }
 
       // テンプレートに基づいてキャプション言語を自動決定
-      function getAutoCaptionLanguage(templateOrPath) {
-        // テンプレート名またはJSONファイル名に基づいて言語を判定
-        if (templateOrPath && (templateOrPath.includes("familyday_jpn") || templateOrPath.includes("_jpn") || templateOrPath === "familyday_jpn")) {
+      async function getAutoCaptionLanguage(scriptPath) {
+        try {
+          // JSONファイルを読み込んで言語を確認
+          const response = await fetch(`http://localhost:3000/${scriptPath}`);
+          if (response.ok) {
+            const scriptContent = await response.json();
+            if (scriptContent.lang === "ja") {
+              return "ja";
+            }
+          }
+        } catch (error) {
+          console.warn("Failed to read script file for language detection:", error);
+        }
+        
+        // フォールバック: ファイル名またはテンプレート名に基づく判定
+        if (scriptPath && (scriptPath.includes("familyday_jpn") || scriptPath.includes("_jpn"))) {
           return "ja";
         }
         // デフォルトは英語
@@ -1023,7 +987,6 @@
       window.addEventListener("load", () => {
         loadUserNameFromStorage(); // ユーザー名を復元
         checkHealth();
-        loadFiles(); // 初期化時にファイル履歴も読み込み
 
         // SSE接続を開始
         connectToSSE();

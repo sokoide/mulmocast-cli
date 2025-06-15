@@ -15,18 +15,18 @@ class MulmocastClient {
           'Content-Type': 'application/json',
         }
       };
-      
+
       if (data) {
         options.body = JSON.stringify(data);
       }
-      
+
       const response = await fetch(`${this.baseUrl}${endpoint}`, options);
       const result = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(result.error || `HTTP ${response.status}`);
       }
-      
+
       return result;
     } catch (error) {
       console.error('API Error:', error);
@@ -74,10 +74,6 @@ class MulmocastClient {
         filename: options.filename || 'script'
       }
     });
-  }
-
-  async getFiles() {
-    return await this.makeRequest('/mulmocast/files');
   }
 
   async generateVideoFromFile(fileId, options = {}) {
