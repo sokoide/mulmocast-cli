@@ -209,43 +209,43 @@
             </div>
 
             <div class="form-group" id="userFileSelectGroup" style="display: none;">
-                <label for="userFileSelect">JSONファイル選択:</label>
+                <label for="userFileSelect">JSON File Selection:</label>
                 <select id="userFileSelect" onchange="updateJsonPathFromSelect()">
-                    <option value="">-- ファイルを選択 --</option>
+                    <option value="">-- Select a file --</option>
                 </select>
             </div>
 
             <div class="form-group">
-                <label for="jsonFilePath">JSONファイルパス（手動入力）:</label>
-                <input type="text" id="jsonFilePath" placeholder="例: output/user001/story-1749978050780.json"
+                <label for="jsonFilePath">JSON File Path (Manual Input):</label>
+                <input type="text" id="jsonFilePath" placeholder="e.g.: output/user001/story-1749978050780.json"
                        style="font-family: monospace;">
                 <small style="display: block; color: #666; margin-top: 5px;">
-                    上でファイル選択するか、直接パスを入力してください
+                    Select a file above or enter the path directly
                 </small>
             </div>
 
             <div class="form-group">
-                <label>生成タイプ:</label>
+                <label>Generation Type:</label>
                 <div class="checkbox-group">
-                    <label><input type="radio" name="generateType" value="video" checked> 動画</label>
+                    <label><input type="radio" name="generateType" value="video" checked> Video</label>
                     <label><input type="radio" name="generateType" value="pdf"> PDF</label>
                 </div>
             </div>
 
             <div id="videoOptions" style="display: block;">
                 <div class="form-group">
-                    <label for="videoCaption">字幕言語:</label>
+                    <label for="videoCaption">Caption Language:</label>
                     <select id="videoCaption">
-                        <option value="">字幕なし</option>
-                        <option value="ja">日本語 (ja)</option>
-                        <option value="en">英語 (en)</option>
+                        <option value="">No captions</option>
+                        <option value="ja">Japanese (ja)</option>
+                        <option value="en">English (en)</option>
                     </select>
                 </div>
             </div>
 
             <div id="pdfOptions" style="display: none;">
                 <div class="form-group">
-                    <label for="pdfMode">PDFモード:</label>
+                    <label for="pdfMode">PDF Mode:</label>
                     <select id="pdfMode">
                         <option value="slide">slide</option>
                         <option value="talk">talk</option>
@@ -253,7 +253,7 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="pdfSize">PDFサイズ:</label>
+                    <label for="pdfSize">PDF Size:</label>
                     <select id="pdfSize">
                         <option value="letter">letter</option>
                         <option value="a4">a4</option>
@@ -262,18 +262,18 @@
                 </div>
             </div>
 
-            <button type="button" onclick="generateFromJsonPath()">ファイル指定で生成</button>
+            <button type="button" onclick="generateFromJsonPath()">Generate from File</button>
         </div>
 
         <div id="fileHistory" style="display: none;">
-            <h2>📁 生成済みファイル</h2>
+            <h2>📁 Generated Files</h2>
             <div id="fileList"></div>
         </div>
 
         <div id="mediaHistory" style="display: none; margin-top: 30px;">
-            <h2>🎬 生成済みメディアファイル</h2>
+            <h2>🎬 Generated Media Files</h2>
             <div style="margin-bottom: 15px;">
-                <button onclick="loadUserMedia()" style="padding: 10px 20px;">メディアファイル取得</button>
+                <button onclick="loadUserMedia()" style="padding: 10px 20px;">Get Media Files</button>
                 <small style="display: block; color: #666; margin-top: 5px;">
                     Get all media files of the current user (uses Unique User名 above)
                 </small>
@@ -282,9 +282,9 @@
         </div>
 
         <div id="realTimeMessages" style="margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; background: #f9f9f9; display: none;">
-            <h3>🔄 リアルタイム処理状況</h3>
+            <h3>🔄 Real-time Processing Status</h3>
             <div id="messagesList" style="font-family: monospace; font-size: 12px; line-height: 1.6; height: 400px; overflow-y: auto; background: white; border: 1px solid #ccc; border-radius: 3px; padding: 10px; margin-bottom: 10px;"></div>
-            <button onclick="clearMessages()" style="padding: 5px 10px; font-size: 12px;">クリア</button>
+            <button onclick="clearMessages()" style="padding: 5px 10px; font-size: 12px;">Clear</button>
         </div>
 
         <div id="result"></div>
@@ -438,12 +438,12 @@
             const originalText = scriptButton.textContent;
 
             if (!input.trim()) {
-                showResult('❌ ストーリーを入力してください', 'error');
+                showResult('❌ Please enter a story', 'error');
                 return;
             }
 
             if (!uniqueUserName) {
-                showResult('❌ Unique User名を入力してください', 'error');
+                showResult('❌ Please enter Unique User Name', 'error');
                 return;
             }
 
@@ -496,12 +496,12 @@
             if (document.getElementById('outputPdf').checked) outputs.push('pdf');
 
             if (!input.trim()) {
-                showResult('❌ ストーリーを入力してください', 'error');
+                showResult('❌ Please enter a story', 'error');
                 return;
             }
 
             if (!uniqueUserName) {
-                showResult('❌ Unique User名を入力してください', 'error');
+                showResult('❌ Please enter Unique User Name', 'error');
                 return;
             }
 
@@ -545,13 +545,13 @@
         }
 
         async function loadFiles() {
-            showLoading('ファイル履歴を読み込み中...');
+            showLoading('Loading file history...');
             try {
                 const result = await makeRequest('/mulmocast/files');
                 displayFiles(result.data);
-                showResult('✅ ファイル履歴を読み込みました');
+                showResult('✅ File history loaded');
             } catch (error) {
-                showResult(`❌ ファイル履歴の読み込み失敗: ${error.message}`, 'error');
+                showResult(`❌ Failed to load file history: ${error.message}`, 'error');
             }
         }
 
@@ -560,7 +560,7 @@
             const fileListDiv = document.getElementById('fileList');
 
             if (files.length === 0) {
-                fileListDiv.innerHTML = '<p>生成されたファイルがありません。</p>';
+                fileListDiv.innerHTML = '<p>No generated files found.</p>';
             } else {
                 fileListDiv.innerHTML = files.map(file => `
                     <div class="file-item">
@@ -571,12 +571,12 @@
                         <div class="file-input">${file.input}</div>
                         <div style="font-size: 12px; color: #999; margin-bottom: 10px;">
                             Template: ${file.template} |
-                            生成日時: ${new Date(file.timestamp).toLocaleString('ja-JP')}
+                            Generated: ${new Date(file.timestamp).toLocaleString('en-US')}
                         </div>
                         <div class="file-actions">
-                            <button onclick="generateVideoFromFile('${file.id}')">動画生成</button>
-                            <button onclick="generatePdfFromFile('${file.id}')">PDF生成</button>
-                            <button onclick="copyPathToInput('${file.scriptPath}')">パスをコピー</button>
+                            <button onclick="generateVideoFromFile('${file.id}')">Generate Video</button>
+                            <button onclick="generatePdfFromFile('${file.id}')">Generate PDF</button>
+                            <button onclick="copyPathToInput('${file.scriptPath}')">Copy Path</button>
                         </div>
                     </div>
                 `).join('');
@@ -655,7 +655,7 @@
             const originalText = jsonButton.textContent;
 
             if (!jsonFilePath) {
-                showResult('❌ JSONファイルパスを入力してください', 'error');
+                showResult('❌ Please enter JSON file path', 'error');
                 return;
             }
 
@@ -713,17 +713,17 @@
             const userName = document.getElementById('uniqueUserName').value.trim();
 
             if (!userName) {
-                showResult('❌ Unique User名を入力してください', 'error');
+                showResult('❌ Please enter Unique User Name', 'error');
                 return;
             }
 
-            showLoading(`${userName}のファイルを読み込み中...`);
+            showLoading(`Loading ${userName}'s files...`);
             try {
                 const result = await makeRequest(`/mulmocast/user-files/${userName}`);
                 displayUserFiles(result.data);
-                showResult(`✅ ${userName}のファイルを読み込みました`);
+                showResult(`✅ Loaded ${userName}'s files`);
             } catch (error) {
-                showResult(`❌ ${userName}のファイル読み込み失敗: ${error.message}`, 'error');
+                showResult(`❌ Failed to load ${userName}'s files: ${error.message}`, 'error');
             }
         }
 
@@ -732,7 +732,7 @@
             const userFileSelect = document.getElementById('userFileSelect');
 
             // セレクトボックスをクリア
-            userFileSelect.innerHTML = '<option value="">-- ファイルを選択 --</option>';
+            userFileSelect.innerHTML = '<option value="">-- Select File --</option>';
 
             if (files.length === 0) {
                 userFileSelectGroup.style.display = 'none';
@@ -776,7 +776,7 @@
                 jsonFilePathInput.style.backgroundColor = '';
             }, 1000);
 
-            showResult(`✅ パスをコピーしました: ${scriptPath}`, 'success');
+            showResult(`✅ Path copied: ${scriptPath}`, 'success');
         }
 
         // ラジオボタンのイベントリスナーを設定
@@ -805,20 +805,20 @@
             const userName = document.getElementById('uniqueUserName').value.trim();
 
             if (!userName) {
-                showResult('❌ Unique User名を入力してください', 'error');
+                showResult('❌ Please enter Unique User Name', 'error');
                 return;
             }
 
-            showLoading(`${userName}のメディアファイルを読み込み中...`);
+            showLoading(`Loading ${userName}'s media files...`);
             try {
                 const result = await makeRequest(`/mulmocast/user-media/${userName}`);
                 displayUserMedia(result.data);
-                showResult(`✅ ${userName}のメディアファイルを読み込みました`);
-                
+                showResult(`✅ Loaded ${userName}'s media files`);
+
                 // メディアセクションを表示
                 document.getElementById('mediaHistory').style.display = 'block';
             } catch (error) {
-                showResult(`❌ ${userName}のメディアファイル読み込み失敗: ${error.message}`, 'error');
+                showResult(`❌ Failed to load ${userName}'s media files: ${error.message}`, 'error');
             }
         }
 
@@ -827,7 +827,7 @@
             const mediaListDiv = document.getElementById('mediaList');
 
             if (mediaFiles.length === 0) {
-                mediaListDiv.innerHTML = '<p>メディアファイルがありません。</p>';
+                mediaListDiv.innerHTML = '<p>No media files found.</p>';
                 return;
             }
 
@@ -847,14 +847,14 @@
                         <span class="file-status status-${file.type}">${file.type.toUpperCase()}</span>
                     </div>
                     <div style="font-size: 12px; color: #999; margin-bottom: 10px;">
-                        サイズ: ${formatFileSize(file.size)} | 
-                        生成日時: ${new Date(file.timestamp).toLocaleString('ja-JP')}
+                        Size: ${formatFileSize(file.size)} |
+                        Generated: ${new Date(file.timestamp).toLocaleString('en-US')}
                     </div>
                     <div class="file-actions">
                         <button onclick="downloadFile('${file.path}')" style="background: #28a745;">
-                            ${file.type === 'video' ? '🎬' : '📄'} ダウンロード
+                            ${file.type === 'video' ? '🎬' : '📄'} Download
                         </button>
-                        ${file.type === 'video' ? `<button onclick="previewVideo('${file.path}')" style="background: #17a2b8;">👁️ プレビュー</button>` : ''}
+                        ${file.type === 'video' ? `<button onclick="previewVideo('${file.path}')" style="background: #17a2b8;">👁️ Preview</button>` : ''}
                     </div>
                 </div>
             `).join('');
@@ -866,9 +866,9 @@
             const pathParts = filePath.split('/');
             const userName = pathParts[1];
             const fileName = pathParts[2];
-            
+
             const downloadUrl = `${API_BASE}/mulmocast/download/${userName}/${fileName}`;
-            
+
             // ダウンロードリンクを作成してクリック
             const link = document.createElement('a');
             link.href = downloadUrl;
@@ -876,8 +876,8 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            
-            showResult(`✅ ${fileName} のダウンロードを開始しました`, 'success');
+
+            showResult(`✅ Started downloading ${fileName}`, 'success');
         }
 
         // 動画プレビュー
@@ -885,9 +885,9 @@
             const pathParts = filePath.split('/');
             const userName = pathParts[1];
             const fileName = pathParts[2];
-            
+
             const videoUrl = `http://localhost:3000/${filePath}`;
-            
+
             // 新しいウィンドウで動画を開く
             const previewWindow = window.open('', '_blank', 'width=800,height=600');
             previewWindow.document.write(`
@@ -928,7 +928,7 @@
             const savedUserName = localStorage.getItem('mulmocast_user_name');
             if (savedUserName) {
                 setTimeout(() => loadUserFiles(), 1000);
-                
+
                 // メディアファイルも自動読み込み
                 setTimeout(() => loadUserMedia(), 1500);
             }
