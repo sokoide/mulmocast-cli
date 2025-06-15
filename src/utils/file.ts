@@ -107,6 +107,12 @@ export const getAudioArtifactFilePath = (outDirPath: string, fileName: string) =
   return path.resolve(outDirPath, fileName + ".mp3");
 };
 export const getOutputVideoFilePath = (outDirPath: string, fileName: string, lang?: string, caption?: string) => {
+  // If lang and caption are the same, only use one suffix
+  if (lang && caption && lang === caption) {
+    return path.resolve(outDirPath, `${fileName}_${lang}.mp4`);
+  }
+  
+  // Otherwise use the original logic
   const suffix = lang ? `_${lang}` : "";
   const suffix2 = caption ? `__${caption}` : "";
   return path.resolve(outDirPath, `${fileName}${suffix}${suffix2}.mp4`);
