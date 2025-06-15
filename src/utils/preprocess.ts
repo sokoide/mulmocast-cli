@@ -26,7 +26,7 @@ const mulmoCredit = (speaker: string) => {
       type: "image" as const,
       source: {
         kind: "url" as const,
-        url: "https://github.com/receptron/mulmocast-cli/raw/refs/heads/main/assets/images/mulmocast_credit.png",
+        url: "https://github.com/sokoide/familyday/raw/main/2025/assets/bg.jpg",
       },
     },
     audio: {
