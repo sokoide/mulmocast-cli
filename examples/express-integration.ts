@@ -1,15 +1,28 @@
 // Express.js integration example
 import express, { Request, Response } from 'express';
+import path from 'path';
 import { MulmocastService } from '../src/lib/mulmocast-service.js';
+
+// Configuration from environment variables
+const BASE_PATH = process.env.MULMOCAST_BASE_PATH || process.cwd();
+const OUTPUT_PATH = process.env.MULMOCAST_OUTPUT_PATH || path.join(BASE_PATH, 'output');
+const CACHE_PATH = process.env.MULMOCAST_CACHE_PATH || path.join(OUTPUT_PATH, 'cache');
+const EXAMPLES_PATH = process.env.MULMOCAST_EXAMPLES_PATH || './examples';
 
 const app = express();
 app.use(express.json());
 
+console.log(`🔧 Configuration:`);
+console.log(`   - Base Path: ${BASE_PATH}`);
+console.log(`   - Output Path: ${OUTPUT_PATH}`);
+console.log(`   - Cache Path: ${CACHE_PATH}`);
+console.log(`   - Examples Path: ${EXAMPLES_PATH}`);
+
 // Serve static files (HTML, CSS, JS) from examples directory
-app.use('/client', express.static('./examples'));
+app.use('/client', express.static(EXAMPLES_PATH));
 
 // Serve output files for download and preview
-app.use('/output', express.static('./output'));
+app.use('/output', express.static(OUTPUT_PATH));
 
 // CORS configuration for browser clients
 app.use((req, res, next) => {
@@ -24,7 +37,11 @@ app.use((req, res, next) => {
   }
 });
 
-const mulmocastService = new MulmocastService();
+const mulmocastService = new MulmocastService({
+  basePath: BASE_PATH,
+  outputPath: OUTPUT_PATH,
+  cachePath: CACHE_PATH
+});
 
 // Store generated files in memory (in production, use database)
 interface GeneratedFile {
@@ -428,7 +445,7 @@ app.get('/api/mulmocast/download/:userName/:fileName', async (req: Request, res:
       return res.status(400).json({ error: 'Only MP4 and PDF files are allowed for download' });
     }
 
-    const filePath = path.join(process.cwd(), 'output', userName, fileName);
+    const filePath = path.join(OUTPUT_PATH, userName, fileName);
 
     // Check if file exists
     if (!fs.existsSync(filePath)) {
@@ -569,11 +586,30 @@ app.get('/api/health', (req: Request, res: Response) => {
   res.json({ status: 'OK', service: 'mulmocast-api' });
 });
 
+// Configuration endpoint
+app.get('/api/config', (req: Request, res: Response) => {
+  const config = mulmocastService.getConfiguration();
+  res.json({
+    success: true,
+    data: {
+      ...config,
+      examplesPath: EXAMPLES_PATH,
+      environment: {
+        MULMOCAST_BASE_PATH: process.env.MULMOCAST_BASE_PATH || 'default',
+        MULMOCAST_OUTPUT_PATH: process.env.MULMOCAST_OUTPUT_PATH || 'default',
+        MULMOCAST_CACHE_PATH: process.env.MULMOCAST_CACHE_PATH || 'default',
+        MULMOCAST_EXAMPLES_PATH: process.env.MULMOCAST_EXAMPLES_PATH || 'default'
+      }
+    }
+  });
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Mulmocast API server running on port ${PORT}`);
   console.log(`📋 API Endpoints:`);
   console.log(`   - Health: http://localhost:${PORT}/api/health`);
+  console.log(`   - Config: http://localhost:${PORT}/api/config`);
   console.log(`   - User Files: http://localhost:${PORT}/api/mulmocast/user-files/:userName`);
   console.log(`   - Script: http://localhost:${PORT}/api/mulmocast/script`);
   console.log(`   - Video (from file): http://localhost:${PORT}/api/mulmocast/video-from-file`);

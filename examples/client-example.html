@@ -550,7 +550,7 @@
       async function generateAll() {
         const input = document.getElementById("storyInput").value;
         const template = document.getElementById("template").value;
-        const llm = document.getElementById("llm").value;
+        const llm = "openAI"; // Fixed value since LLM select is commented out
         const uniqueUserName = document.getElementById("uniqueUserName").value.trim();
         const filename = document.getElementById("filename").value;
 
@@ -808,7 +808,7 @@
         files.forEach((file) => {
           const option = document.createElement("option");
           option.value = file.path;
-          option.textContent = `${file.name} (${new Date(file.timestamp).toLocaleString("ja-JP")})`;
+          option.textContent = `${file.filename} (${new Date(file.timestamp).toLocaleString("ja-JP")})`;
           userFileSelect.appendChild(option);
         });
 
@@ -909,7 +909,7 @@
             (file) => `
                 <div class="file-item" style="margin-bottom: 15px;">
                     <div class="file-header">
-                        <span class="file-id">${file.name}</span>
+                        <span class="file-id">${file.filename}</span>
                         <span class="file-status status-${file.type}">${file.type.toUpperCase()}</span>
                     </div>
                     <div style="font-size: 12px; color: #999; margin-bottom: 10px;">

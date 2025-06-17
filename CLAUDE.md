@@ -97,7 +97,32 @@ The project includes a complete web interface:
 - `/api/mulmocast/video` - Generate video from existing script
 - `/api/mulmocast/pdf` - Generate PDF from existing script
 - `/api/mulmocast/generate-all` - Generate script, video, and PDF in sequence
+- `/api/mulmocast/user-files/:userName` - Get user's JSON script files
+- `/api/mulmocast/user-media/:userName` - Get user's generated media files
+- `/api/mulmocast/download/:userName/:fileName` - Download generated files
 - `/api/mulmocast/events` - SSE endpoint for real-time progress updates
+- `/api/config` - View current server configuration and paths
+
+### User Directory Structure
+Generated files are organized by user in the following structure:
+```
+MULMOCAST_OUTPUT_PATH/
+├── userName1/
+│   ├── script-timestamp1.json
+│   ├── script-timestamp1.mp4
+│   ├── script-timestamp1_slide_en.pdf
+│   └── script-timestamp2.json
+└── userName2/
+    ├── story-timestamp3.json
+    └── story-timestamp3_ja.mp4
+```
+
+### Advanced Section
+The web client includes an advanced section that allows:
+- Viewing and selecting previously generated JSON scripts
+- Generating videos and PDFs from existing scripts
+- Managing user-specific file collections
+- Real-time monitoring of generation processes
 
 ## Important Implementation Details
 
@@ -124,12 +149,35 @@ The script generation workflow includes sophisticated retry logic:
 
 ## Environment Configuration
 
+### Base Path Configuration
+The API server supports configurable paths via environment variables:
+- `MULMOCAST_BASE_PATH` - Base directory for all operations (default: current working directory)
+- `MULMOCAST_OUTPUT_PATH` - Output directory for generated files (default: {BASE_PATH}/output)
+- `MULMOCAST_CACHE_PATH` - Cache directory for temporary files (default: {OUTPUT_PATH}/cache)
+- `MULMOCAST_EXAMPLES_PATH` - Examples directory for web client (default: ./examples)
+- `PORT` - API server port (default: 3000)
+
+### AI Service API Keys
 Required environment variables:
 - `OPENAI_API_KEY` - Primary LLM and image generation
 - `GOOGLE_PROJECT_ID` - Optional, for Google's image generation
 - `NIJIVOICE_API_KEY` - Optional, for Japanese TTS
 - `ELEVENLABS_API_KEY` - Optional, for premium TTS
 - `BROWSERLESS_API_TOKEN` - Optional, for web content scraping
+
+### Configuration Example
+```bash
+# Copy .env.example to .env and customize
+cp .env.example .env
+
+# Set your custom paths
+export MULMOCAST_BASE_PATH=/home/user/mulmocast
+export MULMOCAST_OUTPUT_PATH=/home/user/mulmocast/generated
+export PORT=8080
+
+# Start the API server
+npm run api-server
+```
 
 ## Testing Strategy
 
