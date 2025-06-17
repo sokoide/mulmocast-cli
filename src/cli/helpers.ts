@@ -41,7 +41,7 @@ export const getFileObject = (args: { basedir?: string; outdir?: string; imagedi
   const { basedir, outdir, imagedir, audiodir, file } = args;
   const baseDirPath = getBaseDirPath(basedir);
   const defaultOutDirPath = getFullPath(baseDirPath, outdir ?? outDirName);
-  
+
   const { fileOrUrl, fileName } = (() => {
     if (file === "__clipboard") {
       // We generate a new unique script file from clipboard text in the output directory
@@ -58,11 +58,11 @@ export const getFileObject = (args: { basedir?: string; outdir?: string; imagedi
     const fileName = path.parse(fileOrUrl).name;
     return { fileOrUrl, fileName };
   })();
-  
+
   const isHttpPath = isHttp(fileOrUrl);
   const mulmoFilePath = isHttpPath ? "" : getFullPath(baseDirPath, fileOrUrl);
   const mulmoFileDirPath = path.dirname(isHttpPath ? baseDirPath : mulmoFilePath);
-  
+
   // If the JSON file is in a user directory structure (e.g., output/user123/file.json),
   // use that directory as the base for all output files
   const outDirPath = (() => {
@@ -76,11 +76,11 @@ export const getFileObject = (args: { basedir?: string; outdir?: string; imagedi
     }
     return defaultOutDirPath;
   })();
-  
+
   const imageDirPath = getFullPath(outDirPath, imagedir ?? imageDirName);
   const audioDirPath = getFullPath(outDirPath, audiodir ?? audioDirName);
   const outputStudioFilePath = getOutputStudioFilePath(outDirPath, fileName);
-  
+
   return {
     baseDirPath,
     mulmoFilePath,

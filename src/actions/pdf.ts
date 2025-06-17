@@ -12,28 +12,28 @@ import { MulmoStudioContextMethods } from "../methods/mulmo_studio_context.js";
 // Helper function to determine language from template or script (same as movie.ts)
 const getLanguageFromContext = (context: MulmoStudioContext): string => {
   const script = context.studio.script;
-  
+
   // Priority 1: Check if script has lang property (this should be the source of truth)
   if (script.lang) {
     GraphAILogger.info(`PDF: Language from script.lang: ${script.lang}`);
     return script.lang;
   }
-  
+
   // Priority 2: Check template name patterns in filename
   const filename = context.studio.filename.toLowerCase();
   GraphAILogger.info(`PDF: Checking filename for language: ${filename}`);
-  
-  if (filename.includes('familyday_jpn')) {
+
+  if (filename.includes("familyday_jpn")) {
     GraphAILogger.info(`PDF: Detected Japanese from filename pattern`);
-    return 'ja';
-  } else if (filename.includes('familyday_eng')) {
+    return "ja";
+  } else if (filename.includes("familyday_eng")) {
     GraphAILogger.info(`PDF: Detected English from filename pattern`);
-    return 'en';
+    return "en";
   }
-  
+
   // Priority 3: Default to English if no language is detected
   GraphAILogger.info(`PDF: No language pattern detected, defaulting to English`);
-  return 'en';
+  return "en";
 };
 
 const isCI = process.env.CI === "true";

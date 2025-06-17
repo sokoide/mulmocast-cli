@@ -111,7 +111,7 @@ export const getOutputVideoFilePath = (outDirPath: string, fileName: string, lan
   if (lang && caption && lang === caption) {
     return path.resolve(outDirPath, `${fileName}_${lang}.mp4`);
   }
-  
+
   // Otherwise use the original logic
   const suffix = lang ? `_${lang}` : "";
   const suffix2 = caption ? `__${caption}` : "";
