@@ -2,8 +2,6 @@ import "dotenv/config";
 import { GraphAILogger, GraphAI } from "graphai";
 import { textInputAgent } from "@graphai/input_agents";
 
-import { consoleStreamDataAgentFilter } from "@graphai/stream_agent_filter/node";
-
 import { openAIAgent } from "@graphai/openai_agent";
 import { anthropicAgent } from "@graphai/anthropic_agent";
 import { geminiAgent } from "@graphai/gemini_agent";
@@ -188,31 +186,31 @@ const graphData = {
       },
     },
     processedJson: {
-      agent: (namedInputs: { json: any, maxRetriesReached: boolean }) => {
+      agent: (namedInputs: { json: any; maxRetriesReached: boolean }) => {
         const { json, maxRetriesReached } = namedInputs;
-        
+
         // If max retries were reached, don't process the JSON
         if (maxRetriesReached) {
           GraphAILogger.info("\n" + agentHeader + " Skipping JSON processing due to validation failures.\n");
           return {
             json: null,
-            text: null
+            text: null,
           };
         }
-        
-        if (json && typeof json === 'object') {
+
+        if (json && typeof json === "object") {
           // Add $mulmocast if missing
           if (!json.$mulmocast) {
             json.$mulmocast = {
               version: "1.0",
-              credit: "closing"
+              credit: "closing",
             };
           }
           // Ensure canvasSize exists
           if (!json.canvasSize) {
             json.canvasSize = {
               width: 1536,
-              height: 1024
+              height: 1024,
             };
           }
           // Add speechParams if missing
@@ -223,10 +221,10 @@ const graphData = {
                 Presenter: {
                   voiceId: "shimmer",
                   displayName: {
-                    en: "Presenter"
-                  }
-                }
-              }
+                    en: "Presenter",
+                  },
+                },
+              },
             };
           }
           // Add audioParams if missing
@@ -235,13 +233,13 @@ const graphData = {
               introPadding: 1.0,
               padding: 0.3,
               closingPadding: 0.8,
-              outroPadding: 1.0
+              outroPadding: 1.0,
             };
           }
         }
         return {
           json: json,
-          text: JSON.stringify(json, null, 2)
+          text: JSON.stringify(json, null, 2),
         };
       },
       inputs: {

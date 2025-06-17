@@ -37,22 +37,27 @@ const graph_data: GraphData = {
                   const multiLingual = context.studio.multiLingual;
                   GraphAILogger.info(`Caption generation for beat ${index}, lang: ${caption}`);
                   GraphAILogger.info(`multiLingual structure: ${JSON.stringify(multiLingual?.[index], null, 2)}`);
-                  
+
                   // Check if we have multiLingual data with the requested language
-                  if (caption && multiLingual && 
-                      Array.isArray(multiLingual) && 
-                      multiLingual[index] && 
-                      multiLingual[index].multiLingualTexts && 
-                      typeof multiLingual[index].multiLingualTexts === 'object' &&
-                      multiLingual[index].multiLingualTexts[caption] &&
-                      multiLingual[index].multiLingualTexts[caption].text) {
+                  if (
+                    caption &&
+                    multiLingual &&
+                    Array.isArray(multiLingual) &&
+                    multiLingual[index] &&
+                    multiLingual[index].multiLingualTexts &&
+                    typeof multiLingual[index].multiLingualTexts === "object" &&
+                    multiLingual[index].multiLingualTexts[caption] &&
+                    multiLingual[index].multiLingualTexts[caption].text
+                  ) {
                     GraphAILogger.info(`Using multiLingual text for ${caption}`);
                     return multiLingual[index].multiLingualTexts[caption].text;
                   }
-                  
+
                   GraphAILogger.warn(`No multiLingual caption found for beat ${index}, lang: ${caption}, falling back to beat.text`);
-                  GraphAILogger.warn(`Reasons: caption=${!!caption}, multiLingual=${!!multiLingual}, multiLingual.length=${multiLingual?.length}, multiLingual[${index}]=${!!multiLingual?.[index]}, multiLingualTexts=${!!multiLingual?.[index]?.multiLingualTexts}, multiLingualTexts[${caption}]=${caption ? !!multiLingual?.[index]?.multiLingualTexts?.[caption] : 'caption_undefined'}`);
-                  
+                  GraphAILogger.warn(
+                    `Reasons: caption=${!!caption}, multiLingual=${!!multiLingual}, multiLingual.length=${multiLingual?.length}, multiLingual[${index}]=${!!multiLingual?.[index]}, multiLingualTexts=${!!multiLingual?.[index]?.multiLingualTexts}, multiLingualTexts[${caption}]=${caption ? !!multiLingual?.[index]?.multiLingualTexts?.[caption] : "caption_undefined"}`,
+                  );
+
                   return beat.text;
                 })();
                 const htmlData = interpolate(template, {

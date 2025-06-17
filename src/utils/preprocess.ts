@@ -43,15 +43,16 @@ export const createOrUpdateStudioData = (_mulmoScript: MulmoScript, currentStudi
   // Clean runtime properties that might be present in the script
   const cleanScript = {
     ..._mulmoScript,
-    beats: _mulmoScript.beats?.map(beat => {
-      const { imageFile, audioFile, captionFile, duration, ...cleanBeat } = beat as any;
-      return cleanBeat;
-    }) || []
+    beats:
+      _mulmoScript.beats?.map((beat) => {
+        const { imageFile: __imageFile, audioFile: __audioFile, captionFile: __captionFile, duration: __duration, ...cleanBeat } = beat as any;
+        return cleanBeat;
+      }) || [],
   };
-  
+
   // Remove studio-specific properties that shouldn't be in script
-  const { script, filename, multiLingual, ...scriptOnly } = cleanScript as any;
-  
+  const { script: __script, filename: __filename, multiLingual: __multiLingual, ...scriptOnly } = cleanScript as any;
+
   const mulmoScript = _mulmoScript.__test_invalid__ ? _mulmoScript : mulmoScriptSchema.parse(scriptOnly); // validate and insert default value
 
   const studio: MulmoStudio = rebuildStudio(currentStudio, mulmoScript, fileName);

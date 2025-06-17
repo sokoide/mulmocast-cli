@@ -5,57 +5,55 @@ import { zodToJsonSchema } from "zod-to-json-schema";
 // Extract character descriptions from the first beat
 function extractCharacterDescriptions(firstBeatPrompt: string): string[] {
   const characterPatterns = [
-    /(?:a|an|the)?\s*(small\s+round\s+alien[^,\.]*)/gi,
-    /(?:a|an|the)?\s*(young\s+boy[^,\.]*)/gi,
-    /(?:a|an|the)?\s*(elderly\s+(?:man|woman|person)[^,\.]*)/gi,
-    /(?:a|an|the)?\s*(little\s+girl[^,\.]*)/gi,
-    /(?:a|an|the)?\s*(tall\s+(?:man|woman|person)[^,\.]*)/gi,
-    /(?:a|an|the)?\s*(\w+\s+creature[^,\.]*)/gi,
+    /(?:a|an|the)?\s*(small\s+round\s+alien[^,.]*)/gi,
+    /(?:a|an|the)?\s*(young\s+boy[^,.]*)/gi,
+    /(?:a|an|the)?\s*(elderly\s+(?:man|woman|person)[^,.]*)/gi,
+    /(?:a|an|the)?\s*(little\s+girl[^,.]*)/gi,
+    /(?:a|an|the)?\s*(tall\s+(?:man|woman|person)[^,.]*)/gi,
+    /(?:a|an|the)?\s*(\w+\s+creature[^,.]*)/gi,
   ];
-  
+
   const characters: string[] = [];
-  characterPatterns.forEach(pattern => {
+  characterPatterns.forEach((pattern) => {
     const matches = firstBeatPrompt.match(pattern);
     if (matches) {
-      matches.forEach(match => {
-        const cleaned = match.replace(/^(?:a|an|the)\s+/i, '').trim();
+      matches.forEach((match) => {
+        const cleaned = match.replace(/^(?:a|an|the)\s+/i, "").trim();
         if (cleaned && !characters.includes(cleaned)) {
           characters.push(cleaned);
         }
       });
     }
   });
-  
+
   return characters;
 }
 
 // Add character consistency to prompts
 function addCharacterConsistency(prompt: string, characterDescriptions: string[]): string {
   if (!characterDescriptions.length) return prompt;
-  
+
   // Check if the prompt already contains detailed character descriptions
-  const hasDetailedCharacters = characterDescriptions.some(char => 
-    prompt.toLowerCase().includes(char.toLowerCase())
-  );
-  
+  const hasDetailedCharacters = characterDescriptions.some((char) => prompt.toLowerCase().includes(char.toLowerCase()));
+
   if (hasDetailedCharacters) {
     return prompt; // Already has detailed descriptions
   }
-  
+
   // Add character descriptions to maintain consistency
-  const characterContext = characterDescriptions.join(', ');
+  const characterContext = characterDescriptions.join(", ");
   return `${prompt}. Characters: ${characterContext}`;
 }
 
 export const imagePrompt = (beat: MulmoBeat, style?: string, allBeats?: MulmoBeat[], currentIndex?: number) => {
   const basePrompt = beat.imagePrompt || `generate image appropriate for the text. text: ${beat.text}`;
-  
+
   // If we have all beats and this isn't the first beat, add character consistency
   if (allBeats && currentIndex !== undefined && currentIndex > 0 && allBeats[0].imagePrompt) {
     const characterDescriptions = extractCharacterDescriptions(allBeats[0].imagePrompt);
     return addCharacterConsistency(basePrompt, characterDescriptions);
   }
-  
+
   return basePrompt;
 };
 

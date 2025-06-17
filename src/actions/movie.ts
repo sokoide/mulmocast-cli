@@ -8,28 +8,28 @@ import { MulmoStudioContextMethods } from "../methods/mulmo_studio_context.js";
 // Helper function to determine language from template or script
 const getLanguageFromContext = (context: MulmoStudioContext): string => {
   const script = context.studio.script;
-  
+
   // Priority 1: Check if script has lang property (this should be the source of truth)
   if (script.lang) {
     GraphAILogger.info(`Language from script.lang: ${script.lang}`);
     return script.lang;
   }
-  
+
   // Priority 2: Check template name patterns in filename
   const filename = context.studio.filename.toLowerCase();
   GraphAILogger.info(`Checking filename for language: ${filename}`);
-  
-  if (filename.includes('familyday_jpn')) {
+
+  if (filename.includes("familyday_jpn")) {
     GraphAILogger.info(`Detected Japanese from filename pattern`);
-    return 'ja';
-  } else if (filename.includes('familyday_eng')) {
+    return "ja";
+  } else if (filename.includes("familyday_eng")) {
     GraphAILogger.info(`Detected English from filename pattern`);
-    return 'en';
+    return "en";
   }
-  
+
   // Priority 3: Default to English if no language is detected
   GraphAILogger.info(`No language pattern detected, defaulting to English`);
-  return 'en';
+  return "en";
 };
 
 // const isMac = process.platform === "darwin";
@@ -250,19 +250,19 @@ export const movie = async (context: MulmoStudioContext) => {
   MulmoStudioContextMethods.setSessionState(context, "video", true);
   try {
     const { studio, fileDirs, caption } = context;
-    const { outDirPath } = fileDirs;
-    
+    const { outDirPath: __outDirPath } = fileDirs;
+
     // Auto-detect language from template and update context if not already set
     const detectedLang = getLanguageFromContext(context);
     GraphAILogger.info(`Language detection: detected=${detectedLang}, context.lang=${context.lang}, context.caption=${context.caption}`);
-    
+
     if (detectedLang && !context.lang && !context.caption) {
       GraphAILogger.info(`Auto-detected language: ${detectedLang}`);
       context.lang = detectedLang;
       context.caption = detectedLang; // Set caption to the same language for subtitle generation
       GraphAILogger.info(`Updated context: lang=${context.lang}, caption=${context.caption}`);
     }
-    
+
     // Check if images exist, if not, generate them first
     const missingImageIndex = studio.beats.findIndex((beat) => !beat.imageFile && !beat.movieFile);
     if (missingImageIndex !== -1) {
@@ -270,7 +270,7 @@ export const movie = async (context: MulmoStudioContext) => {
       const { images } = await import("./images.js");
       await images(context);
     }
-    
+
     // Check if audio exists, if not, generate it first
     const audioArtifactFilePath = getAudioArtifactFilePath(fileDirs.mulmoFileDirPath, studio.filename);
     const fs = await import("fs");
@@ -279,7 +279,7 @@ export const movie = async (context: MulmoStudioContext) => {
       const { audio } = await import("./audio.js");
       await audio(context);
     }
-    
+
     // Generate captions if caption language is set
     if (context.caption) {
       GraphAILogger.info(`Generating captions for language: ${context.caption}`);
@@ -288,7 +288,7 @@ export const movie = async (context: MulmoStudioContext) => {
     } else {
       GraphAILogger.info(`No caption language set, skipping caption generation`);
     }
-    
+
     const outputVideoPath = movieFilePath(context);
 
     if (await createVideo(audioArtifactFilePath, outputVideoPath, studio, caption)) {

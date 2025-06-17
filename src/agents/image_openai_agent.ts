@@ -29,7 +29,7 @@ export const imageOpenaiAgent: AgentFunction<
   const { prompt, images } = namedInputs;
   const { apiKey, moderation, canvasSize } = params;
   const model = params.model ?? "dall-e-3";
-  const openai = new OpenAI({ apiKey });
+  const __openai = new OpenAI({ apiKey });
   const size = (() => {
     if (model === "gpt-image-1") {
       if (canvasSize.width > canvasSize.height) {
@@ -63,7 +63,7 @@ export const imageOpenaiAgent: AgentFunction<
   const response = await (async () => {
     const targetSize = imageOptions.size;
     if ((images ?? []).length > 0 && (targetSize === "1536x1024" || targetSize === "1024x1536" || targetSize === "1024x1024")) {
-      const imagelist = await Promise.all(
+      const __imagelist = await Promise.all(
         (images ?? []).map(async (file) => {
           const ext = path.extname(file).toLowerCase();
           const type = ext === ".jpg" || ext === ".jpeg" ? "image/jpeg" : "image/png";

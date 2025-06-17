@@ -10,8 +10,8 @@ type PredictionResponse = {
 
 // Function to simplify prompts progressively
 function simplifyPrompt(prompt: string, level: number): string {
-  const words = prompt.split(' ');
-  
+  const words = prompt.split(" ");
+
   switch (level) {
     case 0:
       // Original prompt
@@ -19,19 +19,19 @@ function simplifyPrompt(prompt: string, level: number): string {
     case 1:
       // Remove text elements and complex details
       return prompt
-        .replace(/labeled\s+['"][^'"]*['"]/gi, '')
-        .replace(/text\s+saying\s+['"][^'"]*['"]/gi, '')
-        .replace(/with\s+writings?\s+[^.]*/, '')
-        .replace(/\s+around\s+them[^.]*/, '');
+        .replace(/labeled\s+['"][^'"]*['"]/gi, "")
+        .replace(/text\s+saying\s+['"][^'"]*['"]/gi, "")
+        .replace(/with\s+writings?\s+[^.]*/, "")
+        .replace(/\s+around\s+them[^.]*/, "");
     case 2:
       // Keep only main subjects and basic setting
-      return words.slice(0, Math.min(words.length, 40)).join(' ');
+      return words.slice(0, Math.min(words.length, 40)).join(" ");
     case 3:
       // Very simple version - main subject only
-      return words.slice(0, Math.min(words.length, 25)).join(' ');
+      return words.slice(0, Math.min(words.length, 25)).join(" ");
     default:
       // Fallback - minimal description
-      return words.slice(0, Math.min(words.length, 15)).join(' ');
+      return words.slice(0, Math.min(words.length, 15)).join(" ");
   }
 }
 
@@ -47,10 +47,10 @@ async function generateImage(
   // Try with progressive prompt simplification
   for (let attempt = 0; attempt < 5; attempt++) {
     const currentPrompt = simplifyPrompt(originalPrompt, attempt);
-    
-    console.log(`=== IMAGE GENERATION ATTEMPT ${attempt + 1} ===`);
-    console.log("Current Prompt:", currentPrompt);
-    
+
+    GraphAILogger.info(`=== IMAGE GENERATION ATTEMPT ${attempt + 1} ===`);
+    GraphAILogger.info("Current Prompt:", currentPrompt);
+
     try {
       // Prepare the payload for the API request
       const payload = {
@@ -67,8 +67,8 @@ async function generateImage(
         },
       };
 
-      console.log("Payload:", JSON.stringify(payload, null, 2));
-      console.log("==========================================");
+      GraphAILogger.info("Payload:", JSON.stringify(payload, null, 2));
+      GraphAILogger.info("==========================================");
 
       // Make the API call using fetch
       const response = await fetch(GOOGLE_IMAGEN_ENDPOINT, {
@@ -82,19 +82,19 @@ async function generateImage(
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error("Google API Error Details:", {
+        GraphAILogger.error("Google API Error Details:", {
           status: response.status,
           statusText: response.statusText,
           headers: Object.fromEntries(response.headers.entries()),
-          body: errorText
+          body: errorText,
         });
-        
+
         // If it's a 4xx error, try with simpler prompt
         if (response.status >= 400 && response.status < 500 && attempt < 4) {
-          console.log(`HTTP ${response.status} error, trying with simpler prompt...`);
+          GraphAILogger.info(`HTTP ${response.status} error, trying with simpler prompt...`);
           continue;
         }
-        
+
         throw new Error(`Error: ${response.status} - ${response.statusText}`);
       }
 
@@ -105,14 +105,14 @@ async function generateImage(
       if (predictions && predictions.length > 0) {
         const base64Image = predictions[0].bytesBase64Encoded;
         if (base64Image) {
-          console.log(`✅ SUCCESS on attempt ${attempt + 1}`);
+          GraphAILogger.info(`✅ SUCCESS on attempt ${attempt + 1}`);
           return Buffer.from(base64Image, "base64"); // Decode the base64 image to a buffer
         } else {
           throw new Error("No base64-encoded image data returned from the API.");
         }
       } else {
         // No predictions returned - try with simpler prompt
-        console.log(`❌ No predictions returned on attempt ${attempt + 1}, trying simpler prompt...`);
+        GraphAILogger.info(`❌ No predictions returned on attempt ${attempt + 1}, trying simpler prompt...`);
         if (attempt === 4) {
           GraphAILogger.info("No predictions returned from the API after all attempts.", responseData, originalPrompt);
           return undefined;
@@ -120,7 +120,7 @@ async function generateImage(
         continue;
       }
     } catch (error) {
-      console.log(`❌ Error on attempt ${attempt + 1}:`, error);
+      GraphAILogger.error(`❌ Error on attempt ${attempt + 1}:`, error);
       if (attempt === 4) {
         GraphAILogger.info("Error generating image after all attempts:", error);
         throw error;
@@ -129,7 +129,7 @@ async function generateImage(
       continue;
     }
   }
-  
+
   // Should never reach here
   return undefined;
 }
