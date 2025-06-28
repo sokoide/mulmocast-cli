@@ -116,7 +116,9 @@ console.log = (...args: any[]) => {
     // Only broadcast if we have a user context (prevents global spam)
     const currentUser = getCurrentUserContext();
     if (currentUser) {
-      broadcastToClients(message, currentUser);
+      // Add username prefix to make logs clearer
+      const prefixedMessage = `${currentUser}: ${message}`;
+      broadcastToClients(prefixedMessage, currentUser);
     }
   }
 
@@ -130,10 +132,10 @@ console.error = (...args: any[]) => {
   const message = args.map(arg =>
     typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
   ).join(' ');
-  
+
   const currentUser = getCurrentUserContext();
   if (currentUser) {
-    broadcastToClients(`ERROR: ${message}`, currentUser);
+    broadcastToClients(`${currentUser}: ERROR: ${message}`, currentUser);
   }
   originalConsoleError.apply(console, args);
 };
@@ -144,10 +146,10 @@ console.warn = (...args: any[]) => {
   const message = args.map(arg =>
     typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
   ).join(' ');
-  
+
   const currentUser = getCurrentUserContext();
   if (currentUser) {
-    broadcastToClients(`WARNING: ${message}`, currentUser);
+    broadcastToClients(`${currentUser}: WARNING: ${message}`, currentUser);
   }
   originalConsoleWarn.apply(console, args);
 };
@@ -167,7 +169,7 @@ const setupGraphAILogger = async () => {
       if (!message.includes('[DEBUG]') && !message.toLowerCase().includes('filtercomplex')) {
         const currentUser = getCurrentUserContext();
         if (currentUser) {
-          broadcastToClients(`INFO: ${message}`, currentUser);
+          broadcastToClients(`${currentUser}: INFO: ${message}`, currentUser);
         }
       }
 
@@ -184,7 +186,7 @@ const setupGraphAILogger = async () => {
       if (!message.includes('[DEBUG]') && !message.toLowerCase().includes('filtercomplex')) {
         const currentUser = getCurrentUserContext();
         if (currentUser) {
-          broadcastToClients(`LOG: ${message}`, currentUser);
+          broadcastToClients(`${currentUser}: LOG: ${message}`, currentUser);
         }
       }
 
@@ -387,7 +389,6 @@ app.post('/api/mulmocast/generate-all', async (req: Request<{}, {}, GenerateAllR
     try {
       // Broadcast progress updates
       broadcastToClients("🚀 Starting batch generation (script → video → pdf)", userId);
-      broadcastToClients("🔄 Step 1/3: Generating script...", userId);
 
       const result = await mulmocastService.generateAll(input, {
         templateName: template,
