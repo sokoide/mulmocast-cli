@@ -26,6 +26,11 @@ export const builder = (yargs: Argv) => {
       type: "array",
       string: true,
     })
+    .option("input-file", {
+      description: "input file name",
+      demandOption: false,
+      type: "string",
+    })
     .option("i", {
       alias: "interactive",
       description: "Generate script in interactive mode with user prompts",

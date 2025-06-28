@@ -1,11 +1,11 @@
 import { GraphAILogger } from "graphai";
 import type { AgentFunction, AgentFunctionInfo } from "graphai";
 
-export const ttsElevenlabsAgent: AgentFunction = async ({ namedInputs, params }) => {
+export const ttsElevenlabsAgent: AgentFunction = async ({ namedInputs, params, config }) => {
   const { text } = namedInputs;
   const { voice, model, stability, similarityBoost, suppressError } = params;
 
-  const apiKey = process.env.ELEVENLABS_API_KEY;
+  const apiKey = config?.apiKey ?? process.env.ELEVENLABS_API_KEY;
   if (!apiKey) {
     throw new Error("ELEVENLABS_API_KEY environment variable is required");
   }

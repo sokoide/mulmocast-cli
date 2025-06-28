@@ -1,8 +1,10 @@
 import { GraphAILogger } from "graphai";
-import { MulmoStudio, MulmoBeat, MulmoScript, mulmoScriptSchema, mulmoBeatSchema, mulmoStudioSchema } from "../types/index.js";
+import { MulmoStudio, MulmoScript, mulmoScriptSchema, mulmoStudioSchema } from "../types/index.js";
 
 const rebuildStudio = (currentStudio: MulmoStudio | undefined, mulmoScript: MulmoScript, fileName: string) => {
-  const parsed = mulmoStudioSchema.safeParse(currentStudio);
+  const isTest = process.env.NODE_ENV === "test";
+  const parsed =
+    isTest && currentStudio ? { data: mulmoStudioSchema.parse(currentStudio), success: true, error: null } : mulmoStudioSchema.safeParse(currentStudio);
   if (parsed.success) {
     return parsed.data;
   }
@@ -14,7 +16,6 @@ const rebuildStudio = (currentStudio: MulmoStudio | undefined, mulmoScript: Mulm
     script: mulmoScript,
     filename: fileName,
     beats: [...Array(mulmoScript.beats.length)].map(() => ({})),
-    multiLingual: [...Array(mulmoScript.beats.length)].map(() => ({ multiLingualTexts: {} })),
   });
 };
 
@@ -57,6 +58,7 @@ export const createOrUpdateStudioData = (_mulmoScript: MulmoScript, currentStudi
 
   const studio: MulmoStudio = rebuildStudio(currentStudio, mulmoScript, fileName);
 
+  // TODO: Move this code out of this function later
   // Addition cloing credit
   if (mulmoScript.$mulmocast.credit === "closing") {
     mulmoScript.beats.push(mulmoCredit(mulmoScript.beats[0].speaker)); // First speaker
@@ -64,12 +66,5 @@ export const createOrUpdateStudioData = (_mulmoScript: MulmoScript, currentStudi
 
   studio.script = mulmoScriptSchema.parse(mulmoScript); // update the script
   studio.beats = studio.script.beats.map((_, index) => studio.beats[index] ?? {});
-  mulmoScript.beats.forEach((beat: MulmoBeat, index: number) => {
-    // Filling the default values
-    studio.script.beats[index] = mulmoBeatSchema.parse(beat);
-    if (!studio.multiLingual[index]) {
-      studio.multiLingual[index] = { multiLingualTexts: {} };
-    }
-  });
   return studio;
 };

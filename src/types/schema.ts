@@ -28,7 +28,7 @@ const speakerIdSchema = z.string();
 
 export const text2SpeechProviderSchema = z.union([z.literal("openai"), z.literal("nijivoice"), z.literal("google"), z.literal("elevenlabs")]).default("openai");
 
-const speakerDataSchema = z
+export const speakerDataSchema = z
   .object({
     displayName: z.record(langSchema, z.string()).optional(),
     voiceId: z.string(),
@@ -102,6 +102,13 @@ export const mulmoTextSlideMediaSchema = z
   })
   .strict();
 
+export const mulmoCaptionParamsSchema = z
+  .object({
+    lang: langSchema.optional(),
+    styles: z.array(z.string()).default([]), // css styles
+  })
+  .strict();
+
 export const mulmoChartMediaSchema = z
   .object({
     type: z.literal("chart"),
@@ -167,12 +174,19 @@ export const mulmoAudioAssetSchema = z.union([mulmoAudioMediaSchema, mulmoMidiMe
 
 const imageIdSchema = z.string();
 
+export const mulmoImageParamsImagesSchema = z.record(imageIdSchema, mulmoImageMediaSchema);
+export const mulmoFillOptionSchema = z
+  .object({
+    style: z.enum(["aspectFit", "aspectFill"]).default("aspectFit"),
+  })
+  .describe("How to handle aspect ratio differences between image and canvas");
+
 export const mulmoImageParamsSchema = z
   .object({
     model: z.string().optional(), // default: provider specific
     style: z.string().optional(), // optional image style
     moderation: z.string().optional(), // optional image style
-    images: z.record(imageIdSchema, mulmoImageMediaSchema).optional(),
+    images: mulmoImageParamsImagesSchema.optional(),
   })
   .strict();
 
@@ -188,14 +202,31 @@ export const beatAudioParamsSchema = z
   })
   .strict();
 
+export const mulmoHtmlImageParamsSchema = z
+  .object({
+    model: z.string().optional(), // default: provider specific
+  })
+  .strict();
+
 // Note: we can't extend beatAudioParamsSchema because it has padding as optional
 export const audioParamsSchema = z
   .object({
-    padding: z.number().describe("Padding between beats"), // seconds
-    introPadding: z.number().describe("Padding at the beginning of the audio"), // seconds
-    closingPadding: z.number().describe("Padding before the last beat"), // seconds
-    outroPadding: z.number().describe("Padding at the end of the audio"), // seconds
+    padding: z.number().default(0.3).describe("Padding between beats"), // seconds
+    introPadding: z.number().default(1.0).describe("Padding at the beginning of the audio"), // seconds
+    closingPadding: z.number().default(0.8).describe("Padding before the last beat"), // seconds
+    outroPadding: z.number().default(1.0).describe("Padding at the end of the audio"), // seconds
     bgm: mediaSourceSchema.optional(),
+    bgmVolume: z.number().default(0.2).describe("Volume of the background music"),
+    audioVolume: z.number().default(1.0).describe("Volume of the audio"),
+  })
+  .strict();
+
+export const htmlPromptParamsSchema = z
+  .object({
+    systemPrompt: z.string().default("").optional(),
+    prompt: z.string().default(""),
+    data: z.any().optional(),
+    images: z.record(z.any()).optional(),
   })
   .strict();
 
@@ -211,11 +242,19 @@ export const mulmoBeatSchema = z
 
     imageParams: mulmoImageParamsSchema.optional(), // beat specific parameters
     audioParams: beatAudioParamsSchema.optional(), // beat specific parameters
+    movieParams: z
+      .object({
+        fillOption: mulmoFillOptionSchema,
+      })
+      .optional(),
+    htmlImageParams: mulmoHtmlImageParamsSchema.optional(),
     speechOptions: speechOptionsSchema.optional(),
     textSlideParams: textSlideParamsSchema.optional(),
+    captionParams: mulmoCaptionParamsSchema.optional(),
     imageNames: z.array(imageIdSchema).optional(), // list of image names to use for image generation. The default is all images in the imageParams.images.
     imagePrompt: z.string().optional(),
     moviePrompt: z.string().optional(),
+    htmlPrompt: htmlPromptParamsSchema.optional(),
   })
   .strict();
 
@@ -243,10 +282,11 @@ export const mulmoSpeechParamsSchema = z
   .strict();
 
 export const text2ImageProviderSchema = z.union([z.literal("openai"), z.literal("google")]).default("openai");
-export const text2MovieProviderSchema = z.union([z.literal("openai"), z.literal("google")]).default("google");
+export const text2HtmlImageProviderSchema = z.union([z.literal("openai"), z.literal("anthropic")]).default("openai");
+export const text2MovieProviderSchema = z.union([z.literal("openai"), z.literal("google"), z.literal("replicate")]).default("google");
 
 export const mulmoTransitionSchema = z.object({
-  type: z.enum(["fade"]),
+  type: z.enum(["fade", "slideout_left"]),
   duration: z.number().min(0).max(2).default(0.3), // transition duration in seconds
 });
 
@@ -255,6 +295,7 @@ export const mulmoMovieParamsSchema = z
     provider: text2MovieProviderSchema.optional(),
     model: z.string().optional(), // default: provider specific
     transition: mulmoTransitionSchema.optional(),
+    fillOption: mulmoFillOptionSchema.optional(),
   })
   .strict();
 
@@ -277,13 +318,21 @@ export const mulmoPresentationStyleSchema = z.object({
     })
     .optional(),
   movieParams: mulmoMovieParamsSchema.optional(),
+  htmlImageParams: mulmoHtmlImageParamsSchema
+    .extend({
+      provider: text2HtmlImageProviderSchema,
+    })
+    .optional(),
   // for textSlides
   textSlideParams: textSlideParamsSchema.optional(),
+  captionParams: mulmoCaptionParamsSchema.optional(),
   audioParams: audioParamsSchema.default({
     introPadding: 1.0,
     padding: 0.3,
     closingPadding: 0.8,
     outroPadding: 1.0,
+    bgmVolume: 0.2,
+    audioVolume: 1.0,
   }),
 });
 
@@ -350,7 +399,6 @@ export const mulmoStudioSchema = z
     script: mulmoScriptSchema,
     filename: z.string(),
     beats: z.array(mulmoStudioBeatSchema).min(1),
-    multiLingual: mulmoStudioMultiLingualSchema,
   })
   .strict();
 

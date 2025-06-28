@@ -1,0 +1,22 @@
+{
+  "$mulmocast": {
+    "version": "1.0",
+    "credit": "closing"
+  },
+  "canvasSize": {
+    "width": 1536,
+    "height": 1024
+  },
+  "imageParams": {
+    "style": "<style>One Piece aesthetic.</style>",
+    "images": {
+      "presenter": {
+        "type": "image",
+        "source": {
+          "kind": "url",
+          "url": "https://raw.githubusercontent.com/receptron/mulmocast-media/refs/heads/main/characters/onepiece_presenter.png"
+        }
+      }
+    }
+  }
+}

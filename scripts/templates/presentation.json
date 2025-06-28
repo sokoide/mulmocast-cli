@@ -1,0 +1,123 @@
+{
+  "$mulmocast": {
+    "version": "1.0",
+    "credit": "closing"
+  },
+  "htmlImageParams": {
+    "provider": "anthropic",
+    "model": "claude-3-7-sonnet-20250219"
+  },
+  "title": "Sample Title",
+  "references": [
+    {
+      "url": "https://www.somegreatwebsite.com/article/123",
+      "title": "Title of the article we are referencing",
+      "type": "article"
+    }
+  ],
+  "lang": "en",
+  "beats": [
+    {
+      "speaker": "Presenter",
+      "text": "Book rooms with locals, not hotels.",
+      "htmlPrompt": {
+        "prompt": "Create a clean and bold title slide featuring the original name 'AirBed & Breakfast' with the tagline: 'Book rooms with locals, not hotels'. Include the old logo and a travel-themed background."
+      }
+    },
+    {
+      "speaker": "Presenter",
+      "text": "Hotels are expensive and detached from local culture.",
+      "htmlPrompt": {
+        "prompt": "Design a slide that lists the main problems with hotels: high prices, lack of personality, and cultural disconnection. Use simple icons for cost, generic room, and traveler."
+      }
+    },
+    {
+      "speaker": "Presenter",
+      "text": "Airbnb lets people rent out their spaces, offering affordable, authentic experiences.",
+      "htmlPrompt": {
+        "prompt": "Illustrate Airbnb's solution: locals listing their spare rooms or homes, travelers booking directly, and both benefiting. Use a flow diagram to represent this."
+      }
+    },
+    {
+      "speaker": "Presenter",
+      "text": "Craigslist and Couchsurfing prove the demand for alternative lodging.",
+      "htmlPrompt": {
+        "prompt": "Show a bar graph comparing Craigslist listings, Couchsurfing users, and early Airbnb listings to demonstrate existing demand and opportunity."
+      }
+    },
+    {
+      "speaker": "Presenter",
+      "text": "A massive market: over 630 million travel bookings annually.",
+      "htmlPrompt": {
+        "prompt": "Visualize the global travel booking market. Use a world map and large numbers to emphasize the size and growth potential."
+      }
+    },
+    {
+      "speaker": "Presenter",
+      "text": "Our platform enables hosts to list once and earn; guests search, book, and review.",
+      "htmlPrompt": {
+        "prompt": "Create a product overview slide showing how the platform works from host listing to guest review. Highlight simplicity and trust."
+      }
+    },
+    {
+      "speaker": "Presenter",
+      "text": "We charge a 10% commission per booking.",
+      "htmlPrompt": {
+        "prompt": "Display a slide with the monetization strategy—Airbnb earns through a 10% commission. Use a simple pie chart or booking flow with fee annotation."
+      }
+    },
+    {
+      "speaker": "Presenter",
+      "text": "Competitors include hotels, Craigslist, Couchsurfing — we offer a better, scalable solution.",
+      "htmlPrompt": {
+        "prompt": "Design a comparison table: price, uniqueness, trust, scalability. Airbnb should clearly stand out on all dimensions."
+      }
+    },
+    {
+      "speaker": "Presenter",
+      "text": "Key advantages: lower price, wide selection, ease of use, host incentives, trusted system.",
+      "htmlPrompt": {
+        "prompt": "List Airbnb’s competitive advantages using 6 icons or badges, one for each feature."
+      }
+    },
+    {
+      "speaker": "Presenter",
+      "text": "Founders: Brian Chesky (Design), Joe Gebbia (Marketing), Nathan Blecharczyk (Engineering).",
+      "htmlPrompt": {
+        "prompt": "Introduce the founding team with photos and brief bios. Highlight their roles and strengths in product, marketing, and tech."
+      }
+    },
+    {
+      "speaker": "Presenter",
+      "text": "Media buzz: featured on TechCrunch and buzz from SXSW.",
+      "htmlPrompt": {
+        "prompt": "Showcase media recognition. Include TechCrunch logo and SXSW quotes or metrics. This adds credibility and traction."
+      }
+    },
+    {
+      "speaker": "Presenter",
+      "text": "Early users love the authentic and affordable experiences.",
+      "htmlPrompt": {
+        "prompt": "Add 2–3 short testimonials from early users (guests and hosts), displayed in speech bubbles with faces or usernames."
+      }
+    },
+    {
+      "speaker": "Presenter",
+      "text": "We’re raising $600K to support 12 months of growth and reach 80K bookings with $2M in revenue.",
+      "htmlPrompt": {
+        "prompt": "Closing investment slide. Include fund usage (pie chart: 40% marketing, 30% product, 30% ops), and KPIs: 80K bookings, $2M revenue.",
+        "data": {
+          "ask": 600000,
+          "duration_months": 12,
+          "target_bookings": 80000,
+          "target_revenue": 2000000,
+          "use_of_funds": {
+            "marketing": 40,
+            "product": 30,
+            "operations": 30
+          }
+        }
+      }
+    }
+  ]
+}

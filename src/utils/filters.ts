@@ -25,6 +25,7 @@ export const fileCacheAgentFilter: AgentFilterFunction = async (context, next) =
   };
 
   if (await shouldUseCache()) {
+    GraphAILogger.debug("cache");
     return true;
   }
   try {

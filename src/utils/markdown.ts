@@ -41,7 +41,7 @@ export const renderHTMLToImage = async (
 export const renderMarkdownToImage = async (markdown: string, style: string, outputPath: string, width: number, height: number) => {
   const header = `<head><style>${style}</style></head>`;
   const body = await marked(markdown);
-  const html = `<htlm>${header}<body>${body}</body></html>`;
+  const html = `<html>${header}<body>${body}</body></html>`;
   await renderHTMLToImage(html, outputPath, width, height);
 };
 

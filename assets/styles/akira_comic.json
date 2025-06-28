@@ -1,0 +1,22 @@
+{
+  "$mulmocast": {
+    "version": "1.0",
+    "credit": "closing"
+  },
+  "canvasSize": {
+    "width": 1536,
+    "height": 1024
+  },
+  "imageParams": {
+    "style": "<style>AKIRA aesthetic.</style>",
+    "images": {
+      "girl": {
+        "type": "image",
+        "source": {
+          "kind": "url",
+          "url": "https://raw.githubusercontent.com/receptron/mulmocast-media/refs/heads/main/characters/akira_presenter.png"
+        }
+      }
+    }
+  }
+}

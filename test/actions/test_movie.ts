@@ -117,7 +117,8 @@ test("test images", async () => {
       },
     ],
   };
-  const studio = createOrUpdateStudioData(mulmoScript, fileDirs, "hello");
+
+  const studio = createOrUpdateStudioData(mulmoScript, null, "hello");
   const context = {
     studio,
     fileDirs,
@@ -139,8 +140,8 @@ test("test images", async () => {
         caption: {},
       },
     },
+    presentationStyle: studio.script,
+    multiLingual: [...Array(studio.script.beats.length)].map(() => ({ multiLingualTexts: {} })),
   };
-  await audio(context);
-  await images(context);
-  await movie(context);
+  await audio(context).then(images).then(movie);
 });

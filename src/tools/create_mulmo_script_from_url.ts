@@ -1,4 +1,5 @@
 import "dotenv/config";
+import path from "path";
 import { GraphAI, GraphData } from "graphai";
 import { openAIAgent } from "@graphai/openai_agent";
 import { anthropicAgent } from "@graphai/anthropic_agent";
@@ -15,8 +16,59 @@ import { ScriptingParams } from "../types/index.js";
 import { cliLoadingPlugin } from "../utils/plugins.js";
 import { graphDataScriptFromUrlPrompt } from "../utils/prompt.js";
 import { llmPair } from "../utils/utils.js";
+import { readFileSync } from "fs";
 
 const vanillaAgents = agents.default ?? agents;
+
+const graphMulmoScript: GraphData = {
+  version: 0.5,
+  loop: {
+    // If the script is not valid and the counter is less than 3, continue the loop
+    while: ":continue",
+  },
+  nodes: {
+    sourceText: {},
+    systemPrompt: {},
+    llmAgent: {},
+    llmModel: {},
+    maxTokens: {},
+    counter: {
+      value: 0,
+      update: ":counter.add(1)",
+    },
+    llm: {
+      agent: ":llmAgent",
+      // console: { before: true },
+      inputs: {
+        system: ":systemPrompt",
+        prompt: graphDataScriptFromUrlPrompt("${:sourceText.text}"),
+        params: {
+          model: ":llmModel",
+          system: ":systemPrompt",
+          max_tokens: ":maxTokens",
+        },
+      },
+    },
+    validateSchemaAgent: {
+      agent: "validateSchemaAgent",
+      inputs: {
+        text: ":llm.text.codeBlock()",
+        schema: mulmoScriptSchema,
+      },
+      isResult: true,
+    },
+    continue: {
+      agent: ({ isValid, counter }) => {
+        return !isValid && counter < 3;
+      },
+      inputs: {
+        isValid: ":validateSchemaAgent.isValid",
+        counter: ":counter",
+      },
+    },
+  },
+};
+
 const graphData: GraphData = {
   version: 0.5,
   // Execute sequentially because the free version of browserless API doesn't support concurrent execution.
@@ -25,7 +77,7 @@ const graphData: GraphData = {
     urls: {
       value: [],
     },
-    prompt: {
+    systemPrompt: {
       value: "",
     },
     outdir: {
@@ -89,52 +141,61 @@ const graphData: GraphData = {
       agent: "nestedAgent",
       inputs: {
         sourceText: ":sourceText",
-        prompt: ":prompt",
+        systemPrompt: ":systemPrompt",
         llmAgent: ":llmAgent",
         llmModel: ":llmModel",
         maxTokens: ":maxTokens",
       },
-      graph: {
-        loop: {
-          // If the script is not valid and the counter is less than 3, continue the loop
-          while: ":continue",
-        },
-        nodes: {
-          counter: {
-            value: 0,
-            update: ":counter.add(1)",
-          },
-          llm: {
-            agent: ":llmAgent",
-            inputs: {
-              system: ":prompt",
-              prompt: graphDataScriptFromUrlPrompt("${:sourceText.text}"),
-              params: {
-                model: ":llmModel",
-                system: ":prompt",
-                max_tokens: ":maxTokens",
-              },
-            },
-          },
-          validateSchemaAgent: {
-            agent: "validateSchemaAgent",
-            inputs: {
-              text: ":llm.text.codeBlock()",
-              schema: mulmoScriptSchema,
-            },
-            isResult: true,
-          },
-          continue: {
-            agent: ({ isValid, counter }) => {
-              return !isValid && counter < 3;
-            },
-            inputs: {
-              isValid: ":validateSchemaAgent.isValid",
-              counter: ":counter",
-            },
-          },
-        },
+      graph: graphMulmoScript,
+    },
+    writeJSON: {
+      if: ":mulmoScript.validateSchemaAgent.isValid",
+      agent: "fileWriteAgent",
+      inputs: {
+        file: "${:outdir}/${:fileName}-${@now}.json",
+        text: ":mulmoScript.validateSchemaAgent.data.toJSON()",
       },
+      isResult: true,
+    },
+  },
+};
+
+const graphDataText: GraphData = {
+  version: 0.5,
+  // Execute sequentially because the free version of browserless API doesn't support concurrent execution.
+  concurrency: 1,
+  nodes: {
+    systemPrompt: {
+      value: "",
+    },
+    outdir: {
+      value: "",
+    },
+    fileName: {
+      value: "",
+    },
+    llmAgent: {
+      value: "",
+    },
+    llmModel: {
+      value: "",
+    },
+    maxTokens: {
+      value: 0,
+    },
+    sourceText: {},
+    // generate the mulmo script
+    mulmoScript: {
+      agent: "nestedAgent",
+      // console: { before: true },
+      inputs: {
+        sourceText: ":sourceText",
+        systemPrompt: ":systemPrompt",
+        llmAgent: ":llmAgent",
+        llmModel: ":llmModel",
+        maxTokens: ":maxTokens",
+      },
+      graph: graphMulmoScript,
     },
     writeJSON: {
       if: ":mulmoScript.validateSchemaAgent.isValid",
@@ -179,7 +240,7 @@ export const createMulmoScriptFromUrl = async ({ urls, templateName, outDirPath,
   );
 
   graph.injectValue("urls", parsedUrls);
-  graph.injectValue("prompt", readTemplatePrompt(templateName));
+  graph.injectValue("systemPrompt", readTemplatePrompt(templateName));
   graph.injectValue("outdir", outDirPath);
   graph.injectValue("fileName", filename);
   graph.injectValue("llmAgent", agent);
@@ -187,6 +248,41 @@ export const createMulmoScriptFromUrl = async ({ urls, templateName, outDirPath,
   graph.injectValue("maxTokens", max_tokens);
   graph.registerCallback(cliLoadingPlugin({ nodeId: "mulmoScript", message: "Generating script..." }));
 
+  const result = await graph.run<{ path: string }>();
+  writingMessage(result?.writeJSON?.path ?? "");
+};
+
+export const createMulmoScriptFromFile = async (
+  fileName: string,
+  { templateName, outDirPath, filename, cacheDirPath, llm, llm_model, verbose }: ScriptingParams,
+) => {
+  mkdir(outDirPath);
+  mkdir(cacheDirPath);
+  const filePath = path.resolve(process.cwd(), fileName);
+
+  const text = readFileSync(filePath, "utf-8");
+  const { agent, model, max_tokens } = llmPair(llm, llm_model);
+
+  const graph = new GraphAI(graphDataText, {
+    ...vanillaAgents,
+    openAIAgent,
+    anthropicAgent,
+    geminiAgent,
+    groqAgent,
+    validateSchemaAgent,
+    fileWriteAgent,
+  });
+
+  graph.injectValue("sourceText", { text });
+  graph.injectValue("systemPrompt", readTemplatePrompt(templateName));
+  graph.injectValue("outdir", outDirPath);
+  graph.injectValue("fileName", filename);
+  graph.injectValue("llmAgent", agent);
+  graph.injectValue("llmModel", model);
+  graph.injectValue("maxTokens", max_tokens);
+  if (!verbose) {
+    graph.registerCallback(cliLoadingPlugin({ nodeId: "mulmoScript", message: "Generating script..." }));
+  }
   const result = await graph.run<{ path: string }>();
   writingMessage(result?.writeJSON?.path ?? "");
 };

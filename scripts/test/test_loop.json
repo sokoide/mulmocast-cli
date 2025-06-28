@@ -1,0 +1,34 @@
+{
+  "$mulmocast": {
+    "version": "1.0",
+    "credit": "closing"
+  },
+  "audioParams": {
+    "bgm": {
+      "kind": "url",
+      "url": "https://github.com/receptron/mulmocast-media/raw/refs/heads/main/bgms/theme001.mp3"
+    }
+  },
+  "title": "Loop Test",
+  "beats": [
+    {
+      "duration": 200,
+      "text": "This beat has a long duration.",
+      "image": {
+        "type": "textSlide",
+        "slide": {
+          "title": "Duration = 200"
+        }
+      }
+    },
+    {
+      "text": "This beat is the last beat before the credit.",
+      "image": {
+        "type": "textSlide",
+        "slide": {
+          "title": "No Duration"
+        }
+      }
+    }
+  ]
+}

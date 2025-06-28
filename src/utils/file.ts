@@ -3,8 +3,8 @@ import path from "path";
 import { parse as yamlParse } from "yaml";
 import { fileURLToPath } from "url";
 import { GraphAILogger } from "graphai";
-import { MulmoScript, MulmoScriptTemplateFile } from "../types/index.js";
-import { MulmoScriptTemplateMethods } from "../methods/mulmo_script_template.js";
+import type { MulmoScript, MulmoScriptTemplateFile, MulmoStudioContext } from "../types/index.js";
+import { MulmoScriptTemplateMethods, MulmoStudioContextMethods } from "../methods/index.js";
 import { mulmoScriptTemplateSchema } from "../types/schema.js";
 import { PDFMode } from "../types/index.js";
 import { ZodSchema } from "zod";
@@ -87,21 +87,18 @@ export const fetchMulmoScriptFile = async (url: string): Promise<{ result: boole
 export const getOutputStudioFilePath = (outDirPath: string, fileName: string) => {
   return path.resolve(outDirPath, fileName + "_studio.json");
 };
+export const getOutputMultilingualFilePath = (outDirPath: string, fileName: string) => {
+  return path.resolve(outDirPath, fileName + "_lang.json");
+};
 export const resolveDirPath = (dirPath: string, studioFileName: string) => {
   return path.resolve(dirPath, studioFileName);
 };
-// TODO: probably better to just use resolveDirPath instead.
-export const getAudioSegmentDirPath = (audioDirPath: string, studioFileName: string) => {
-  return path.resolve(audioDirPath, studioFileName);
-};
-export const getAudioSegmentFilePath = (audioDirPath: string, studioFileName: string, fileName: string) => {
-  return path.resolve(getAudioSegmentDirPath(audioDirPath, studioFileName), fileName + ".mp3");
-};
-export const getAudioCombinedFilePath = (audioDirPath: string, fileName: string, lang?: string) => {
+// audio
+export const getAudioFilePath = (audioDirPath: string, dirName: string, fileName: string, lang?: string) => {
   if (lang) {
-    return path.resolve(audioDirPath, fileName, `${fileName}_${lang}.mp3`);
+    return path.resolve(audioDirPath, dirName, `${fileName}_${lang}.mp3`);
   }
-  return path.resolve(audioDirPath, fileName, fileName + ".mp3");
+  return path.resolve(audioDirPath, dirName, fileName + ".mp3");
 };
 export const getAudioArtifactFilePath = (outDirPath: string, fileName: string) => {
   return path.resolve(outDirPath, fileName + ".mp3");
@@ -117,6 +114,26 @@ export const getOutputVideoFilePath = (outDirPath: string, fileName: string, lan
   const suffix2 = caption ? `__${caption}` : "";
   return path.resolve(outDirPath, `${fileName}${suffix}${suffix2}.mp4`);
 };
+// image
+export const imageSuffix = "p";
+export const getBeatPngImagePath = (context: MulmoStudioContext, index: number) => {
+  const imageProjectDirPath = MulmoStudioContextMethods.getImageProjectDirPath(context);
+  return `${imageProjectDirPath}/${index}${imageSuffix}.png`;
+};
+export const getBeatMoviePath = (context: MulmoStudioContext, index: number) => {
+  const imageProjectDirPath = MulmoStudioContextMethods.getImageProjectDirPath(context);
+  return `${imageProjectDirPath}/${index}.mov`;
+};
+export const getReferenceImagePath = (context: MulmoStudioContext, key: string, extension: string) => {
+  const imageProjectDirPath = MulmoStudioContextMethods.getImageProjectDirPath(context);
+  return `${imageProjectDirPath}/${key}.${extension}`;
+};
+export const getCaptionImagePath = (context: MulmoStudioContext, index: number) => {
+  const imageProjectDirPath = MulmoStudioContextMethods.getImageProjectDirPath(context);
+  return `${imageProjectDirPath}/${index}_caption.png`;
+};
+
+// pdf
 export const getOutputPdfFilePath = (outDirPath: string, fileName: string, pdfMode: PDFMode, lang?: string) => {
   if (lang) {
     return path.resolve(outDirPath, `${fileName}_${pdfMode}_${lang}.pdf`);
@@ -137,7 +154,7 @@ export const mkdir = (dirPath: string) => {
 // export const silentPath = path.resolve(npmRoot, "./assets/audio/silent300.mp3");
 // export const silentLastPath = path.resolve(npmRoot, "./assets/audio/silent800.mp3");
 export const silent60secPath = () => path.resolve(npmRoot, "./assets/audio/silent60sec.mp3");
-export const defaultBGMPath = () => path.resolve(npmRoot, "./assets/music/StarsBeyondEx.mp3");
+export const defaultBGMPath = () => "https://github.com/receptron/mulmocast-media/raw/refs/heads/main/bgms/story002.mp3";
 
 export const getHTMLFile = (filename: string) => {
   const htmlPath = path.resolve(npmRoot, `./assets/html/${filename}.html`);

@@ -1,0 +1,23 @@
+{
+  "$mulmocast": { "version": "1.0" },
+  "movieParams": {
+    "provider": "replicate",
+    "model": "bytedance/seedance-1-lite"
+  },
+  "beats": [
+    {
+      "moviePrompt": "a woman walks in the park",
+      "duration": 5
+    },
+    {
+      "imagePrompt": "a woman walks in the park",
+      "moviePrompt": "a woman walks in the park",
+      "duration": 5
+    },
+    {
+      "imagePrompt": "a woman walks in the park",
+      "moviePrompt": "a woman walks in the park",
+      "duration": 5
+    }
+  ]
+}

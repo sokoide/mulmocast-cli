@@ -1,6 +1,6 @@
 import { GraphAILogger, assert } from "graphai";
-import { MulmoStudio, MulmoStudioContext, MulmoCanvasDimension, BeatMediaType, mulmoTransitionSchema } from "../types/index.js";
-import { MulmoScriptMethods } from "../methods/index.js";
+import { MulmoStudioContext, MulmoCanvasDimension, BeatMediaType, mulmoTransitionSchema, MulmoFillOption, mulmoFillOptionSchema } from "../types/index.js";
+import { MulmoPresentationStyleMethods } from "../methods/index.js";
 import { getAudioArtifactFilePath, getOutputVideoFilePath, writingMessage } from "../utils/file.js";
 import { FfmpegContextAddInput, FfmpegContextInit, FfmpegContextPushFormattedAudio, FfmpegContextGenerateOutput } from "../utils/ffmpeg_utils.js";
 import { MulmoStudioContextMethods } from "../methods/mulmo_studio_context.js";
@@ -35,7 +35,7 @@ const getLanguageFromContext = (context: MulmoStudioContext): string => {
 // const isMac = process.platform === "darwin";
 const videoCodec = "libx264"; // "h264_videotoolbox" (macOS only) is too noisy
 
-export const getVideoPart = (inputIndex: number, mediaType: BeatMediaType, duration: number, canvasInfo: MulmoCanvasDimension) => {
+export const getVideoPart = (inputIndex: number, mediaType: BeatMediaType, duration: number, canvasInfo: MulmoCanvasDimension, fillOption: MulmoFillOption) => {
   const videoId = `v${inputIndex}`;
 
   const videoFilters = [];
@@ -50,16 +50,25 @@ export const getVideoPart = (inputIndex: number, mediaType: BeatMediaType, durat
   }
 
   // Common filters for all media types
-  videoFilters.push(
-    `trim=duration=${duration}`,
-    "fps=30",
-    "setpts=PTS-STARTPTS",
-    `scale=w=${canvasInfo.width}:h=${canvasInfo.height}:force_original_aspect_ratio=decrease`,
-    // In case of the aspect ratio mismatch, we fill the extra space with black color.
-    `pad=${canvasInfo.width}:${canvasInfo.height}:(ow-iw)/2:(oh-ih)/2:color=black`,
-    "setsar=1",
-    "format=yuv420p",
-  );
+  videoFilters.push(`trim=duration=${duration}`, "fps=30", "setpts=PTS-STARTPTS");
+
+  // Apply scaling based on fill option
+  if (fillOption.style === "aspectFill") {
+    // For aspect fill: scale to fill the canvas completely, cropping if necessary
+    videoFilters.push(
+      `scale=w=${canvasInfo.width}:h=${canvasInfo.height}:force_original_aspect_ratio=increase`,
+      `crop=${canvasInfo.width}:${canvasInfo.height}`,
+    );
+  } else {
+    // For aspect fit: scale to fit within canvas, padding if necessary
+    videoFilters.push(
+      `scale=w=${canvasInfo.width}:h=${canvasInfo.height}:force_original_aspect_ratio=decrease`,
+      // In case of the aspect ratio mismatch, we fill the extra space with black color.
+      `pad=${canvasInfo.width}:${canvasInfo.height}:(ow-iw)/2:(oh-ih)/2:color=black`,
+    );
+  }
+
+  videoFilters.push("setsar=1", "format=yuv420p");
 
   return {
     videoId,
@@ -103,18 +112,18 @@ const getOutputOption = (audioId: string, videoId: string) => {
   ];
 };
 
-const createVideo = async (audioArtifactFilePath: string, outputVideoPath: string, studio: MulmoStudio, caption: string | undefined) => {
+const createVideo = async (audioArtifactFilePath: string, outputVideoPath: string, context: MulmoStudioContext) => {
+  const caption = MulmoStudioContextMethods.getCaption(context);
   const start = performance.now();
   const ffmpegContext = FfmpegContextInit();
 
-  // Final check after potential image generation
-  const missingIndex = studio.beats.findIndex((beat) => !beat.imageFile && !beat.movieFile);
+  const missingIndex = context.studio.beats.findIndex((beat) => !beat.imageFile && !beat.movieFile);
   if (missingIndex !== -1) {
     GraphAILogger.info(`ERROR: beat.imageFile or beat.movieFile is not set on beat ${missingIndex} after image generation.`);
     return false;
   }
 
-  const canvasInfo = MulmoScriptMethods.getCanvasSize(studio.script);
+  const canvasInfo = MulmoPresentationStyleMethods.getCanvasSize(context.presentationStyle);
 
   // Add each image input
   const filterComplexVideoIds: string[] = [];
@@ -122,8 +131,8 @@ const createVideo = async (audioArtifactFilePath: string, outputVideoPath: strin
   const transitionVideoIds: string[] = [];
   const beatTimestamps: number[] = [];
 
-  studio.beats.reduce((timestamp, studioBeat, index) => {
-    const beat = studio.script.beats[index];
+  context.studio.beats.reduce((timestamp, studioBeat, index) => {
+    const beat = context.studio.script.beats[index];
     const sourceFile = studioBeat.movieFile ?? studioBeat.imageFile;
     if (!sourceFile) {
       throw new Error(`studioBeat.imageFile or studioBeat.movieFile is not set: index=${index}`);
@@ -132,18 +141,25 @@ const createVideo = async (audioArtifactFilePath: string, outputVideoPath: strin
       throw new Error(`studioBeat.duration is not set: index=${index}`);
     }
     const inputIndex = FfmpegContextAddInput(ffmpegContext, sourceFile);
-    const mediaType = studioBeat.movieFile ? "movie" : MulmoScriptMethods.getImageType(studio.script, beat);
+    const mediaType = studioBeat.movieFile ? "movie" : MulmoPresentationStyleMethods.getImageType(context.presentationStyle, beat);
     const extraPadding = (() => {
       // We need to consider only intro and outro padding because the other paddings were already added to the beat.duration
       if (index === 0) {
-        return studio.script.audioParams.introPadding;
-      } else if (index === studio.beats.length - 1) {
-        return studio.script.audioParams.outroPadding;
+        return context.presentationStyle.audioParams.introPadding;
+      } else if (index === context.studio.beats.length - 1) {
+        return context.presentationStyle.audioParams.outroPadding;
       }
       return 0;
     })();
     const duration = studioBeat.duration + extraPadding;
-    const { videoId, videoPart } = getVideoPart(inputIndex, mediaType, duration, canvasInfo);
+
+    // Get fillOption from merged imageParams (global + beat-specific)
+    const globalFillOption = context.presentationStyle.movieParams?.fillOption;
+    const beatFillOption = beat.movieParams?.fillOption;
+    const defaultFillOption = mulmoFillOptionSchema.parse({}); // let the schema infer the default value
+    const fillOption = { ...defaultFillOption, ...globalFillOption, ...beatFillOption };
+
+    const { videoId, videoPart } = getVideoPart(inputIndex, mediaType, duration, canvasInfo, fillOption);
     ffmpegContext.filterComplex.push(videoPart);
     if (caption && studioBeat.captionFile) {
       const captionInputIndex = FfmpegContextAddInput(ffmpegContext, studioBeat.captionFile);
@@ -153,7 +169,7 @@ const createVideo = async (audioArtifactFilePath: string, outputVideoPath: strin
     } else {
       filterComplexVideoIds.push(videoId);
     }
-    if (studio.script.movieParams?.transition && index < studio.beats.length - 1) {
+    if (context.presentationStyle.movieParams?.transition && index < context.studio.beats.length - 1) {
       const sourceId = filterComplexVideoIds.pop();
       ffmpegContext.filterComplex.push(`[${sourceId}]split=2[${sourceId}_0][${sourceId}_1]`);
       filterComplexVideoIds.push(`${sourceId}_0`);
@@ -177,31 +193,42 @@ const createVideo = async (audioArtifactFilePath: string, outputVideoPath: strin
     return timestamp + duration;
   }, 0);
 
-  assert(filterComplexVideoIds.length === studio.beats.length, "videoIds.length !== studio.beats.length");
-  assert(beatTimestamps.length === studio.beats.length, "beatTimestamps.length !== studio.beats.length");
+  assert(filterComplexVideoIds.length === context.studio.beats.length, "videoIds.length !== studio.beats.length");
+  assert(beatTimestamps.length === context.studio.beats.length, "beatTimestamps.length !== studio.beats.length");
 
   // console.log("*** images", images.audioIds);
 
   // Concatenate the trimmed images
   const concatVideoId = "concat_video";
-  ffmpegContext.filterComplex.push(`${filterComplexVideoIds.map((id) => `[${id}]`).join("")}concat=n=${studio.beats.length}:v=1:a=0[${concatVideoId}]`);
+  ffmpegContext.filterComplex.push(`${filterComplexVideoIds.map((id) => `[${id}]`).join("")}concat=n=${context.studio.beats.length}:v=1:a=0[${concatVideoId}]`);
 
   // Add tranditions if needed
   const mixedVideoId = (() => {
-    if (studio.script.movieParams?.transition && transitionVideoIds.length > 1) {
-      const transition = mulmoTransitionSchema.parse(studio.script.movieParams.transition);
+    if (context.presentationStyle.movieParams?.transition && transitionVideoIds.length > 0) {
+      const transition = mulmoTransitionSchema.parse(context.presentationStyle.movieParams.transition);
 
       return transitionVideoIds.reduce((acc, transitionVideoId, index) => {
         const transitionStartTime = beatTimestamps[index + 1] - 0.05; // 0.05 is to avoid flickering
         const processedVideoId = `${transitionVideoId}_f`;
-        // If we can to add other transition types than fade, we need to add them here.
-        ffmpegContext.filterComplex.push(
-          `[${transitionVideoId}]format=yuva420p,fade=t=out:d=${transition.duration}:alpha=1,setpts=PTS-STARTPTS+${transitionStartTime}/TB[${processedVideoId}]`,
-        );
+        let transitionFilter;
+        if (transition.type === "fade") {
+          transitionFilter = `[${transitionVideoId}]format=yuva420p,fade=t=out:d=${transition.duration}:alpha=1,setpts=PTS-STARTPTS+${transitionStartTime}/TB[${processedVideoId}]`;
+        } else if (transition.type === "slideout_left") {
+          transitionFilter = `[${transitionVideoId}]format=yuva420p,setpts=PTS-STARTPTS+${transitionStartTime}/TB[${processedVideoId}]`;
+        } else {
+          throw new Error(`Unknown transition type: ${transition.type}`);
+        }
+        ffmpegContext.filterComplex.push(transitionFilter);
         const outputId = `${transitionVideoId}_o`;
-        ffmpegContext.filterComplex.push(
-          `[${acc}][${processedVideoId}]overlay=enable='between(t,${transitionStartTime},${transitionStartTime + transition.duration})'[${outputId}]`,
-        );
+        if (transition.type === "fade") {
+          ffmpegContext.filterComplex.push(
+            `[${acc}][${processedVideoId}]overlay=enable='between(t,${transitionStartTime},${transitionStartTime + transition.duration})'[${outputId}]`,
+          );
+        } else if (transition.type === "slideout_left") {
+          ffmpegContext.filterComplex.push(
+            `[${acc}][${processedVideoId}]overlay=x='-(t-${transitionStartTime})*W/${transition.duration}':y=0:enable='between(t,${transitionStartTime},${transitionStartTime + transition.duration})'[${outputId}]`,
+          );
+        }
         return outputId;
       }, concatVideoId);
     }
@@ -230,68 +257,31 @@ const createVideo = async (audioArtifactFilePath: string, outputVideoPath: strin
   await FfmpegContextGenerateOutput(ffmpegContext, outputVideoPath, getOutputOption(ffmpegContextAudioId, mixedVideoId));
   const end = performance.now();
   GraphAILogger.info(`Video created successfully! ${Math.round(end - start) / 1000} sec`);
-  GraphAILogger.info(studio.script.title);
-  GraphAILogger.info((studio.script.references ?? []).map((reference) => `${reference.title} (${reference.url})`).join("\n"));
+  GraphAILogger.info(context.studio.script.title);
+  GraphAILogger.info((context.studio.script.references ?? []).map((reference) => `${reference.title} (${reference.url})`).join("\n"));
 
   return true;
 };
 
 export const movieFilePath = (context: MulmoStudioContext) => {
-  const { studio, fileDirs, caption } = context;
-  // Use the same directory as the JSON file (which includes the user directory)
-  const outputDir = fileDirs.mulmoFileDirPath;
-  // Get language from script, not from context.lang
+  const outDirPath = MulmoStudioContextMethods.getOutDirPath(context);
+  const fileName = MulmoStudioContextMethods.getFileName(context);
+  const caption = MulmoStudioContextMethods.getCaption(context);
+  // Use language detection for consistent file naming
   const lang = getLanguageFromContext(context);
   GraphAILogger.info(`Video: Using language '${lang}' for file suffix, caption: ${caption}`);
-  return getOutputVideoFilePath(outputDir, studio.filename, lang, caption);
+  return getOutputVideoFilePath(outDirPath, fileName, lang, caption);
 };
 
 export const movie = async (context: MulmoStudioContext) => {
   MulmoStudioContextMethods.setSessionState(context, "video", true);
   try {
-    const { studio, fileDirs, caption } = context;
-    const { outDirPath: __outDirPath } = fileDirs;
-
-    // Auto-detect language from template and update context if not already set
-    const detectedLang = getLanguageFromContext(context);
-    GraphAILogger.info(`Language detection: detected=${detectedLang}, context.lang=${context.lang}, context.caption=${context.caption}`);
-
-    if (detectedLang && !context.lang && !context.caption) {
-      GraphAILogger.info(`Auto-detected language: ${detectedLang}`);
-      context.lang = detectedLang;
-      context.caption = detectedLang; // Set caption to the same language for subtitle generation
-      GraphAILogger.info(`Updated context: lang=${context.lang}, caption=${context.caption}`);
-    }
-
-    // Check if images exist, if not, generate them first
-    const missingImageIndex = studio.beats.findIndex((beat) => !beat.imageFile && !beat.movieFile);
-    if (missingImageIndex !== -1) {
-      GraphAILogger.info(`Images not found. Generating images first...`);
-      const { images } = await import("./images.js");
-      await images(context);
-    }
-
-    // Check if audio exists, if not, generate it first
-    const audioArtifactFilePath = getAudioArtifactFilePath(fileDirs.mulmoFileDirPath, studio.filename);
-    const fs = await import("fs");
-    if (!fs.existsSync(audioArtifactFilePath)) {
-      GraphAILogger.info(`Audio not found. Generating audio first...`);
-      const { audio } = await import("./audio.js");
-      await audio(context);
-    }
-
-    // Generate captions if caption language is set
-    if (context.caption) {
-      GraphAILogger.info(`Generating captions for language: ${context.caption}`);
-      const { captions } = await import("./captions.js");
-      await captions(context);
-    } else {
-      GraphAILogger.info(`No caption language set, skipping caption generation`);
-    }
-
+    const fileName = MulmoStudioContextMethods.getFileName(context);
+    const outDirPath = MulmoStudioContextMethods.getOutDirPath(context);
+    const audioArtifactFilePath = getAudioArtifactFilePath(outDirPath, fileName);
     const outputVideoPath = movieFilePath(context);
 
-    if (await createVideo(audioArtifactFilePath, outputVideoPath, studio, caption)) {
+    if (await createVideo(audioArtifactFilePath, outputVideoPath, context)) {
       writingMessage(outputVideoPath);
     }
   } finally {

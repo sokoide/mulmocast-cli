@@ -1,0 +1,27 @@
+{
+  "$mulmocast": {
+    "version": "1.0",
+    "credit": "closing"
+  },
+  "title": "[TITLE: Brief, engaging title for the topic]",
+  "beats": [
+    {
+      "imagePrompt": "[IMAGE_PROMPT: A prompt for the image to be generated for this beat.]"
+    },
+    {
+      "imagePrompt": "[IMAGE_PROMPT: A prompt for the image to be generated for this beat.]"
+    },
+    {
+      "imagePrompt": "[IMAGE_PROMPT: A prompt for the image to be generated for this beat.]"
+    },
+    {
+      "imagePrompt": "[IMAGE_PROMPT: A prompt for the image to be generated for this beat.]"
+    },
+    {
+      "imagePrompt": "[IMAGE_PROMPT: A prompt for the image to be generated for this beat.]"
+    },
+    {
+      "imagePrompt": "[IMAGE_PROMPT: A prompt for the image to be generated for this beat.]"
+    }
+  ]
+}

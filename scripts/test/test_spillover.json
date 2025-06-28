@@ -1,0 +1,116 @@
+{
+  "$mulmocast": {
+    "version": "1.0"
+  },
+  "title": "Spillover Test",
+  "beats": [
+    {
+      "text": "This beat has a long audio, which exceeds the beat duration.",
+      "duration": 2,
+      "image": {
+        "type": "textSlide",
+        "slide": {
+          "title": "1. Has Text. Duration = 2."
+        }
+      }
+    },
+    {
+      "image": {
+        "type": "textSlide",
+        "slide": {
+          "title": "2. Default duration = 1. Expected spillover."
+        }
+      }
+    },
+    {
+      "text": "This beat has a really long audio, which clearly exceeds the beat duration.",
+      "duration": 1,
+      "image": {
+        "type": "textSlide",
+        "slide": {
+          "title": "3. Has Text. Duration = 1."
+        }
+      }
+    },
+    {
+      "duration": 2,
+      "image": {
+        "type": "textSlide",
+        "slide": {
+          "title": "4. Duration = 2. Expected spillover."
+        }
+      }
+    },
+    {
+      "duration": 1,
+      "image": {
+        "type": "textSlide",
+        "slide": {
+          "title": "5. Duration = 1, Expected spillover."
+        }
+      }
+    },
+    {
+      "text": "This beat has a really long audio, which is shared among three beats.",
+      "image": {
+        "type": "textSlide",
+        "slide": {
+          "title": "6. Has Text. No duration."
+        }
+      }
+    },
+    {
+      "image": {
+        "type": "textSlide",
+        "slide": {
+          "title": "7. No duration. Expected even-split spillover."
+        }
+      }
+    },
+    {
+      "image": {
+        "type": "textSlide",
+        "slide": {
+          "title": "8. No duration. Expected even-split spillover."
+        }
+      }
+    },
+    {
+      "duration": 1.5,
+      "text": "This beat has a short audio.",
+      "image": {
+        "type": "textSlide",
+        "slide": {
+          "title": "9. Has Text. No duration."
+        }
+      }
+    },
+    {
+      "duration": 1,
+      "image": {
+        "type": "textSlide",
+        "slide": {
+          "title": "10. No duration. Expected some spillover."
+        }
+      }
+    },
+    {
+      "image": {
+        "type": "textSlide",
+        "slide": {
+          "title": "11. No duration. Expected no spillover."
+        }
+      }
+    },
+    {
+      "duration": 1,
+      "text": "This beat has a short audio.",
+      "image": {
+        "type": "textSlide",
+        "slide": {
+          "title": "12. Has Text. No duration."
+        }
+      }
+    }
+  ]
+}

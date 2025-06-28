@@ -16,8 +16,9 @@ const errorMessage = [
   '2. Use OpenAI\'s TTS instead of Niji Voice by changing speechParams.provider from "nijivoice" to "openai".',
 ].join("\n");
 
-export const ttsNijivoiceAgent: AgentFunction = async ({ params, namedInputs }) => {
-  const { apiKey, suppressError, voice, speed, speed_global } = params;
+export const ttsNijivoiceAgent: AgentFunction = async ({ params, namedInputs, config }) => {
+  const { suppressError, voice, speed, speed_global } = params;
+  const { apiKey } = config ?? {};
   const { text } = namedInputs;
   assert(apiKey ?? nijovoiceApiKey, errorMessage);
   const url = `https://api.nijivoice.com/api/platform/v1/voice-actors/${voice}/generate-voice`;

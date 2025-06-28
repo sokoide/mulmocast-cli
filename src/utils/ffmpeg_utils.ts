@@ -15,8 +15,12 @@ export const FfmpegContextInit = (): FfmpegContext => {
   };
 };
 
-export const FfmpegContextAddInput = (context: FfmpegContext, input: string) => {
-  context.command.input(input);
+export const FfmpegContextAddInput = (context: FfmpegContext, input: string, inputOptions?: string[]) => {
+  if (inputOptions) {
+    context.command.input(input).inputOptions(inputOptions);
+  } else {
+    context.command.input(input);
+  }
   context.inputCount++;
   return context.inputCount - 1; // returned the index of the input
 };
@@ -29,8 +33,8 @@ export const FfmpegContextPushFormattedAudio = (context: FfmpegContext, sourceId
   }
 };
 
-export const FfmpegContextInputFormattedAudio = (context: FfmpegContext, input: string, duration: number | undefined = undefined) => {
-  const index = FfmpegContextAddInput(context, input);
+export const FfmpegContextInputFormattedAudio = (context: FfmpegContext, input: string, duration: number | undefined = undefined, inputOptions?: string[]) => {
+  const index = FfmpegContextAddInput(context, input, inputOptions);
   const audioId = `[a${index}]`;
   FfmpegContextPushFormattedAudio(context, `[${index}:a]`, audioId, duration);
   return audioId;
@@ -69,5 +73,16 @@ export const ffmpegGetMediaDuration = (filePath: string) => {
         resolve(metadata.format.duration!);
       }
     });
+  });
+};
+
+export const extractImageFromMovie = (movieFile: string, imagePath: string): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    ffmpeg(movieFile)
+      .outputOptions(["-frames:v 1"])
+      .output(imagePath)
+      .on("end", () => resolve())
+      .on("error", (err) => reject(err))
+      .run();
   });
 };

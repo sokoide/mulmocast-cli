@@ -3,7 +3,7 @@ import path from "path";
 import puppeteer from "puppeteer";
 import { GraphAILogger } from "graphai";
 import { MulmoStudioContext, PDFMode, PDFSize } from "../types/index.js";
-import { MulmoScriptMethods } from "../methods/index.js";
+import { MulmoPresentationStyleMethods } from "../methods/index.js";
 import { localizedText, isHttp } from "../utils/utils.js";
 import { getOutputPdfFilePath, writingMessage, getHTMLFile } from "../utils/file.js";
 import { interpolate } from "../utils/markdown.js";
@@ -154,12 +154,11 @@ const getHandoutTemplateData = (isLandscapeImage: boolean): Record<string, strin
 });
 
 const generatePDFHTML = async (context: MulmoStudioContext, pdfMode: PDFMode, pdfSize: PDFSize): Promise<string> => {
-  const { studio } = context;
+  const { studio, multiLingual } = context;
   // Use helper function to get language consistently
   const lang = getLanguageFromContext(context);
-  const { multiLingual } = studio;
 
-  const { width: imageWidth, height: imageHeight } = MulmoScriptMethods.getCanvasSize(studio.script);
+  const { width: imageWidth, height: imageHeight } = MulmoPresentationStyleMethods.getCanvasSize(context.presentationStyle);
   const isLandscapeImage = imageWidth > imageHeight;
 
   const imagePaths = studio.beats.map((beat) => beat.imageFile!);
@@ -198,11 +197,12 @@ const createPDFOptions = (pdfSize: PDFSize, pdfMode: PDFMode): PDFOptions => {
 };
 
 export const pdfFilePath = (context: MulmoStudioContext, pdfMode: PDFMode) => {
-  const { studio, fileDirs } = context;
+  const outDirPath = MulmoStudioContextMethods.getOutDirPath(context);
+  const fileName = MulmoStudioContextMethods.getFileName(context);
   // Use helper function to get language consistently
   const lang = getLanguageFromContext(context);
   GraphAILogger.info(`PDF: Using language '${lang}' for file suffix`);
-  return getOutputPdfFilePath(fileDirs.outDirPath, studio.filename, pdfMode, lang);
+  return getOutputPdfFilePath(outDirPath, fileName, pdfMode, lang);
 };
 
 const generatePDF = async (context: MulmoStudioContext, pdfMode: PDFMode, pdfSize: PDFSize): Promise<void> => {

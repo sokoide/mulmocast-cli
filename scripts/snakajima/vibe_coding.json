@@ -1,0 +1,173 @@
+{
+  "$mulmocast": {
+    "version": "1.0",
+    "credit": "closing"
+  },
+  "title": "Vibe the Code",
+  "canvasSize": {
+    "width": 1536,
+    "height": 1024
+  },
+  "imageParams": {
+    "style": "<style>Matrix and Ghost in the Shell style</style>"
+  },
+  "audioParams": {
+    "bgmVolume": 0.0
+  },
+  "movieParams": {
+    "provider": "replicate"
+  },
+  "beats": [
+    {
+      "audio": {
+        "type": "audio",
+        "source": {
+          "kind": "url",
+          "url": "https://github.com/receptron/mulmocast-media/raw/refs/heads/main/bgms/vibe001.mp3"
+        }
+      },
+      "imagePrompt": "A lone coder walking through a neon-lit alley, holographic code floating around, cyberpunk atmosphere",
+      "moviePrompt": "Camera slowly pans behind the walking coder as holograms flicker and code pulses through the air"
+    },
+    {
+      "imagePrompt": "Close-up of cyberpunk sunglasses reflecting scrolling green code, matrix aesthetic",
+      "moviePrompt": "Reflection in the glasses animates with scrolling matrix-style code while the camera slowly zooms in"
+    },
+    {
+      "imagePrompt": "Liquid metal hand reaching toward a glowing holographic terminal, dark background",
+      "moviePrompt": "The hand stretches and ripples like mercury, reaching for a swirling, responsive hologram"
+    },
+    {
+      "imagePrompt": "Futuristic city skyline at night with translucent AI faces hovering in the clouds",
+      "moviePrompt": "Clouds shift gently as AI faces form and dissolve while lights flicker across the cityscape"
+    },
+    {
+      "imagePrompt": "Neural network glowing like tree roots inside a transparent human skull",
+      "moviePrompt": "Light pulses through the neural branches in rhythm with a slow electronic heartbeat"
+    },
+    {
+      "imagePrompt": "Human silhouette surrounded by spinning AI-generated schematics and neon wires",
+      "moviePrompt": "Schematics rotate and evolve in 3D space while the silhouette tilts its head slightly"
+    },
+    {
+      "imagePrompt": "Hooded figure dissolving into vertical lines of green matrix-style code",
+      "moviePrompt": "The figure flickers and then disintegrates into streaming green code, blown by digital wind"
+    },
+    {
+      "imagePrompt": "Humanoid robots with mechanical arms typing on invisible floating keyboards",
+      "moviePrompt": "Fingers type rapidly as translucent UI elements flash and shift in sync with rhythm"
+    },
+    {
+      "imagePrompt": "Digital rain of matrix code falling over a sleek chrome laptop",
+      "moviePrompt": "Code rain flows in slow motion while the laptop screen flickers and glows with AI symbols"
+    },
+    {
+      "imagePrompt": "Cybernetic brain with glowing veins connected to a data stream, black void backdrop",
+      "moviePrompt": "Data pulses travel through the brain’s glowing veins, illuminating its inner structure"
+    },
+    {
+      "imagePrompt": "Futuristic workspace with floating translucent terminal windows around a focused coder",
+      "moviePrompt": "The terminals orbit slowly, displaying evolving code as the coder calmly types in AR space"
+    },
+    {
+      "imagePrompt": "Massive glowing AI core pulsing like a heartbeat in a dark techno-temple",
+      "moviePrompt": "The AI core pulses rhythmically with lighting flares and brief electric arcs"
+    },
+    {
+      "imagePrompt": "Bioluminescent jellyfish flying over a neon-drenched futuristic megacity",
+      "moviePrompt": "The jellyfish float and undulate smoothly through the skyline while city lights ripple below"
+    },
+    {
+      "imagePrompt": "Cyberpunk girl with wires plugged into her neck, syncing to cloud server",
+      "moviePrompt": "Her eyes flicker with data as wires glow and the background turns into streaming data flow"
+    },
+    {
+      "imagePrompt": "Glitched digital mirror showing a distorted virtual doppelgänger",
+      "moviePrompt": "The doppelgänger twitches with glitch effects as the mirror bends and distorts reality"
+    },
+    {
+      "imagePrompt": "Replit terminal interface projected as a glowing 3D object in midair",
+      "moviePrompt": "The terminal rotates slowly in space while snippets of animated code run inside it"
+    },
+    {
+      "imagePrompt": "Swarm of AI agents constructing a virtual building in real-time, wireframe style",
+      "moviePrompt": "Agents hover and place glowing pieces of architecture, forming a wireframe skyscraper"
+    },
+    {
+      "imagePrompt": "Code water dripping like raindrops into an open laptop with green glow",
+      "moviePrompt": "Each drop distorts reality as it hits the screen, causing data ripples to expand outward"
+    },
+    {
+      "imagePrompt": "Ghostly avatars dancing around a central holographic bonfire in the dark",
+      "moviePrompt": "The avatars loop in synchronized movement as the bonfire crackles with glowing fractals"
+    },
+    {
+      "imagePrompt": "Floating AI eyes scanning a human face for data, surrounded by code symbols",
+      "moviePrompt": "Eyes shift and blink in sequence as data overlays animate across the human’s face"
+    },
+    {
+      "imagePrompt": "Robotic hand and human hand shaking over a glowing schematic",
+      "moviePrompt": "The handshake animates with sparks and pulses flowing between the hands"
+    },
+    {
+      "imagePrompt": "Interior of Codex cathedral — code flowing like stained glass light",
+      "moviePrompt": "Camera glides through the cathedral as the stained glass pulses with flowing syntax"
+    },
+    {
+      "imagePrompt": "Drone swarm forming a neural node in the sky over a nighttime city",
+      "moviePrompt": "Drones swarm into a glowing node pattern, flashing in a rhythm like neural spikes"
+    },
+    {
+      "imagePrompt": "Abstract data waterfalls cascading from a glowing cliff into cyberspace",
+      "moviePrompt": "The waterfall streams down smoothly, revealing faint characters in the flow"
+    },
+    {
+      "imagePrompt": "Cursor IDE shining like a sacred artifact in a server chamber",
+      "moviePrompt": "Camera slowly circles the Cursor IDE as its interface projects light and spins"
+    },
+    {
+      "imagePrompt": "Fractal music waveform forming from code in midair, pulsing with beats",
+      "moviePrompt": "The waveform ripples and bursts outward with each bass hit, fractals growing outward"
+    },
+    {
+      "imagePrompt": "Human and AI staring at each other across a wireframe bridge of light",
+      "moviePrompt": "Bridge pulses as the camera slowly zooms toward the meeting point of the two figures"
+    },
+    {
+      "imagePrompt": "Dark monolith screen displaying 'NO BUGS DETECTED' in matrix code",
+      "moviePrompt": "Letters blink into place one by one as green light glows softly from the monolith"
+    },
+    {
+      "imagePrompt": "Masked hacker group in LED masks bobbing to music in a glowing alley",
+      "moviePrompt": "The group moves to the beat as the LEDs flicker and animate with rhythmic color pulses"
+    },
+    {
+      "imagePrompt": "Time-lapse of digital code turning into a physical futuristic city",
+      "moviePrompt": "Code builds layer-by-layer into a solid cityscape as buildings rise from data streams"
+    },
+    {
+      "imagePrompt": "AI-controlled holographic model city being manipulated by robotic arms",
+      "moviePrompt": "Robotic arms adjust and reshape glowing buildings with smooth precision"
+    },
+    {
+      "imagePrompt": "Futuristic DJ deck with data streams replacing vinyl, holograms spinning",
+      "moviePrompt": "The DJ moves hands across air-turntables, making code and beats flash in sync"
+    },
+    {
+      "imagePrompt": "Code particles assembling into a living cybernetic creature mid-air",
+      "moviePrompt": "The creature forms piece by piece as code particles spin and magnetize into place"
+    },
+    {
+      "imagePrompt": "Twilight over a networked world — cables hanging like vines across buildings",
+      "moviePrompt": "Cables sway gently in the digital breeze as network nodes glow like fireflies"
+    },
+    {
+      "imagePrompt": "Final title 'VIBE THE CODE' emerging from matrix rain, glowing in green",
+      "moviePrompt": "Matrix rain parts as the title emerges in bold, flickering neon text"
+    },
+    {
+      "imagePrompt": "Black screen with faint waveform pulse fading into silence",
+      "moviePrompt": "Waveform slowly fades into a single point of light, then vanishes"
+    }
+  ]
+}

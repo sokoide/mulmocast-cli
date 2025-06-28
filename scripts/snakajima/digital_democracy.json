@@ -1,0 +1,96 @@
+{
+  "$mulmocast": {
+    "version": "1.0",
+    "credit": "closing"
+  },
+  "title": "声をつなげ - デジタル民主主義プロモーションビデオ",
+  "imageParams": {
+    "style": "<style>Ghibli style</style>"
+  },
+  "canvasSize": {
+    "width": 1536,
+    "height": 1024
+  },
+  "audioParams": {
+    "introPadding": 0.0,
+    "bgmVolume": 0.0
+  },
+  "beats": [
+    {
+      "audio": {
+        "type": "audio",
+        "source": {
+          "kind": "url",
+          "url": "https://github.com/receptron/mulmocast-media/raw/refs/heads/main/bgms/voice001.mp3"
+        }
+      },
+      "imagePrompt": "A crowd of diverse young people holding up phones with hopeful expressions, digital city backdrop"
+    },
+    {
+      "imagePrompt": "A hand scrolling on a smartphone with headlines fading into pixelated dust"
+    },
+    {
+      "imagePrompt": "A faceless politician giving a speech while people in the background look indifferent"
+    },
+    {
+      "imagePrompt": "A teenager looking directly at the camera with 'I care' text behind them"
+    },
+    {
+      "imagePrompt": "A ballot box glowing digitally surrounded by holograms of future cities"
+    },
+    {
+      "imagePrompt": "A montage of protest signs, tweets, and real voices overlayed"
+    },
+    {
+      "imagePrompt": "A voting booth with neon lights and digital icons floating around"
+    },
+    {
+      "imagePrompt": "A student in a hoodie researching on a laptop, surrounded by floating data"
+    },
+    {
+      "imagePrompt": "An open source symbol glowing, network of people coding behind"
+    },
+    {
+      "imagePrompt": "A silhouette breaking a concrete wall labeled '無関心'"
+    },
+    {
+      "imagePrompt": "A futuristic city with real-time voting screens visible on buildings"
+    },
+    {
+      "imagePrompt": "A group of young friends high-fiving near a city hall"
+    },
+    {
+      "imagePrompt": "A megaphone made of pixels broadcasting voices across the city"
+    },
+    {
+      "imagePrompt": "A global digital handshake between diverse hands across screens"
+    },
+    {
+      "imagePrompt": "A final shot of the Earth glowing with connected nodes and the text: 『声をつなげ』"
+    },
+    {
+      "imagePrompt": "A young person walking alone at night, phone screen glowing with a news headline"
+    },
+    {
+      "imagePrompt": "An animated timeline showing evolution from paper ballots to digital democracy"
+    },
+    {
+      "imagePrompt": "Overhead drone shot of a youth-led demonstration with glowing signs"
+    },
+    {
+      "imagePrompt": "A parent and child discussing politics over dinner, holographic charts floating"
+    },
+    {
+      "imagePrompt": "A 3D hologram of the constitution surrounded by animated emojis reacting"
+    },
+    {
+      "imagePrompt": "Youth coding civic apps on laptops under a tree in a park"
+    },
+    {
+      "imagePrompt": "Chat bubbles floating upward with words like '投票', '知る', '変える'"
+    },
+    {
+      "imagePrompt": "A classroom where students raise AR devices to vote in a mock election"
+    }
+  ]
+}

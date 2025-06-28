@@ -22,6 +22,8 @@ test("test getFileObject", async () => {
     isHttpPath: false,
     fileName: "hello",
     fileOrUrl: "hello.yaml",
+    presentationStylePath: undefined,
+    outputMultilingualFilePath: path.resolve(__dirname, "../../output/hello_lang.json"),
   });
 });
 
@@ -34,7 +36,7 @@ test("test createOrUpdateStudioData", async () => {
       },
       beats: [{ text: "hello" }],
     },
-    {},
+    null,
     "",
   );
   // console.log(JSON.stringify(ret));
@@ -48,6 +50,8 @@ test("test createOrUpdateStudioData", async () => {
         introPadding: 1,
         outroPadding: 1,
         padding: 0.3,
+        bgmVolume: 0.2,
+        audioVolume: 1.0,
       },
       beats: [
         { speaker: "Presenter", text: "hello" },
@@ -64,7 +68,6 @@ test("test createOrUpdateStudioData", async () => {
     },
     filename: "",
     beats: [{}, {}],
-    multiLingual: [{ multiLingualTexts: {} }, { multiLingualTexts: {} }],
   };
   assert.deepStrictEqual(studio, expect);
 });

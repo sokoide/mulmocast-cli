@@ -1,9 +1,11 @@
 import test from "node:test";
 // import assert from "node:assert";
+import { GraphAILogger } from "graphai";
 
 import { getFileObject } from "../../src/cli/helpers.js";
 import { createOrUpdateStudioData } from "../../src/utils/preprocess.js";
 import { images, generateBeatImage } from "../../src/actions/images.js";
+import { addSessionProgressCallback } from "../../src/methods/mulmo_studio_context.js";
 
 import path from "path";
 import { fileURLToPath } from "url";
@@ -103,7 +105,7 @@ const getContext = () => {
       },
     ],
   };
-  const studio = createOrUpdateStudioData(mulmoScript, fileDirs, "hello");
+  const studio = createOrUpdateStudioData(mulmoScript, null, "hello");
   const context = {
     studio,
     fileDirs,
@@ -125,12 +127,16 @@ const getContext = () => {
         caption: {},
       },
     },
+    presentationStyle: studio.script,
   };
   return context;
 };
 
 test("test images", async () => {
   // const fileDirs = getFileObject({ file: "hello.yaml", basedir: __dirname });
+  addSessionProgressCallback((data) => {
+    GraphAILogger.info(data);
+  });
   const context = getContext();
   await images(context);
 });

@@ -1,0 +1,66 @@
+{
+  "$mulmocast": {
+    "version": "1.0"
+  },
+  "title": "Media Test",
+  "beats": [
+    {
+      "speaker": "Presenter",
+      "text": "これは日本の出生数、合計特殊出生率の推移です。",
+      "htmlPrompt": {
+        "prompt": "これは日本の出生数、合計特殊出生率の推移です。これをグラフ化しつつ、問題点を指摘してください",
+        "data": [
+          { "year": 1978, "births": 1708643, "fertility_rate": 1.79 },
+          { "year": 1979, "births": 1642580, "fertility_rate": 1.77 },
+          { "year": 1980, "births": 1576889, "fertility_rate": 1.75 },
+          { "year": 1981, "births": 1529455, "fertility_rate": 1.74 },
+          { "year": 1982, "births": 1515392, "fertility_rate": 1.77 },
+          { "year": 1983, "births": 1508687, "fertility_rate": 1.8 },
+          { "year": 1984, "births": 1489780, "fertility_rate": 1.81 },
+          { "year": 1985, "births": 1431577, "fertility_rate": 1.76 },
+          { "year": 1986, "births": 1382946, "fertility_rate": 1.72 },
+          { "year": 1987, "births": 1346658, "fertility_rate": 1.69 },
+          { "year": 1988, "births": 1314006, "fertility_rate": 1.66 },
+          { "year": 1989, "births": 1246802, "fertility_rate": 1.57 },
+          { "year": 1990, "births": 1221585, "fertility_rate": 1.54 },
+          { "year": 1991, "births": 1223245, "fertility_rate": 1.53 },
+          { "year": 1992, "births": 1208989, "fertility_rate": 1.5 },
+          { "year": 1993, "births": 1188282, "fertility_rate": 1.46 },
+          { "year": 1994, "births": 1238328, "fertility_rate": 1.5 },
+          { "year": 1995, "births": 1187064, "fertility_rate": 1.42 },
+          { "year": 1996, "births": 1206555, "fertility_rate": 1.43 },
+          { "year": 1997, "births": 1191665, "fertility_rate": 1.39 },
+          { "year": 1998, "births": 1203147, "fertility_rate": 1.38 },
+          { "year": 1999, "births": 1177669, "fertility_rate": 1.34 },
+          { "year": 2000, "births": 1190547, "fertility_rate": 1.36 },
+          { "year": 2001, "births": 1170662, "fertility_rate": 1.33 },
+          { "year": 2002, "births": 1153855, "fertility_rate": 1.32 },
+          { "year": 2003, "births": 1123610, "fertility_rate": 1.29 },
+          { "year": 2004, "births": 1110721, "fertility_rate": 1.29 },
+          { "year": 2005, "births": 1062530, "fertility_rate": 1.26 },
+          { "year": 2006, "births": 1092674, "fertility_rate": 1.32 },
+          { "year": 2007, "births": 1089818, "fertility_rate": 1.34 },
+          { "year": 2008, "births": 1091156, "fertility_rate": 1.37 },
+          { "year": 2009, "births": 1070036, "fertility_rate": 1.37 },
+          { "year": 2010, "births": 1071305, "fertility_rate": 1.39 },
+          { "year": 2011, "births": 1050807, "fertility_rate": 1.39 },
+          { "year": 2012, "births": 1037232, "fertility_rate": 1.41 },
+          { "year": 2013, "births": 1029817, "fertility_rate": 1.43 },
+          { "year": 2014, "births": 1003609, "fertility_rate": 1.42 },
+          { "year": 2015, "births": 1005721, "fertility_rate": 1.45 },
+          { "year": 2016, "births": 977242, "fertility_rate": 1.44 },
+          { "year": 2017, "births": 946146, "fertility_rate": 1.43 },
+          { "year": 2018, "births": 918400, "fertility_rate": 1.42 },
+          { "year": 2019, "births": 865234, "fertility_rate": 1.36 }
+        ]
+      }
+    },
+    {
+      "speaker": "Presenter",
+      "text": "デジタル赤字の問題点 まず1つ目は、一般の貿易赤字や輸入超過と同じく、海外への依存性が高まることによる経済の自立性の低下です。",
+      "htmlPrompt": {
+        "prompt": "デジタル赤字の問題点 まず1つ目は、一般の貿易赤字や輸入超過と同じく、海外への依存性が高まることによる経済の自立性の低下です。 また最近のように為替相場が変化することで急激に価格が高騰するなどのリスクもあります。 2つ目として、海外市場における日本のデジタル技術やサービスの競争力の低下と見ることができます"
+      }
+    }
+  ]
+}

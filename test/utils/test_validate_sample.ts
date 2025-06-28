@@ -10,11 +10,11 @@ import { mulmoScriptSchema } from "../../src/types/schema.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-test("test updateMultiLingualTexts not update", async () => {
+test("test mulmoScriptSchema.parse in scripts/test dir ", async () => {
   // const jsonData = {};
   const basePath = path.resolve(__dirname, "../../scripts/test/");
   fs.readdirSync(basePath).map((file) => {
-    if (!file.endsWith("_story.json")) {
+    if (!file.endsWith(".json") || file === "mulmo_story.json") {
       return;
     }
     try {

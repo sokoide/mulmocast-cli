@@ -1,0 +1,6 @@
+{
+  "title": "Text Only",
+  "description": "Template for Text Only Script.",
+  "systemPrompt": "Generate a script for a presentation of the given topic. Another AI will generate comic strips for each beat based on the text description of that beat. Mention the reference in one of beats, if it exists. Use the JSON below as a template.",
+  "scriptName": "text_only_template.json"
+}

@@ -6,8 +6,8 @@ import { openAIAgent } from "@graphai/openai_agent";
 import { fileWriteAgent } from "@graphai/vanilla_node_agents";
 
 import { recursiveSplitJa, replacementsJa, replacePairsJa } from "../utils/string.js";
-import { LANG, LocalizedText, MulmoStudioContext, MulmoBeat, MulmoStudioMultiLingualData, MulmoStudio } from "../types/index.js";
-import { getOutputStudioFilePath, mkdir, writingMessage } from "../utils/file.js";
+import { LANG, LocalizedText, MulmoStudioContext, MulmoBeat, MulmoStudioMultiLingualData, MulmoStudioMultiLingual } from "../types/index.js";
+import { getOutputMultilingualFilePath, mkdir, writingMessage } from "../utils/file.js";
 import { translateSystemPrompt, translatePrompts } from "../utils/prompt.js";
 import { MulmoStudioContextMethods } from "../methods/mulmo_studio_context.js";
 
@@ -19,7 +19,7 @@ const translateGraph: GraphData = {
     context: {},
     defaultLang: {},
     outDirPath: {},
-    outputStudioFilePath: {},
+    outputMultilingualFilePath: {},
     lang: {
       agent: "stringUpdateTextAgent",
       inputs: {
@@ -32,7 +32,7 @@ const translateGraph: GraphData = {
       isResult: true,
       agent: "mergeObjectAgent",
       inputs: {
-        items: [":context.studio", { multiLingual: ":beatsMap.mergeMultiLingualData" }],
+        items: [{ multiLingual: ":beatsMap.mergeMultiLingualData" }],
       },
     },
     beatsMap: {
@@ -57,7 +57,7 @@ const translateGraph: GraphData = {
             },
             inputs: {
               index: ":__mapIndex",
-              rows: ":context.studio.multiLingual",
+              rows: ":context.multiLingual",
             },
           },
           preprocessMultiLingual: {
@@ -168,12 +168,12 @@ const translateGraph: GraphData = {
         },
       },
     },
-    writeOutout: {
+    writeOutput: {
       // console: { before: true },
       agent: "fileWriteAgent",
       inputs: {
-        file: ":outputStudioFilePath",
-        text: ":mergeStudioResult.toJSON()",
+        file: ":outputMultilingualFilePath",
+        text: ":mergeStudioResult.multiLingual.toJSON()",
       },
     },
   },
@@ -226,9 +226,9 @@ const targetLangs = ["ja", "en"];
 export const translate = async (context: MulmoStudioContext, callbacks?: CallbackFunction[]) => {
   try {
     MulmoStudioContextMethods.setSessionState(context, "multiLingual", true);
-    const { studio, fileDirs } = context;
-    const { outDirPath } = fileDirs;
-    const outputStudioFilePath = getOutputStudioFilePath(outDirPath, studio.filename);
+    const fileName = MulmoStudioContextMethods.getFileName(context);
+    const outDirPath = MulmoStudioContextMethods.getOutDirPath(context);
+    const outputMultilingualFilePath = getOutputMultilingualFilePath(outDirPath, fileName);
     mkdir(outDirPath);
 
     assert(!!process.env.OPENAI_API_KEY, "The OPENAI_API_KEY environment variable is missing or empty");
@@ -238,16 +238,16 @@ export const translate = async (context: MulmoStudioContext, callbacks?: Callbac
     graph.injectValue("defaultLang", defaultLang);
     graph.injectValue("targetLangs", targetLangs);
     graph.injectValue("outDirPath", outDirPath);
-    graph.injectValue("outputStudioFilePath", outputStudioFilePath);
+    graph.injectValue("outputMultilingualFilePath", outputMultilingualFilePath);
     if (callbacks) {
       callbacks.forEach((callback) => {
         graph.registerCallback(callback);
       });
     }
-    const results = await graph.run<MulmoStudio>();
-    writingMessage(outputStudioFilePath);
+    const results = await graph.run<{ multiLingual: MulmoStudioMultiLingual }>();
+    writingMessage(outputMultilingualFilePath);
     if (results.mergeStudioResult) {
-      context.studio = results.mergeStudioResult;
+      context.multiLingual = results.mergeStudioResult.multiLingual;
     }
   } finally {
     MulmoStudioContextMethods.setSessionState(context, "multiLingual", false);

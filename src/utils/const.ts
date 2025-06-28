@@ -11,3 +11,5 @@ export const storyToScriptGenerateMode = {
   stepWise: "step_wise",
   oneStep: "one_step",
 };
+
+export const defaultOpenAIImageModel = "dall-e-3";

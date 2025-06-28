@@ -1,6 +1,7 @@
 import { ImageProcessorParams } from "../../types/index.js";
 import { getHTMLFile } from "../file.js";
 import { renderHTMLToImage, interpolate } from "../markdown.js";
+import { parrotingImagePath } from "./utils.js";
 
 export const imageType = "chart";
 
@@ -26,3 +27,4 @@ const processChart = async (params: ImageProcessorParams) => {
 };
 
 export const process = processChart;
+export const path = parrotingImagePath;

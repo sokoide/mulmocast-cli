@@ -1,6 +1,7 @@
 import { ImageProcessorParams } from "../../types/index.js";
 import { getHTMLFile } from "../file.js";
 import { renderHTMLToImage, interpolate } from "../markdown.js";
+import { parrotingImagePath } from "./utils.js";
 
 export const imageType = "html_tailwind";
 
@@ -21,3 +22,4 @@ const processHtmlTailwind = async (params: ImageProcessorParams) => {
 };
 
 export const process = processHtmlTailwind;
+export const path = parrotingImagePath;

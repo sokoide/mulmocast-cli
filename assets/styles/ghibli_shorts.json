@@ -1,0 +1,28 @@
+{
+  "$mulmocast": {
+    "version": "1.0",
+    "credit": "closing"
+  },
+  "canvasSize": {
+    "width": 1024,
+    "height": 1536
+  },
+  "speechParams": {
+    "provider": "openai",
+    "speakers": {
+      "Presenter": { "voiceId": "shimmer", "speechOptions": { "instruction": "speak very fast" } }
+    }
+  },
+  "imageParams": {
+    "style": "<style>Ghibli style</style>",
+    "images": {
+      "presenter": {
+        "type": "image",
+        "source": {
+          "kind": "url",
+          "url": "https://raw.githubusercontent.com/receptron/mulmocast-media/refs/heads/main/characters/ghibli_presenter.jpg"
+        }
+      }
+    }
+  }
+}

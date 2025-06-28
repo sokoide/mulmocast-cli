@@ -11,14 +11,18 @@ import {
   mulmoStudioMultiLingualDataSchema,
   speakerDictionarySchema,
   mulmoImageParamsSchema,
+  mulmoImageParamsImagesSchema,
+  mulmoFillOptionSchema,
   mulmoMovieParamsSchema,
   mulmoSpeechParamsSchema,
   textSlideParamsSchema,
   speechOptionsSchema,
+  speakerDataSchema,
   mulmoCanvasDimensionSchema,
   mulmoScriptTemplateSchema,
   mulmoScriptTemplateFileSchema,
   text2ImageProviderSchema,
+  text2HtmlImageProviderSchema,
   text2MovieProviderSchema,
   text2SpeechProviderSchema,
   mulmoPresentationStyleSchema,
@@ -39,11 +43,16 @@ import { z } from "zod";
 export type LANG = z.infer<typeof langSchema>;
 export type MulmoBeat = z.infer<typeof mulmoBeatSchema>;
 export type SpeakerDictonary = z.infer<typeof speakerDictionarySchema>;
+
 export type MulmoSpeechParams = z.infer<typeof mulmoSpeechParamsSchema>;
 export type SpeechOptions = z.infer<typeof speechOptionsSchema>;
+export type SpeakerData = z.infer<typeof speakerDataSchema>;
 export type MulmoImageParams = z.infer<typeof mulmoImageParamsSchema>;
+export type MulmoImageParamsImages = z.infer<typeof mulmoImageParamsImagesSchema>;
+export type MulmoFillOption = z.infer<typeof mulmoFillOptionSchema>;
 export type TextSlideParams = z.infer<typeof textSlideParamsSchema>;
 export type Text2ImageProvider = z.infer<typeof text2ImageProviderSchema>;
+export type Text2HtmlImageProvider = z.infer<typeof text2HtmlImageProviderSchema>;
 export type Text2MovieProvider = z.infer<typeof text2MovieProviderSchema>;
 export type Text2SpeechProvider = z.infer<typeof text2SpeechProviderSchema>;
 export type LocalizedText = z.infer<typeof localizedTextSchema>;
@@ -84,9 +93,11 @@ export type MulmoStudioContext = {
   fileDirs: FileDirs;
   studio: MulmoStudio;
   lang?: string;
+  dryRun?: boolean;
   force: boolean;
-  caption?: string;
   sessionState: MulmoSessionState;
+  presentationStyle: MulmoPresentationStyle;
+  multiLingual: MulmoStudioMultiLingual;
 };
 
 export type ScriptingParams = {
@@ -97,6 +108,7 @@ export type ScriptingParams = {
   filename: string;
   llm_model?: string;
   llm?: LLM;
+  verbose?: boolean;
 };
 
 export type ImageProcessorParams = {
@@ -116,6 +128,22 @@ export type Text2ImageAgentInfo = {
   imageParams: MulmoImageParams;
 };
 
+export type Text2HtmlAgentInfo = {
+  provider: Text2HtmlImageProvider;
+  agent: string;
+  model: string;
+  max_tokens: number;
+};
+
 export type BeatMediaType = "movie" | "image";
 
 export type StoryToScriptGenerateMode = (typeof storyToScriptGenerateMode)[keyof typeof storyToScriptGenerateMode];
+
+export type SessionType = "audio" | "image" | "video" | "multiLingual" | "caption" | "pdf";
+export type BeatSessionType = "audio" | "image" | "multiLingual" | "caption" | "movie";
+
+export type SessionProgressEvent =
+  | { kind: "session"; sessionType: SessionType; inSession: boolean }
+  | { kind: "beat"; sessionType: BeatSessionType; index: number; inSession: boolean };
+
+export type SessionProgressCallback = (change: SessionProgressEvent) => void;

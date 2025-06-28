@@ -1,5 +1,6 @@
 import { ImageProcessorParams } from "../../types/index.js";
 import { renderMarkdownToImage } from "../markdown.js";
+import { parrotingImagePath } from "./utils.js";
 
 export const imageType = "markdown";
 
@@ -13,3 +14,4 @@ const processMarkdown = async (params: ImageProcessorParams) => {
 };
 
 export const process = processMarkdown;
+export const path = parrotingImagePath;

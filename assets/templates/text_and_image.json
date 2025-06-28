@@ -1,0 +1,6 @@
+{
+  "title": "Text and Image",
+  "description": "Template for Text and Image Script.",
+  "systemPrompt": "Generate a script for a presentation of the given topic. Another AI will generate comic strips for each beat based on the imagePrompt of that beat. Mention the reference in one of beats, if it exists. Use the JSON below as a template.",
+  "scriptName": "image_prompts_template.json"
+}

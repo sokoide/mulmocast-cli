@@ -3,9 +3,10 @@ import type { AgentFunction, AgentFunctionInfo } from "graphai";
 import OpenAI from "openai";
 import type { SpeechCreateParams } from "openai/resources/audio/speech";
 
-export const ttsOpenaiAgent: AgentFunction = async ({ namedInputs, params }) => {
+export const ttsOpenaiAgent: AgentFunction = async ({ namedInputs, params, config }) => {
   const { text } = namedInputs;
-  const { apiKey, model, voice, suppressError, instructions } = params;
+  const { model, voice, suppressError, instructions } = params;
+  const { apiKey } = config ?? {};
   const openai = new OpenAI({ apiKey });
 
   try {
