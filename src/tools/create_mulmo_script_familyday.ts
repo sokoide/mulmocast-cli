@@ -104,6 +104,9 @@ const graphData = {
     templateData: {
       update: ":templateData",
     },
+    templateName: {
+      update: ":templateName",
+    },
     messages: {
       value: [],
     },
@@ -214,8 +217,49 @@ const graphData = {
       },
     },
     processedJson: {
-      agent: (namedInputs: { json: any; maxRetriesReached: boolean; templateData: any }) => {
-        const { json, maxRetriesReached, templateData } = namedInputs;
+      agent: (namedInputs: { json: any; maxRetriesReached: boolean; templateData: any; templateName: string }) => {
+        const { json, maxRetriesReached, templateData, templateName } = namedInputs;
+
+        // Helper function to get language-specific defaults based on template name
+        const getLanguageDefaults = (templateName: string) => {
+          const isJapanese = templateName && templateName.includes("familyday_jpn");
+          
+          if (isJapanese) {
+            return {
+              lang: "ja",
+              speechParams: {
+                provider: "openai",
+                speakers: {
+                  Presenter: {
+                    voiceId: "shimmer", // Keep using OpenAI shimmer voice for Japanese (was working before)
+                    displayName: {
+                      ja: "ナレーター",
+                      en: "Presenter",
+                    },
+                  },
+                },
+              },
+            };
+          } else {
+            // Default to English (familyday_eng or any other template)
+            return {
+              lang: "en",
+              speechParams: {
+                provider: "openai",
+                speakers: {
+                  Presenter: {
+                    voiceId: "shimmer",
+                    displayName: {
+                      en: "Presenter",
+                    },
+                  },
+                },
+              },
+            };
+          }
+        };
+
+        const languageDefaults = getLanguageDefaults(templateName);
 
         // If max retries were reached, create a fallback JSON with template defaults
         if (maxRetriesReached) {
@@ -227,21 +271,12 @@ const graphData = {
               version: "1.0",
               credit: "closing",
             },
+            lang: languageDefaults.lang,
             canvasSize: {
               width: 1536,
               height: 1024,
             },
-            speechParams: {
-              provider: "openai",
-              speakers: {
-                Presenter: {
-                  voiceId: "shimmer",
-                  displayName: {
-                    en: "Presenter",
-                  },
-                },
-              },
-            },
+            speechParams: languageDefaults.speechParams,
             audioParams: {
               introPadding: 1.0,
               padding: 0.3,
@@ -256,13 +291,15 @@ const graphData = {
             beats: [
               {
                 speaker: "Presenter",
-                text: "I apologize, but I encountered difficulties generating your story. Please try again with a clearer description.",
+                text: languageDefaults.lang === "ja" ? 
+                  "申し訳ございませんが、ストーリーの生成に問題が発生しました。より明確な説明でもう一度お試しください。" :
+                  "I apologize, but I encountered difficulties generating your story. Please try again with a clearer description.",
                 imagePrompt: "A simple, apologetic character illustration in a children's book style",
               },
             ],
           };
 
-          GraphAILogger.info("\n" + agentHeader + " Fallback script created with preserved template imageParams.\n");
+          GraphAILogger.info(`\n${agentHeader} Fallback script created with ${languageDefaults.lang} language defaults.\n`);
           return {
             json: fallbackJson,
             text: JSON.stringify(fallbackJson, null, 2),
@@ -277,6 +314,13 @@ const graphData = {
               credit: "closing",
             };
           }
+          
+          // Set language if missing
+          if (!json.lang) {
+            json.lang = languageDefaults.lang;
+            GraphAILogger.info(`\n${agentHeader} Setting language to ${languageDefaults.lang} based on template ${templateName}\n`);
+          }
+          
           // Ensure canvasSize exists
           if (!json.canvasSize) {
             json.canvasSize = {
@@ -284,20 +328,13 @@ const graphData = {
               height: 1024,
             };
           }
-          // Add speechParams if missing
+          
+          // Add speechParams if missing, using language-appropriate defaults
           if (!json.speechParams) {
-            json.speechParams = {
-              provider: "openai",
-              speakers: {
-                Presenter: {
-                  voiceId: "shimmer",
-                  displayName: {
-                    en: "Presenter",
-                  },
-                },
-              },
-            };
+            json.speechParams = languageDefaults.speechParams;
+            GraphAILogger.info(`\n${agentHeader} Setting ${languageDefaults.lang} speech parameters: provider=${languageDefaults.speechParams.provider}, voice=${languageDefaults.speechParams.speakers.Presenter.voiceId}\n`);
           }
+          
           // Add audioParams if missing
           if (!json.audioParams) {
             json.audioParams = {
@@ -317,6 +354,7 @@ const graphData = {
         json: ":json.json",
         maxRetriesReached: ":maxRetriesReached",
         templateData: ":templateData",
+        templateName: ":templateName",
       },
     },
     debugJson: {
@@ -426,6 +464,7 @@ Your response must be a valid JSON script wrapped in \`\`\`json code blocks.`;
   graph.injectValue("llmModel", model);
   graph.injectValue("maxTokens", max_tokens);
   graph.injectValue("templateData", templateData);
+  graph.injectValue("templateName", templateName);
 
   GraphAILogger.info(`${agentHeader} Generating script for: ${initialInput}`);
   await graph.run();
