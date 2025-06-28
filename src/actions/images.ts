@@ -450,6 +450,10 @@ const getConcurrency = (context: MulmoStudioContext) => {
     // gpt-image-1：3,000,000 TPM、150 images per minute
     return imageAgentInfo.imageParams.model === defaultOpenAIImageModel ? 4 : 16;
   }
+  if (imageAgentInfo.provider === "google") {
+    // Imagen4 (imagen-3.0-generate-002) has stricter rate limits than fast version
+    return imageAgentInfo.imageParams.model === "imagen-3.0-generate-002" ? 4 : 16;
+  }
   return 4;
 };
 

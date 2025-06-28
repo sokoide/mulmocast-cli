@@ -147,7 +147,9 @@ export const imageGoogleAgent: AgentFunction<
 > = async ({ namedInputs, params, config }) => {
   const { prompt } = namedInputs;
   const aspectRatio = getAspectRatio(params.canvasSize);
-  const model = params.model ?? "imagen-3.0-fast-generate-001";
+  // const model = params.model ?? "imagen-3.0-fast-generate-001";
+  // const model = params.model ?? "imagen-3.0-generate-002";
+  const model = params.model ?? "imagen-4.0-fast-generate-preview-06-06";
   //const projectId = process.env.GOOGLE_PROJECT_ID; // Your Google Cloud Project ID
   const projectId = config?.projectId;
   const token = config?.token;
