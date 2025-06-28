@@ -103,14 +103,15 @@ console.log = (...args: any[]) => {
     typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
   ).join(' ');
 
-  // Filter out debug messages and verbose logs, but allow most other messages
-  const isDebugMessage = message.includes('GraphAI.debug') ||
+  // Filter out debug messages and verbose logs, but allow writing status and most other messages
+  const isDebugMessage = (message.includes('GraphAI.debug') ||
     message.includes('[DEBUG]') ||
     message.includes('debug:') ||
     message.toLowerCase().includes('filtercomplex') ||
     message.includes('🚀 Mulmocast API server running') ||
     message.includes('📋 API Endpoints') ||
-    message.includes('🌐 Web Client');
+    message.includes('🌐 Web Client')) &&
+    !message.includes('writing:'); // Always allow writing status messages
 
   if (!isDebugMessage) {
     // Only broadcast if we have a user context (prevents global spam)
@@ -166,7 +167,11 @@ const setupGraphAILogger = async () => {
         typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
       ).join(' ');
 
-      if (!message.includes('[DEBUG]') && !message.toLowerCase().includes('filtercomplex')) {
+      // Allow writing status messages even if they contain debug markers
+      const shouldBroadcast = (!message.includes('[DEBUG]') && !message.toLowerCase().includes('filtercomplex')) ||
+        message.includes('writing:');
+      
+      if (shouldBroadcast) {
         const currentUser = getCurrentUserContext();
         if (currentUser) {
           broadcastToClients(`${currentUser}: INFO: ${message}`, currentUser);
@@ -183,7 +188,11 @@ const setupGraphAILogger = async () => {
         typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
       ).join(' ');
 
-      if (!message.includes('[DEBUG]') && !message.toLowerCase().includes('filtercomplex')) {
+      // Allow writing status messages even if they contain debug markers
+      const shouldBroadcast = (!message.includes('[DEBUG]') && !message.toLowerCase().includes('filtercomplex')) ||
+        message.includes('writing:');
+      
+      if (shouldBroadcast) {
         const currentUser = getCurrentUserContext();
         if (currentUser) {
           broadcastToClients(`${currentUser}: LOG: ${message}`, currentUser);
@@ -191,6 +200,24 @@ const setupGraphAILogger = async () => {
       }
 
       return originalLog.apply(GraphAILogger, args);
+    };
+
+    // Override debug method to capture writing status messages
+    const originalDebug = GraphAILogger.debug;
+    GraphAILogger.debug = (...args: any[]) => {
+      const message = args.map(arg =>
+        typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+      ).join(' ');
+
+      // Only broadcast writing status messages from debug
+      if (message.includes('writing:')) {
+        const currentUser = getCurrentUserContext();
+        if (currentUser) {
+          broadcastToClients(`${currentUser}: ${message}`, currentUser);
+        }
+      }
+
+      return originalDebug.apply(GraphAILogger, args);
     };
 
   } catch (error) {
