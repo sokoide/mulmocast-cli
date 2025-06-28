@@ -86,6 +86,12 @@ export class MulmocastService {
     return `${safeInput}_${templateShort}_${this.getTimestamp()}`;
   }
 
+  private detectLanguageFromTemplate(template: string): string {
+    if (template.includes('eng')) return 'en';
+    if (template.includes('jpn')) return 'ja';
+    return 'en'; // default to English
+  }
+
   async generateScript(
     input: string,
     options: ScriptGenerationOptions = {},
@@ -187,9 +193,11 @@ export class MulmocastService {
     const filename = path.basename(scriptPath, ".json");
     const userDir = path.dirname(scriptPath);
 
-    // Determine video filename based on language
+    // Determine video filename - avoid double language codes
+    // If filename already contains language suffix, don't add another one
+    const hasLanguageSuffix = /_[a-z]{2}(_\d+)?$/.test(filename);
     let videoFilename = `${filename}.mp4`;
-    if (options.c) {
+    if (options.c && !hasLanguageSuffix) {
       videoFilename = `${filename}_${options.c}.mp4`;
     }
 
@@ -276,7 +284,7 @@ export class MulmocastService {
         basePath: options.basePath,
         outputPath: options.outputPath,
         cachePath: options.cachePath,
-        c: options.c || 'ja', // Default to Japanese captions
+        c: options.c || this.detectLanguageFromTemplate(options.templateName || 'familyday_jpn'), // Detect language from template
       };
       const videoResult = await this.generateVideo(scriptResult.scriptPath, videoOptions);
       result.videoPath = videoResult.videoPath;
@@ -285,8 +293,8 @@ export class MulmocastService {
 
     // Generate PDF if requested
     if (outputs.includes("pdf")) {
-      progressCallback?.("🔄 Step 3/3", "Generating PDF...");
-      const pdfResult = await this.generatePdf(scriptResult.scriptPath);
+      progressCallback?.("🔄 Step 3/3", "Generating PDF (handout, A4)...");
+      const pdfResult = await this.generatePdf(scriptResult.scriptPath, "handout", "a4");
       result.pdfPath = pdfResult.pdfPath;
       progressCallback?.("✅ Step 3/3", "PDF generated successfully");
     }
