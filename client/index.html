@@ -199,7 +199,7 @@ e.g.: A small round alien named Puni comes to Earth and becomes friends with a h
         <div class="form-group">
           <div class="raw">
             <div class="column20">
-              <label for="template">Template:</label>
+              <label for="template">Language:</label>
               <select id="template">
                 <option value="familyday_jpn">Japanese</option>
                 <option value="familyday_eng">English</option>
@@ -207,15 +207,16 @@ e.g.: A small round alien named Puni comes to Earth and becomes friends with a h
             </div>
 
             <div class="column40">
+              <!-- local directory name -->
               <label for="uniqueUserName">Unique User Name:</label>
               <input class="input" type="text" id="uniqueUserName" placeholder="e.g.: john_doe" required />
               <small style="display: block; color: #666; margin-top: 5px"> This will be a directory name. Only English characters + '_' is allowed. </small>
             </div>
 
             <div class="column40">
-              <label for="filename">Story Header:</label>
+              <label for="filename">Story:</label>
               <input class="input" type="text" id="filename" value="story" placeholder="e.g.: my-story" />
-              <small style="display: block; color: #666; margin-top: 5px"> File name header of the generated files (scripts, videos, PDFs). </small>
+              <small style="display: block; color: #666; margin-top: 5px"> UserName + Story must be a unique identifier for your generated story.</small>
             </div>
           </div>
         </div>
@@ -669,13 +670,13 @@ e.g.: A small round alien named Puni comes to Earth and becomes friends with a h
 
         showLoading(`動画生成中... (ファイル: ${fileId})`);
         try {
-          const result = await makeRequest("/mulmocast/video-from-file", {
-            fileId,
-          });
+          const result = await makeRequest("/mulmocast/video-from-file", { fileId,});
 
           showResult(`✅ 動画生成成功!\n${JSON.stringify(result, null, 2)}`);
           // Reload files to update status
           await loadUserFiles();
+          // Reload media files to update status
+          await loadUserMedia();
         } catch (error) {
           showResult(`❌ 動画生成失敗: ${error.message}`, "error");
         } finally {
@@ -703,11 +704,14 @@ e.g.: A small round alien named Puni comes to Earth and becomes friends with a h
             fileId,
             pdfMode: "slide",
             pdfSize: "letter",
-          });
+          }
+          );
 
           showResult(`✅ PDF生成成功!\n${JSON.stringify(result, null, 2)}`);
           // Reload files to update status
           await loadUserFiles();
+          // Reload media files to update status
+          await loadUserMedia();
         } catch (error) {
           showResult(`❌ PDF生成失敗: ${error.message}`, "error");
         } finally {
