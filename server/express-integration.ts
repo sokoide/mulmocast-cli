@@ -2,6 +2,7 @@
 import express, { Request, Response } from 'express';
 import path from 'path';
 import dotenv from 'dotenv';
+import { AsyncLocalStorage } from 'async_hooks';
 import { MulmocastService } from '../src/lib/mulmocast-service.js';
 
 // Load environment variables from .env file
@@ -68,6 +69,14 @@ interface SSEClient {
 
 const sseClients: SSEClient[] = [];
 
+// AsyncLocalStorage for user context tracking (prevents race conditions)
+const userContextStorage = new AsyncLocalStorage<string>();
+
+// Function to get current user context safely
+function getCurrentUserContext(): string | undefined {
+  return userContextStorage.getStore();
+}
+
 // Function to broadcast messages to all connected clients
 function broadcastToClients(message: string, userId?: string) {
   const targetClients = userId
@@ -87,7 +96,7 @@ function broadcastToClients(message: string, userId?: string) {
   });
 }
 
-// Override console.log to broadcast messages to clients
+// Console overrides with AsyncLocalStorage for proper user context isolation
 const originalConsoleLog = console.log;
 console.log = (...args: any[]) => {
   const message = args.map(arg =>
@@ -104,33 +113,46 @@ console.log = (...args: any[]) => {
     message.includes('🌐 Web Client');
 
   if (!isDebugMessage) {
-    broadcastToClients(message);
+    // Only broadcast if we have a user context (prevents global spam)
+    const currentUser = getCurrentUserContext();
+    if (currentUser) {
+      broadcastToClients(message, currentUser);
+    }
   }
 
   // Call original console.log
   originalConsoleLog.apply(console, args);
 };
 
-// Also override console.error and console.warn
+// Override console.error with user context
 const originalConsoleError = console.error;
 console.error = (...args: any[]) => {
   const message = args.map(arg =>
     typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
   ).join(' ');
-  broadcastToClients(`ERROR: ${message}`);
+  
+  const currentUser = getCurrentUserContext();
+  if (currentUser) {
+    broadcastToClients(`ERROR: ${message}`, currentUser);
+  }
   originalConsoleError.apply(console, args);
 };
 
+// Override console.warn with user context
 const originalConsoleWarn = console.warn;
 console.warn = (...args: any[]) => {
   const message = args.map(arg =>
     typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
   ).join(' ');
-  broadcastToClients(`WARNING: ${message}`);
+  
+  const currentUser = getCurrentUserContext();
+  if (currentUser) {
+    broadcastToClients(`WARNING: ${message}`, currentUser);
+  }
   originalConsoleWarn.apply(console, args);
 };
 
-// Override GraphAILogger to broadcast messages
+// Override GraphAILogger to broadcast messages with user context
 const setupGraphAILogger = async () => {
   try {
     const { GraphAILogger } = await import('graphai');
@@ -143,7 +165,10 @@ const setupGraphAILogger = async () => {
       ).join(' ');
 
       if (!message.includes('[DEBUG]') && !message.toLowerCase().includes('filtercomplex')) {
-        broadcastToClients(`INFO: ${message}`);
+        const currentUser = getCurrentUserContext();
+        if (currentUser) {
+          broadcastToClients(`INFO: ${message}`, currentUser);
+        }
       }
 
       return originalInfo.apply(GraphAILogger, args);
@@ -157,7 +182,10 @@ const setupGraphAILogger = async () => {
       ).join(' ');
 
       if (!message.includes('[DEBUG]') && !message.toLowerCase().includes('filtercomplex')) {
-        broadcastToClients(`LOG: ${message}`);
+        const currentUser = getCurrentUserContext();
+        if (currentUser) {
+          broadcastToClients(`LOG: ${message}`, currentUser);
+        }
       }
 
       return originalLog.apply(GraphAILogger, args);
@@ -180,6 +208,7 @@ interface ScriptRequest {
 interface VideoRequest {
   scriptPath: string;
   caption?: string; // Language for captions (ja, en, etc.)
+  userName?: string; // User name for context tracking
   options?: any;
 }
 
@@ -187,6 +216,7 @@ interface PdfRequest {
   scriptPath: string;
   pdfMode?: string;
   pdfSize?: string;
+  userName?: string; // User name for context tracking
 }
 
 interface GenerateAllRequest {
@@ -204,144 +234,156 @@ interface FileBasedRequest {
 
 // Generate script only
 app.post('/api/mulmocast/script', async (req: Request<{}, {}, ScriptRequest>, res: Response) => {
-  try {
-    const { input, template, options = {} } = req.body;
+  const { input, template, options = {} } = req.body;
 
-    if (!input) {
-      return res.status(400).json({ error: 'Input text is required' });
-    }
-
-    const result = await mulmocastService.generateScript(input, {
-      templateName: template,
-      ...options
-    });
-
-    // Store generated file info
-    const fileId = `${options.filename || 'story'}-${result.timestamp}`;
-    const generatedFile: GeneratedFile = {
-      id: fileId,
-      filename: options.filename || 'story',
-      scriptPath: result.scriptPath,
-      timestamp: parseInt(result.timestamp),
-      input,
-      template: template || 'familyday_jpn',
-      status: 'script'
-    };
-    generatedFiles.set(fileId, generatedFile);
-
-    res.json({
-      success: true,
-      data: {
-        ...result,
-        fileId
-      }
-    });
-  } catch (error) {
-    console.error('Script generation error:', error);
-
-    // エラーメッセージから壊れたJSONを抽出して警告として表示
-    const errorMessage = (error as Error).message;
-    let brokenJson = null;
-
-    // JSON parse error や schema validation error の場合、詳細を抽出
-    try {
-      if (errorMessage.includes('Unexpected token') || errorMessage.includes('JSON')) {
-        // JSON parse エラーの場合は全体のエラーメッセージを保持
-        brokenJson = errorMessage;
-      } else if (errorMessage.includes('Generated script was broken')) {
-        // GraphAI からの生成エラーの場合
-        brokenJson = errorMessage;
-      }
-    } catch (e) {
-      // エラー処理中のエラーは無視
-    }
-
-    // クライアントに詳細なエラー情報を送信
-    const response: any = {
-      error: 'Failed to generate script',
-      details: errorMessage
-    };
-
-    if (brokenJson) {
-      response.brokenJson = brokenJson;
-      console.warn('WARNING: Broken JSON detected during script generation:', brokenJson);
-    }
-
-    res.status(500).json(response);
+  if (!input) {
+    return res.status(400).json({ error: 'Input text is required' });
   }
+
+  const userId = options.uniqueUserName;
+
+  // Run with user context to enable proper log filtering
+  return userContextStorage.run(userId, async () => {
+    try {
+      const result = await mulmocastService.generateScript(input, {
+        templateName: template,
+        ...options
+      });
+
+      // Store generated file info
+      const fileId = `${options.filename || 'story'}-${result.timestamp}`;
+      const generatedFile: GeneratedFile = {
+        id: fileId,
+        filename: options.filename || 'story',
+        scriptPath: result.scriptPath,
+        timestamp: parseInt(result.timestamp),
+        input,
+        template: template || 'familyday_jpn',
+        status: 'script'
+      };
+      generatedFiles.set(fileId, generatedFile);
+
+      res.json({
+        success: true,
+        data: {
+          ...result,
+          fileId
+        }
+      });
+    } catch (error) {
+      console.error('Script generation error:', error);
+
+      // エラーメッセージから壊れたJSONを抽出して警告として表示
+      const errorMessage = (error as Error).message;
+      let brokenJson = null;
+
+      // JSON parse error や schema validation error の場合、詳細を抽出
+      try {
+        if (errorMessage.includes('Unexpected token') || errorMessage.includes('JSON')) {
+          // JSON parse エラーの場合は全体のエラーメッセージを保持
+          brokenJson = errorMessage;
+        } else if (errorMessage.includes('Generated script was broken')) {
+          // GraphAI からの生成エラーの場合
+          brokenJson = errorMessage;
+        }
+      } catch (e) {
+        // エラー処理中のエラーは無視
+      }
+
+      // クライアントに詳細なエラー情報を送信
+      const response: any = {
+        error: 'Failed to generate script',
+        details: errorMessage
+      };
+
+      if (brokenJson) {
+        response.brokenJson = brokenJson;
+        console.warn('WARNING: Broken JSON detected during script generation:', brokenJson);
+      }
+
+      res.status(500).json(response);
+    }
+  });
 });
 
 // Generate video from existing script
 app.post('/api/mulmocast/video', async (req: Request<{}, {}, VideoRequest>, res: Response) => {
-  try {
-    const { scriptPath, caption, options = {} } = req.body;
+  const { scriptPath, caption, userName, options = {} } = req.body;
 
-    if (!scriptPath) {
-      return res.status(400).json({ error: 'Script path is required' });
-    }
-
-    // Add caption option to the options object
-    const videoOptions = {
-      ...options,
-      ...(caption && { c: caption }) // Add -c equivalent option
-    };
-    console.info('videoOPtions:', videoOptions);
-
-    const result = await mulmocastService.generateVideo(scriptPath, videoOptions);
-
-    res.json({
-      success: true,
-      data: result
-    });
-  } catch (error) {
-    console.error('Video generation error:', error);
-    res.status(500).json({
-      error: 'Failed to generate video',
-      details: (error as Error).message
-    });
+  if (!scriptPath) {
+    return res.status(400).json({ error: 'Script path is required' });
   }
+
+  // Run with user context to enable proper log filtering
+  return userContextStorage.run(userName, async () => {
+    try {
+      // Add caption option to the options object
+      const videoOptions = {
+        ...options,
+        ...(caption && { c: caption }) // Add -c equivalent option
+      };
+      console.info('videoOPtions:', videoOptions);
+
+      const result = await mulmocastService.generateVideo(scriptPath, videoOptions);
+
+      res.json({
+        success: true,
+        data: result
+      });
+    } catch (error) {
+      console.error('Video generation error:', error);
+      res.status(500).json({
+        error: 'Failed to generate video',
+        details: (error as Error).message
+      });
+    }
+  });
 });
 
 // Generate PDF from existing script
 app.post('/api/mulmocast/pdf', async (req: Request<{}, {}, PdfRequest>, res: Response) => {
-  try {
-    const { scriptPath, pdfMode = 'slide', pdfSize = 'letter' } = req.body;
+  const { scriptPath, pdfMode = 'slide', pdfSize = 'letter', userName } = req.body;
 
-    if (!scriptPath) {
-      return res.status(400).json({ error: 'Script path is required' });
-    }
-
-    const result = await mulmocastService.generatePdf(scriptPath, pdfMode, pdfSize);
-
-    res.json({
-      success: true,
-      data: result
-    });
-  } catch (error) {
-    console.error('PDF generation error:', error);
-    res.status(500).json({
-      error: 'Failed to generate PDF',
-      details: (error as Error).message
-    });
+  if (!scriptPath) {
+    return res.status(400).json({ error: 'Script path is required' });
   }
+
+  // Run with user context to enable proper log filtering
+  return userContextStorage.run(userName, async () => {
+    try {
+      const result = await mulmocastService.generatePdf(scriptPath, pdfMode, pdfSize);
+
+      res.json({
+        success: true,
+        data: result
+      });
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      res.status(500).json({
+        error: 'Failed to generate PDF',
+        details: (error as Error).message
+      });
+    }
+  });
 });
 
 // Generate all outputs at once
 app.post('/api/mulmocast/generate-all', async (req: Request<{}, {}, GenerateAllRequest>, res: Response) => {
-  try {
-    const {
-      input,
-      template,
-      outputs = ['script', 'video', 'pdf'],
-      options = {}
-    } = req.body;
+  const {
+    input,
+    template,
+    outputs = ['script', 'video', 'pdf'],
+    options = {}
+  } = req.body;
 
-    if (!input) {
-      return res.status(400).json({ error: 'Input text is required' });
-    }
+  if (!input) {
+    return res.status(400).json({ error: 'Input text is required' });
+  }
 
-    const userId = options.uniqueUserName;
+  const userId = options.uniqueUserName;
 
+  // Run with user context to enable proper log filtering
+  return userContextStorage.run(userId, async () => {
     try {
       // Broadcast progress updates
       broadcastToClients("🚀 Starting batch generation (script → video → pdf)", userId);
@@ -399,11 +441,7 @@ app.post('/api/mulmocast/generate-all', async (req: Request<{}, {}, GenerateAllR
 
       res.status(500).json(response);
     }
-  } catch (outerError) {
-    // Handle any unexpected errors
-    console.error('Unexpected error in generate-all endpoint:', outerError);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+  });
 });
 
 // Get user's JSON files

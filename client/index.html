@@ -606,11 +606,11 @@ e.g.: A small round alien named Puni comes to Earth and becomes friends with a h
 
         // Disable both generation buttons
         disableGenerationButtons();
-        updateButtonText("all", `🔄 Step 1/3: Generating script...`);
+        updateButtonText("all", `🔄 Generating ...`);
 
         // Show initial progress in real-time messages
         showRealTimeMessage("🚀 Starting batch generation (script → video → pdf)", "info");
-        showRealTimeMessage("🔄 Step 1/3: Generating script...", "info");
+        showRealTimeMessage("🔄 Generating ...", "info");
 
         showLoading(`Generating... (${outputs.join(", ")})`);
         try {
@@ -726,12 +726,18 @@ e.g.: A small round alien named Puni comes to Earth and becomes friends with a h
       async function generateFromJsonPath() {
         const jsonFilePath = document.getElementById("jsonFilePath").value.trim();
         const generateType = document.querySelector('input[name="generateType"]:checked').value;
+        const userName = document.getElementById("uniqueUserName").value.trim();
 
         const jsonButton = document.querySelector('button[onclick="generateFromJsonPath()"]');
         const originalText = jsonButton.textContent;
 
         if (!jsonFilePath) {
           showResult("❌ Please enter JSON file path", "error");
+          return;
+        }
+
+        if (!userName) {
+          showResult("❌ Please enter Unique User Name", "error");
           return;
         }
 
@@ -751,6 +757,7 @@ e.g.: A small round alien named Puni comes to Earth and becomes friends with a h
             result = await makeRequest("/mulmocast/video", {
               scriptPath: jsonFilePath,
               caption: autoCaptionLanguage,
+              userName: userName,
             });
             showResult(`✅ Video generation successful!\n${JSON.stringify(result, null, 2)}`);
           } else if (generateType === "pdf") {
@@ -762,10 +769,11 @@ e.g.: A small round alien named Puni comes to Earth and becomes friends with a h
               scriptPath: jsonFilePath,
               pdfMode,
               pdfSize,
+              userName: userName,
             });
             showResult(`✅ PDF generation successful!\n${JSON.stringify(result, null, 2)}`);
           }
-          
+
           // Update file lists after successful generation
           await loadUserFiles();
           await loadUserMedia();
