@@ -521,11 +521,12 @@ e.g.: A small round alien named Puni comes to Earth and becomes friends with a h
         button.textContent = text;
       }
 
+      const llm = "openAI";
+      //const llm = "gemini";
+
       async function generateScript() {
         const input = document.getElementById("storyInput").value;
         const template = document.getElementById("template").value;
-        <!-- const llm = document.getElementById('llm').value; -->
-        const llm = "openAI";
         const uniqueUserName = document.getElementById("uniqueUserName").value.trim();
         const filename = document.getElementById("filename").value;
 
@@ -549,9 +550,9 @@ e.g.: A small round alien named Puni comes to Earth and becomes friends with a h
             input,
             template,
             options: {
-              llm,
-              filename,
-              uniqueUserName,
+              "llm": llm,
+              "filename": filename,
+              "uniqueUserName": uniqueUserName,
             },
           });
 
@@ -587,7 +588,6 @@ e.g.: A small round alien named Puni comes to Earth and becomes friends with a h
       async function generateAll() {
         const input = document.getElementById("storyInput").value;
         const template = document.getElementById("template").value;
-        const llm = "openAI"; // Fixed value since LLM select is commented out
         const uniqueUserName = document.getElementById("uniqueUserName").value.trim();
         const filename = document.getElementById("filename").value;
 
@@ -618,9 +618,9 @@ e.g.: A small round alien named Puni comes to Earth and becomes friends with a h
             template,
             outputs,
             options: {
-              llm,
-              filename,
-              uniqueUserName,
+              "llm": llm,
+              "filename": filename,
+              "uniqueUserName": uniqueUserName,
             },
           });
 

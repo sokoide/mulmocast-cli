@@ -13,23 +13,7 @@
     },
     "imageParams": {
       "provider": "google",
-      "style": "<style>Dragon Ball/Dr. Slump aesthetic combined with Ghibli style</style>",
-      "images": {
-        "girl": {
-          "type": "image",
-          "source": {
-            "kind": "url",
-            "url": "https://raw.githubusercontent.com/receptron/mulmocast-media/refs/heads/main/characters/slump_presenter.png"
-          }
-        },
-        "presenter": {
-          "type": "image",
-          "source": {
-            "kind": "url",
-            "url": "https://raw.githubusercontent.com/receptron/mulmocast-media/refs/heads/main/characters/ghibli_presenter.png"
-          }
-        }
-      }
+      "style": "in the style of Akira Toriyama / Dragonball, featuring thick, bold outlines, simple yet expressive character designs, bright and cheerful primary colors, a slightly exaggerated and comical tone, with unique mechanical details and vibrant, adventurous backgrounds."
     }
   },
   "scriptName": "familyday_jpn.json"
