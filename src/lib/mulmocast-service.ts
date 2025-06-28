@@ -24,6 +24,8 @@ export interface ScriptGenerationOptions extends MulmocastServiceOptions {
   filename?: string;
   outputs?: ("script" | "video" | "pdf")[];
   uniqueUserName?: string;
+  progressCallback?: (step: string, progress: string) => void;
+  c?: string; // caption language
 }
 
 export interface VideoGenerationOptions extends MulmocastServiceOptions {
@@ -117,12 +119,31 @@ export class MulmocastService {
 
     await createMulmoScriptFamilyday(scriptingParams);
 
-    // The script is actually saved as filename-timestamp.json directly in userDirPath
-    const scriptPath = path.join(userDirPath, `${filename}-${timestamp}.json`);
+    // Find the actual generated file (the fileWriteAgent uses ${@now} timestamp)
+    const files = fs.readdirSync(userDirPath);
+    const generatedFile = files
+      .filter(f => f.startsWith(filename) && f.endsWith('.json'))
+      .filter(f => !f.includes('_studio') && !f.includes('_lang')) // exclude internal files
+      .sort((a, b) => {
+        // Get the most recent file based on timestamp in filename
+        const timestampA = a.match(/-(\d+)\.json$/)?.[1] || '0';
+        const timestampB = b.match(/-(\d+)\.json$/)?.[1] || '0';
+        return parseInt(timestampB) - parseInt(timestampA);
+      })[0];
+
+    if (!generatedFile) {
+      throw new Error(`Generated script file not found in ${userDirPath}`);
+    }
+
+    const scriptPath = path.join(userDirPath, generatedFile);
+    const actualTimestamp = generatedFile.match(/-(\d+)\.json$/)?.[1] || timestamp;
+
+    console.log(`DEBUG: Found generated file: ${generatedFile}`);
+    console.log(`DEBUG: Full script path: ${scriptPath}`);
 
     return {
       scriptPath,
-      timestamp,
+      timestamp: actualTimestamp,
       filename,
     };
   }
@@ -134,6 +155,9 @@ export class MulmocastService {
     videoPath: string;
     timestamp: string;
   }> {
+    console.log(`DEBUG: generateVideo called with scriptPath: ${scriptPath}`);
+    console.log(`DEBUG: File exists check: ${fs.existsSync(scriptPath)}`);
+    
     const context = await initializeContext({
       b: this.basePath,
       o: this.outputPath,
@@ -150,10 +174,14 @@ export class MulmocastService {
     // Run translation if needed (for multilingual captions)
     await runTranslateIfNeeded(context, { c: options.c });
 
-    await audio(context);
-    await images(context);
-    await captions(context);
-    await movie(context);
+    // For generateVideo, run the complete pipeline
+    console.log(`DEBUG: Before audio - context.studio.beats[0].duration:`, context.studio.beats[0]?.duration);
+    const updatedContext = await audio(context);
+    console.log(`DEBUG: After audio - updatedContext.studio.beats[0].duration:`, updatedContext.studio.beats[0]?.duration);
+    
+    await images(updatedContext);
+    await captions(updatedContext);
+    await movie(updatedContext);
 
     const timestamp = this.getTimestamp();
     const filename = path.basename(scriptPath, ".json");
@@ -225,9 +253,14 @@ export class MulmocastService {
     filename: string;
   }> {
     const outputs = options.outputs || ["script", "video", "pdf"];
+    const progressCallback = options.progressCallback;
 
     // Generate script first
+    progressCallback?.("🔄 Step 1/3", "Generating script...");
     const scriptResult = await this.generateScript(input, options);
+    progressCallback?.("✅ Step 1/3", "Script generated successfully");
+    
+    console.log(`DEBUG: Script generated at: ${scriptResult.scriptPath}`);
 
     const result: any = {
       scriptPath: scriptResult.scriptPath,
@@ -237,14 +270,25 @@ export class MulmocastService {
 
     // Generate video if requested
     if (outputs.includes("video")) {
-      const videoResult = await this.generateVideo(scriptResult.scriptPath, options);
+      progressCallback?.("🔄 Step 2/3", "Generating video (audio + images + captions + movie)...");
+      console.log(`DEBUG: About to generate video for script: ${scriptResult.scriptPath}`);
+      const videoOptions: VideoGenerationOptions = {
+        basePath: options.basePath,
+        outputPath: options.outputPath,
+        cachePath: options.cachePath,
+        c: options.c || 'ja', // Default to Japanese captions
+      };
+      const videoResult = await this.generateVideo(scriptResult.scriptPath, videoOptions);
       result.videoPath = videoResult.videoPath;
+      progressCallback?.("✅ Step 2/3", "Video generated successfully");
     }
 
     // Generate PDF if requested
     if (outputs.includes("pdf")) {
+      progressCallback?.("🔄 Step 3/3", "Generating PDF...");
       const pdfResult = await this.generatePdf(scriptResult.scriptPath);
       result.pdfPath = pdfResult.pdfPath;
+      progressCallback?.("✅ Step 3/3", "PDF generated successfully");
     }
 
     return result;
@@ -262,6 +306,11 @@ export class MulmocastService {
 
     for (const entry of entries) {
       if (entry.isFile() && entry.name.endsWith(".json")) {
+        // Filter out internal files (_studio.json and _lang.json)
+        if (entry.name.includes("_studio.json") || entry.name.includes("_lang.json")) {
+          continue;
+        }
+
         const jsonFile = path.join(userDir, entry.name);
         const stats = fs.statSync(jsonFile);
 

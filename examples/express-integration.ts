@@ -340,18 +340,34 @@ app.post('/api/mulmocast/generate-all', async (req: Request<{}, {}, GenerateAllR
       return res.status(400).json({ error: 'Input text is required' });
     }
 
-    const result = await mulmocastService.generateAll(input, {
-      templateName: template,
-      outputs,
-      ...options
-    });
+    const userId = options.uniqueUserName;
+    
+    try {
+      // Broadcast progress updates
+      broadcastToClients("🚀 Starting batch generation (script → video → pdf)", userId);
+      broadcastToClients("🔄 Step 1/3: Generating script...", userId);
 
-    res.json({
-      success: true,
-      data: result
-    });
-  } catch (error) {
+      const result = await mulmocastService.generateAll(input, {
+        templateName: template,
+        outputs,
+        ...options,
+        progressCallback: (step: string, progress: string) => {
+          broadcastToClients(`${step}: ${progress}`, userId);
+        }
+      });
+
+      // Broadcast completion message
+      broadcastToClients("✅ All generation completed successfully!", userId);
+
+      res.json({
+        success: true,
+        data: result
+      });
+    } catch (error) {
     console.error('Generation error:', error);
+    
+    // Broadcast error message  
+    broadcastToClients("❌ Batch generation failed", userId);
 
     // エラーメッセージから壊れたJSONを抽出して警告として表示
     const errorMessage = (error as Error).message;
@@ -382,6 +398,11 @@ app.post('/api/mulmocast/generate-all', async (req: Request<{}, {}, GenerateAllR
     }
 
     res.status(500).json(response);
+    }
+  } catch (outerError) {
+    // Handle any unexpected errors
+    console.error('Unexpected error in generate-all endpoint:', outerError);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 

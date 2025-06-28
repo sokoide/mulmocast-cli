@@ -476,6 +476,49 @@
         }
       }
 
+      // Shared button management functions
+      function disableGenerationButtons() {
+        const scriptButton = document.querySelector('button[onclick="generateScript()"]');
+        const allButton = document.querySelector('button[onclick="generateAll()"]');
+        
+        // Store original texts
+        scriptButton.dataset.originalText = scriptButton.textContent;
+        allButton.dataset.originalText = allButton.textContent;
+        
+        // Disable both buttons
+        scriptButton.disabled = true;
+        scriptButton.style.backgroundColor = "#6c757d";
+        scriptButton.style.cursor = "not-allowed";
+        
+        allButton.disabled = true;
+        allButton.style.backgroundColor = "#6c757d";
+        allButton.style.cursor = "not-allowed";
+      }
+
+      function enableGenerationButtons() {
+        const scriptButton = document.querySelector('button[onclick="generateScript()"]');
+        const allButton = document.querySelector('button[onclick="generateAll()"]');
+        
+        // Restore both buttons
+        scriptButton.disabled = false;
+        scriptButton.textContent = scriptButton.dataset.originalText || "Generate Script";
+        scriptButton.style.backgroundColor = "";
+        scriptButton.style.cursor = "";
+        
+        allButton.disabled = false;
+        allButton.textContent = allButton.dataset.originalText || "Generate All";
+        allButton.style.backgroundColor = "";
+        allButton.style.cursor = "";
+      }
+
+      function updateButtonText(buttonType, text) {
+        const selector = buttonType === 'script' 
+          ? 'button[onclick="generateScript()"]'
+          : 'button[onclick="generateAll()"]';
+        const button = document.querySelector(selector);
+        button.textContent = text;
+      }
+
       async function generateScript() {
         const input = document.getElementById("storyInput").value;
         const template = document.getElementById("template").value;
@@ -483,9 +526,6 @@
         const llm = "openAI";
         const uniqueUserName = document.getElementById("uniqueUserName").value.trim();
         const filename = document.getElementById("filename").value;
-
-        const scriptButton = document.querySelector('button[onclick="generateScript()"]');
-        const originalText = scriptButton.textContent;
 
         if (!input.trim()) {
           showResult("❌ Please enter a story", "error");
@@ -497,11 +537,9 @@
           return;
         }
 
-        // ボタンを無効化して「生成中」表示
-        scriptButton.disabled = true;
-        scriptButton.textContent = "🔄 Generating a script...";
-        scriptButton.style.backgroundColor = "#6c757d";
-        scriptButton.style.cursor = "not-allowed";
+        // Disable both generation buttons
+        disableGenerationButtons();
+        updateButtonText('script', "🔄 Generating a script...");
 
         showLoading("Generating a script...");
         try {
@@ -539,11 +577,8 @@
 
           showResult(errorMessage, "error");
         } finally {
-          // ボタンを元に戻す
-          scriptButton.disabled = false;
-          scriptButton.textContent = originalText;
-          scriptButton.style.backgroundColor = "";
-          scriptButton.style.cursor = "";
+          // Re-enable both buttons
+          enableGenerationButtons();
         }
       }
 
@@ -553,9 +588,6 @@
         const llm = "openAI"; // Fixed value since LLM select is commented out
         const uniqueUserName = document.getElementById("uniqueUserName").value.trim();
         const filename = document.getElementById("filename").value;
-
-        const allButton = document.querySelector('button[onclick="generateAll()"]');
-        const originalText = allButton.textContent;
 
         const outputs = ["script", "video", "pdf"];
 
@@ -568,11 +600,14 @@
           showResult("❌ Please enter Unique User Name", "error");
           return;
         }
-        // ボタンを無効化して「生成中」表示
-        allButton.disabled = true;
-        allButton.textContent = `🔄 Generating... (${outputs.join(", ")})`;
-        allButton.style.backgroundColor = "#6c757d";
-        allButton.style.cursor = "not-allowed";
+
+        // Disable both generation buttons
+        disableGenerationButtons();
+        updateButtonText('all', `🔄 Step 1/3: Generating script...`);
+        
+        // Show initial progress in real-time messages
+        showRealTimeMessage("🚀 Starting batch generation (script → video → pdf)", "info");
+        showRealTimeMessage("🔄 Step 1/3: Generating script...", "info");
 
         showLoading(`Generating... (${outputs.join(", ")})`);
         try {
@@ -588,6 +623,7 @@
           });
 
           showResult(`✅ Successfully generated!\n${JSON.stringify(result, null, 2)}`);
+          showRealTimeMessage("✅ All generation completed successfully!", "info");
 
           // 生成後、自動でユーザーファイルを更新
           await loadUserFiles();
@@ -610,12 +646,10 @@
           }
 
           showResult(errorMessage, "error");
+          showRealTimeMessage("❌ Batch generation failed", "error");
         } finally {
-          // ボタンを元に戻す
-          allButton.disabled = false;
-          allButton.textContent = originalText;
-          allButton.style.backgroundColor = "";
-          allButton.style.cursor = "";
+          // Re-enable both buttons
+          enableGenerationButtons();
         }
       }
 
