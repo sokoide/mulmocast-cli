@@ -101,6 +101,9 @@ const graphData = {
     initialInput: {
       update: ":initialInput",
     },
+    templateData: {
+      update: ":templateData",
+    },
     messages: {
       value: [],
     },
@@ -157,7 +160,7 @@ const graphData = {
               counter: number;
               validationError?: string;
             }) => {
-              if (counter >= 3) {
+              if (counter >= 2) {
                 GraphAILogger.info("\n" + agentHeader + " Failed to generate a valid script. Maximum retries reached.\n");
                 if (validationError) {
                   GraphAILogger.info("Last validation error: " + validationError + "\n");
