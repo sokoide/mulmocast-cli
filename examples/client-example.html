@@ -31,6 +31,10 @@
         margin-top: 0;
         margin-bottom: 15px;
       }
+      h3 {
+        margin-top: 0;
+        margin-bottom: 15px;
+      }
       textarea,
       select,
       input {
@@ -164,13 +168,11 @@
       }
       .column20 {
         width: 20%;
-        background-color: lightgray;
         padding: 10px;
         box-sizing: border-box;
       }
       .column40 {
         width: 40%;
-        background-color: lightgray;
         padding: 10px;
         box-sizing: border-box;
       }
@@ -186,10 +188,12 @@
 
       <form id="storyForm">
         <div class="form-group">
-          <label for="storyInput">Story:</label>
-          <textarea id="storyInput" placeholder="例: 小さな丸い宇宙人プーニが地球にやってきて、人間の少年と友達になる物語。" required>
-小さな丸い宇宙人プーニが地球にやってきて、人間の少年と友達になる物語。プーニは最初は言葉が通じず困っていたが、少年の優しさに触れて次第に心を開いていく。二人は一緒に冒険し、最後にプーニは故郷の星に帰ることになるが、友情は永遠に続く。</textarea
-          >
+          <!-- <textarea id="storyInput" placeholder="例: 小さな丸い宇宙人プーニが地球にやってきて、人間の少年と友達になる物語。" required>
+小さな丸い宇宙人プーニが地球にやってきて、人間の少年と友達になる物語。プーニは最初は言葉が通じず困っていたが、少年の優しさに触れて次第に心を開いていく。二人は一緒に冒険し、最後にプーニは故郷の星に帰ることになるが、友情は永遠に続く。</textarea> -->
+          <textarea id="storyInput" placeholder="Story)
+例: 小さな丸い宇宙人プーニが地球にやってきて、人間の少年と友達になる物語。
+e.g.: A small round alien named Puni comes to Earth and becomes friends with a human
+" required></textarea>
         </div>
 
         <div class="form-group">
@@ -319,7 +323,7 @@
       </div>
 
       <div id="result"></div>
-      <div class="form-group" style="display: none; margin-top: 10px">
+      <div class="form-group" style="display: block;">
         <button type="button" onclick="checkHealth()">Health Check</button>
       </div>
     </div>
