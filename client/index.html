@@ -629,6 +629,8 @@ e.g.: A small round alien named Puni comes to Earth and becomes friends with a h
 
           // 生成後、自動でユーザーファイルを更新
           await loadUserFiles();
+          // 生成後、自動でメディアファイルリストも更新
+          await loadUserMedia();
         } catch (error) {
           let errorMessage = `❌ Batch generation failed: ${error.message}`;
 
