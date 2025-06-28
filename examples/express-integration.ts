@@ -1,7 +1,11 @@
 // Express.js integration example
 import express, { Request, Response } from 'express';
 import path from 'path';
+import dotenv from 'dotenv';
 import { MulmocastService } from '../src/lib/mulmocast-service.js';
+
+// Load environment variables from .env file
+dotenv.config();
 
 // Configuration from environment variables
 const BASE_PATH = process.env.MULMOCAST_BASE_PATH || process.cwd();
