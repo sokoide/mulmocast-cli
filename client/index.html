@@ -765,6 +765,10 @@ e.g.: A small round alien named Puni comes to Earth and becomes friends with a h
             });
             showResult(`✅ PDF generation successful!\n${JSON.stringify(result, null, 2)}`);
           }
+          
+          // Update file lists after successful generation
+          await loadUserFiles();
+          await loadUserMedia();
         } catch (error) {
           showResult(`❌ ${generateType === "video" ? "Video" : "PDF"} generation failed: ${error.message}`, "error");
         } finally {
