@@ -27,7 +27,7 @@ const mulmoCredit = (speaker: string) => {
       type: "image" as const,
       source: {
         kind: "url" as const,
-        url: "https://github.com/sokoide/familyday/raw/main/2025/assets/bg.jpg",
+        url: "https://github.com/sokoide/familyday/raw/main/2025/assets/bg2.png",
       },
     },
     audio: {
