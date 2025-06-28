@@ -1,4 +1,5 @@
 import "dotenv/config";
+import fs from "fs";
 import { GraphAILogger, GraphAI } from "graphai";
 import { textInputAgent } from "@graphai/input_agents";
 
@@ -10,7 +11,7 @@ import { groqAgent } from "@graphai/groq_agent";
 import * as agents from "@graphai/vanilla";
 
 import { fileWriteAgent } from "@graphai/vanilla_node_agents";
-import { readTemplatePrompt, mkdir } from "../utils/file.js";
+import { readTemplatePrompt, mkdir, getTemplateFilePath } from "../utils/file.js";
 import { browserlessCacheGenerator } from "../utils/filters.js";
 import { mulmoScriptSchema, ScriptingParams } from "../types/index.js";
 import { browserlessAgent } from "@graphai/browserless_agent";
@@ -22,6 +23,13 @@ import { interactiveClarificationPrompt, prefixPrompt } from "../utils/prompt.js
 const vanillaAgents = agents.default ?? agents;
 
 const agentHeader = "Agent:";
+
+// Function to load template data for fallback purposes
+const loadTemplateData = (templateName: string) => {
+  const templatePath = getTemplateFilePath(templateName);
+  const templateData = JSON.parse(fs.readFileSync(templatePath, "utf-8"));
+  return templateData;
+};
 
 const graphDataForScraping = {
   version: 0.5,
@@ -138,14 +146,30 @@ const graphData = {
             },
           },
           continue: {
-            agent: ({ codeBlock, isValid, counter }: { codeBlock: string | undefined; isValid: boolean; counter: number }) => {
+            agent: ({
+              codeBlock,
+              isValid,
+              counter,
+              validationError,
+            }: {
+              codeBlock: string | undefined;
+              isValid: boolean;
+              counter: number;
+              validationError?: string;
+            }) => {
               if (counter >= 3) {
                 GraphAILogger.info("\n" + agentHeader + " Failed to generate a valid script. Maximum retries reached.\n");
+                if (validationError) {
+                  GraphAILogger.info("Last validation error: " + validationError + "\n");
+                }
                 return false;
               }
               const result = !!codeBlock && !isValid;
               if (result) {
                 GraphAILogger.info("\n" + agentHeader + " Generated script was broken. Retry generate a script.");
+                if (validationError) {
+                  GraphAILogger.info("Validation error: " + validationError);
+                }
               }
               return result;
             },
@@ -153,6 +177,7 @@ const graphData = {
               counter: ":counter",
               codeBlock: ":chatAgent.text.codeBlock()",
               isValid: ":validateSchemaAgent.isValid",
+              validationError: ":validateSchemaAgent.error",
             },
           },
         },
@@ -186,15 +211,58 @@ const graphData = {
       },
     },
     processedJson: {
-      agent: (namedInputs: { json: any; maxRetriesReached: boolean }) => {
-        const { json, maxRetriesReached } = namedInputs;
+      agent: (namedInputs: { json: any; maxRetriesReached: boolean; templateData: any }) => {
+        const { json, maxRetriesReached, templateData } = namedInputs;
 
-        // If max retries were reached, don't process the JSON
+        // If max retries were reached, create a fallback JSON with template defaults
         if (maxRetriesReached) {
-          GraphAILogger.info("\n" + agentHeader + " Skipping JSON processing due to validation failures.\n");
+          GraphAILogger.info("\n" + agentHeader + " Max retries reached. Creating fallback script with template defaults.\n");
+
+          // Create a minimal valid script structure with template imageParams preserved
+          const fallbackJson = {
+            $mulmocast: {
+              version: "1.0",
+              credit: "closing",
+            },
+            canvasSize: {
+              width: 1536,
+              height: 1024,
+            },
+            speechParams: {
+              provider: "openai",
+              speakers: {
+                Presenter: {
+                  voiceId: "shimmer",
+                  displayName: {
+                    en: "Presenter",
+                  },
+                },
+              },
+            },
+            audioParams: {
+              introPadding: 1.0,
+              padding: 0.3,
+              closingPadding: 0.8,
+              outroPadding: 1.0,
+            },
+            // Preserve template imageParams if they exist
+            ...(templateData?.presentationStyle?.imageParams && {
+              imageParams: templateData.presentationStyle.imageParams,
+            }),
+            // Add a simple fallback beat to make the script valid
+            beats: [
+              {
+                speaker: "Presenter",
+                text: "I apologize, but I encountered difficulties generating your story. Please try again with a clearer description.",
+                imagePrompt: "A simple, apologetic character illustration in a children's book style",
+              },
+            ],
+          };
+
+          GraphAILogger.info("\n" + agentHeader + " Fallback script created with preserved template imageParams.\n");
           return {
-            json: null,
-            text: null,
+            json: fallbackJson,
+            text: JSON.stringify(fallbackJson, null, 2),
           };
         }
 
@@ -245,6 +313,7 @@ const graphData = {
       inputs: {
         json: ":json.json",
         maxRetriesReached: ":maxRetriesReached",
+        templateData: ":templateData",
       },
     },
     debugJson: {
@@ -328,6 +397,8 @@ export const createMulmoScriptFamilyday = async ({
     { agentFilters },
   );
 
+  // Load template data for fallback purposes
+  const templateData = loadTemplateData(templateName);
   const prompt = readTemplatePrompt(templateName);
 
   // 明示的なJSON生成指示を追加
@@ -351,6 +422,7 @@ Your response must be a valid JSON script wrapped in \`\`\`json code blocks.`;
   graph.injectValue("llmAgent", agent);
   graph.injectValue("llmModel", model);
   graph.injectValue("maxTokens", max_tokens);
+  graph.injectValue("templateData", templateData);
 
   GraphAILogger.info(`${agentHeader} Generating script for: ${initialInput}`);
   await graph.run();
