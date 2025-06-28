@@ -21,7 +21,7 @@ import { interactiveClarificationPrompt, prefixPrompt } from "../utils/prompt.js
 
 const vanillaAgents = agents.default ?? agents;
 
-const agentHeader = "\x1b[34m● \x1b[0m\x1b[1mAgent\x1b[0m:\x1b[0m";
+const agentHeader = "Agent:";
 
 const graphDataForScraping = {
   version: 0.5,

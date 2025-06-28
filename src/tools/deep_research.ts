@@ -14,7 +14,7 @@ import { searchQueryPrompt, reflectionPrompt, finalAnswerPrompt } from "../utils
 
 const vanillaAgents = agents.default ?? agents;
 
-const agentHeader = "\x1b[34m● \x1b[0m\x1b[1mAgent\x1b[0m:\x1b[0m";
+const agentHeader = "Agent:";
 
 const graphData = {
   version: 0.5,

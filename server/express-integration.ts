@@ -11,7 +11,7 @@ dotenv.config();
 const BASE_PATH = process.env.MULMOCAST_BASE_PATH || process.cwd();
 const OUTPUT_PATH = process.env.MULMOCAST_OUTPUT_PATH || path.join(BASE_PATH, 'output');
 const CACHE_PATH = process.env.MULMOCAST_CACHE_PATH || path.join(OUTPUT_PATH, 'cache');
-const EXAMPLES_PATH = process.env.MULMOCAST_EXAMPLES_PATH || './examples';
+const CLIENT_PATH = process.env.MULMOCAST_EXAMPLES_PATH || './client';
 
 const app = express();
 app.use(express.json());
@@ -20,10 +20,10 @@ console.log(`🔧 Configuration:`);
 console.log(`   - Base Path: ${BASE_PATH}`);
 console.log(`   - Output Path: ${OUTPUT_PATH}`);
 console.log(`   - Cache Path: ${CACHE_PATH}`);
-console.log(`   - Examples Path: ${EXAMPLES_PATH}`);
+console.log(`   - Examples Path: ${CLIENT_PATH}`);
 
 // Serve static files (HTML, CSS, JS) from examples directory
-app.use('/client', express.static(EXAMPLES_PATH));
+app.use('/client', express.static(CLIENT_PATH));
 
 // Serve output files for download and preview
 app.use('/output', express.static(OUTPUT_PATH));
@@ -341,7 +341,7 @@ app.post('/api/mulmocast/generate-all', async (req: Request<{}, {}, GenerateAllR
     }
 
     const userId = options.uniqueUserName;
-    
+
     try {
       // Broadcast progress updates
       broadcastToClients("🚀 Starting batch generation (script → video → pdf)", userId);
@@ -364,40 +364,40 @@ app.post('/api/mulmocast/generate-all', async (req: Request<{}, {}, GenerateAllR
         data: result
       });
     } catch (error) {
-    console.error('Generation error:', error);
-    
-    // Broadcast error message  
-    broadcastToClients("❌ Batch generation failed", userId);
+      console.error('Generation error:', error);
 
-    // エラーメッセージから壊れたJSONを抽出して警告として表示
-    const errorMessage = (error as Error).message;
-    let brokenJson = null;
+      // Broadcast error message
+      broadcastToClients("❌ Batch generation failed", userId);
 
-    // JSON parse error や schema validation error の場合、詳細を抽出
-    try {
-      if (errorMessage.includes('Unexpected token') || errorMessage.includes('JSON')) {
-        // JSON parse エラーの場合は全体のエラーメッセージを保持
-        brokenJson = errorMessage;
-      } else if (errorMessage.includes('Generated script was broken')) {
-        // GraphAI からの生成エラーの場合
-        brokenJson = errorMessage;
+      // エラーメッセージから壊れたJSONを抽出して警告として表示
+      const errorMessage = (error as Error).message;
+      let brokenJson = null;
+
+      // JSON parse error や schema validation error の場合、詳細を抽出
+      try {
+        if (errorMessage.includes('Unexpected token') || errorMessage.includes('JSON')) {
+          // JSON parse エラーの場合は全体のエラーメッセージを保持
+          brokenJson = errorMessage;
+        } else if (errorMessage.includes('Generated script was broken')) {
+          // GraphAI からの生成エラーの場合
+          brokenJson = errorMessage;
+        }
+      } catch (e) {
+        // エラー処理中のエラーは無視
       }
-    } catch (e) {
-      // エラー処理中のエラーは無視
-    }
 
-    // クライアントに詳細なエラー情報を送信
-    const response: any = {
-      error: 'Failed to generate content',
-      details: errorMessage
-    };
+      // クライアントに詳細なエラー情報を送信
+      const response: any = {
+        error: 'Failed to generate content',
+        details: errorMessage
+      };
 
-    if (brokenJson) {
-      response.brokenJson = brokenJson;
-      console.warn('WARNING: Broken JSON detected during batch generation:', brokenJson);
-    }
+      if (brokenJson) {
+        response.brokenJson = brokenJson;
+        console.warn('WARNING: Broken JSON detected during batch generation:', brokenJson);
+      }
 
-    res.status(500).json(response);
+      res.status(500).json(response);
     }
   } catch (outerError) {
     // Handle any unexpected errors
@@ -618,7 +618,7 @@ app.get('/api/config', (req: Request, res: Response) => {
     success: true,
     data: {
       ...config,
-      examplesPath: EXAMPLES_PATH,
+      examplesPath: CLIENT_PATH,
       environment: {
         MULMOCAST_BASE_PATH: process.env.MULMOCAST_BASE_PATH || 'default',
         MULMOCAST_OUTPUT_PATH: process.env.MULMOCAST_OUTPUT_PATH || 'default',
