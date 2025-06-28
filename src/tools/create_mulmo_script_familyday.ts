@@ -223,6 +223,7 @@ const graphData = {
         // Helper function to get language-specific defaults based on template name
         const getLanguageDefaults = (templateName: string) => {
           const isJapanese = templateName && templateName.includes("familyday_jpn");
+          GraphAILogger.info(`\n${agentHeader} Template language detection: templateName='${templateName}', isJapanese=${isJapanese}\n`);
           
           if (isJapanese) {
             return {
@@ -315,9 +316,12 @@ const graphData = {
             };
           }
           
-          // Set language if missing
-          if (!json.lang) {
-            json.lang = languageDefaults.lang;
+          // Always set language based on template, overriding LLM output if needed
+          const originalLang = json.lang;
+          json.lang = languageDefaults.lang;
+          if (originalLang && originalLang !== languageDefaults.lang) {
+            GraphAILogger.info(`\n${agentHeader} Overriding LLM language '${originalLang}' with template language '${languageDefaults.lang}' based on template ${templateName}\n`);
+          } else {
             GraphAILogger.info(`\n${agentHeader} Setting language to ${languageDefaults.lang} based on template ${templateName}\n`);
           }
           

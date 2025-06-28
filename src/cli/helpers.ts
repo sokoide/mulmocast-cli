@@ -202,6 +202,13 @@ export const initializeContext = async (argv: CliArgs<InitOptions>): Promise<Mul
         ...(studio.script.captionParams ?? {}),
         lang: argv.c,
       });
+    } else if (!studio.script.captionParams?.lang && studio.script.lang) {
+      // Auto-set caption language from script language if not explicitly set
+      studio.script.captionParams = mulmoCaptionParamsSchema.parse({
+        ...(studio.script.captionParams ?? {}),
+        lang: studio.script.lang,
+      });
+      GraphAILogger.info(`Auto-setting caption language to '${studio.script.lang}' based on script language`);
     }
 
     return {
@@ -209,7 +216,13 @@ export const initializeContext = async (argv: CliArgs<InitOptions>): Promise<Mul
       fileDirs: files,
       force: Boolean(argv.f),
       dryRun: Boolean(argv.dryRun),
-      lang: argv.l,
+      lang: (() => {
+        const finalLang = argv.l || studio.script.lang;
+        if (!argv.l && studio.script.lang) {
+          GraphAILogger.info(`Auto-setting audio language to '${studio.script.lang}' based on script language`);
+        }
+        return finalLang;
+      })(),
       sessionState: {
         inSession: {
           audio: false,
