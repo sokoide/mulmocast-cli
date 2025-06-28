@@ -2,27 +2,27 @@
 
 echo "🚀 Starting Mulmocast API Server and Client..."
 
-# Start the API server in background
-npm run api-server &
+# Start the API server using the new refactored structure
+cd .. && npx tsx ./server/app.ts &
 API_PID=$!
 
 # Wait for server to start
 echo "⏳ Waiting for server to start..."
 sleep 3
 
-# Open browser
+# Open browser with the refactored client
 echo "🌐 Opening web client..."
 if command -v open >/dev/null 2>&1; then
     # macOS
-    open http://localhost:3000/client/client-example.html
+    open http://localhost:3000/client/index.html
 elif command -v xdg-open >/dev/null 2>&1; then
     # Linux
-    xdg-open http://localhost:3000/client/client-example.html
+    xdg-open http://localhost:3000/client/index.html
 elif command -v start >/dev/null 2>&1; then
     # Windows
-    start http://localhost:3000/client/client-example.html
+    start http://localhost:3000/client/index.html
 else
-    echo "Please open http://localhost:3000/client/client-example.html in your browser"
+    echo "Please open http://localhost:3000/client/index.html in your browser"
 fi
 
 echo "✅ Setup complete!"

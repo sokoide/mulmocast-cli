@@ -1,99 +1,63 @@
-// Browser client example for Mulmocast API
-// This runs in the browser and doesn't require API keys
-// API keys are managed server-side
+// Backward compatibility bridge for client-example.js
+// This file maintains compatibility with the original client-example.js interface
+// while using the new modular structure internally
 
+// Import the new modular components
+// Since this is a browser environment, we'll use the global objects
+
+// Browser client example for Mulmocast API (Refactored)
 class MulmocastClient {
-  constructor(baseUrl = 'http://localhost:3000/api') {
+  constructor(baseUrl = CONFIG.API_BASE) {
+    // Use the new APIClient internally
+    this.apiClient = new APIClient(baseUrl);
     this.baseUrl = baseUrl;
   }
 
   async makeRequest(endpoint, data = null) {
-    try {
-      const options = {
-        method: data ? 'POST' : 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      };
-
-      if (data) {
-        options.body = JSON.stringify(data);
-      }
-
-      const response = await fetch(`${this.baseUrl}${endpoint}`, options);
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || `HTTP ${response.status}`);
-      }
-
-      return result;
-    } catch (error) {
-      console.error('API Error:', error);
-      throw error;
-    }
+    return await this.apiClient.makeRequest(endpoint, data);
   }
 
   async checkHealth() {
-    return await this.makeRequest('/health');
+    return await this.apiClient.checkHealth();
   }
 
   async generateScript(input, options = {}) {
-    return await this.makeRequest('/mulmocast/script', {
-      input,
-      template: options.template || 'familyday_jpn',
-      options: {
-        llm: options.llm || 'openAI',
-        filename: options.filename || 'script'
-      }
+    return await this.apiClient.generateScript(input, {
+      template: options.template || CONFIG.DEFAULT_TEMPLATE,
+      llm: options.llm || CONFIG.DEFAULT_LLM,
+      filename: options.filename || 'script',
+      uniqueUserName: options.uniqueUserName
     });
   }
 
   async generateVideo(scriptPath, options = {}) {
-    return await this.makeRequest('/mulmocast/video', {
-      scriptPath,
-      options
-    });
+    return await this.apiClient.generateVideo(scriptPath, options);
   }
 
   async generatePdf(scriptPath, pdfMode = 'slide', pdfSize = 'letter') {
-    return await this.makeRequest('/mulmocast/pdf', {
-      scriptPath,
-      pdfMode,
-      pdfSize
-    });
+    return await this.apiClient.generatePdf(scriptPath, pdfMode, pdfSize);
   }
 
   async generateAll(input, options = {}) {
-    return await this.makeRequest('/mulmocast/generate-all', {
-      input,
-      template: options.template || 'familyday_jpn',
+    return await this.apiClient.generateAll(input, {
+      template: options.template || CONFIG.DEFAULT_TEMPLATE,
       outputs: options.outputs || ['script'],
-      options: {
-        llm: options.llm || 'openAI',
-        filename: options.filename || 'script'
-      }
+      llm: options.llm || CONFIG.DEFAULT_LLM,
+      filename: options.filename || 'script',
+      uniqueUserName: options.uniqueUserName
     });
   }
 
   async generateVideoFromFile(fileId, options = {}) {
-    return await this.makeRequest('/mulmocast/video-from-file', {
-      fileId,
-      options
-    });
+    return await this.apiClient.generateVideoFromFile(fileId, options);
   }
 
   async generatePdfFromFile(fileId, pdfMode = 'slide', pdfSize = 'letter', options = {}) {
-    return await this.makeRequest('/mulmocast/pdf-from-file', {
-      fileId,
-      pdfMode,
-      pdfSize,
-      options
-    });
+    return await this.apiClient.generatePdfFromFile(fileId, pdfMode, pdfSize, options);
   }
 }
 
-// Usage example (for browser console or module)
+// Usage example (for browser console or module) - maintains original interface
 async function clientExample() {
   const client = new MulmocastClient();
 
@@ -110,7 +74,8 @@ async function clientExample() {
       {
         template: 'familyday_jpn',
         llm: 'openAI',
-        filename: 'puni-client'
+        filename: 'puni-client',
+        uniqueUserName: 'TestUser'
       }
     );
     console.log('✅ Script generated:', scriptResult);
@@ -123,7 +88,8 @@ async function clientExample() {
         template: 'familyday_jpn',
         outputs: ['script', 'video', 'pdf'],
         llm: 'openAI',
-        filename: 'yushan-client'
+        filename: 'yushan-client',
+        uniqueUserName: 'TestUser'
       }
     );
     console.log('✅ All outputs generated:', allResult);

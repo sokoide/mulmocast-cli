@@ -88,9 +88,10 @@ MulmoCast heavily uses GraphAI for workflow orchestration:
 ## Web Integration
 
 The project includes a complete web interface:
-- **Server**: `examples/express-integration.ts` provides REST API and SSE for real-time updates
-- **Client**: `examples/client-example.html` offers browser-based script generation and media management
+- **Server**: `server/app.ts` provides REST API and SSE for real-time updates (refactored modular architecture)
+- **Client**: `client/index.html` offers browser-based script generation and media management (refactored modular structure)
 - **Service Layer**: `src/lib/mulmocast-service.ts` abstracts CLI functionality for programmatic use
+- **Example**: `server/example.ts` provides usage examples for the MulmocastService
 
 ### API Endpoints
 - `/api/mulmocast/script` - Generate MulmoScript from text input
@@ -101,6 +102,7 @@ The project includes a complete web interface:
 - `/api/mulmocast/user-media/:userName` - Get user's generated media files
 - `/api/mulmocast/download/:userName/:fileName` - Download generated files
 - `/api/mulmocast/events` - SSE endpoint for real-time progress updates
+- `/api/health` - Health check endpoint
 - `/api/config` - View current server configuration and paths
 
 ### User Directory Structure
@@ -123,6 +125,25 @@ The web client includes an advanced section that allows:
 - Generating videos and PDFs from existing scripts
 - Managing user-specific file collections
 - Real-time monitoring of generation processes
+
+## Refactored Architecture
+
+### Client Structure
+The client has been refactored into a modular architecture:
+- `client/index.html` - Clean HTML structure (reduced from 1065 to 141 lines)
+- `client/assets/css/styles.css` - Extracted stylesheets
+- `client/assets/js/` - Modular JavaScript components (config, api-client, sse-client, ui-components, app)
+- `client/components/` - Specialized components (file-manager, generation-form)
+
+### Server Structure
+The server has been refactored into a layered architecture:
+- `server/app.ts` - Main Express application
+- `server/routes/` - Route handlers organized by domain (health, files, mulmocast)
+- `server/middleware/` - Reusable middleware (CORS, SSE)
+- `server/services/` - Business logic layer (mulmocast-api, file-service)
+- `server/types/` - TypeScript interface definitions
+- `server/utils/` - Configuration and logging utilities
+- `server/example.ts` - Usage examples for the MulmocastService
 
 ## Important Implementation Details
 
@@ -183,5 +204,5 @@ npm run api-server
 
 - Unit tests in `test/` directory using TypeScript test runner
 - Integration tests via `yarn ci_test`
-- Manual testing through web interface at `http://localhost:3000/client/client-example.html`
+- Manual testing through web interface at `http://localhost:3000/client`
 - Sample scripts in `scripts/` directory for testing various features
