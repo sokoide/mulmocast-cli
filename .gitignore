@@ -11,6 +11,18 @@ scratchpad/
 .claude/
 
 # Prevent committing compiled files in source directories
+src/**/*.js
+src/**/*.d.ts
 server/**/*.js
 server/**/*.d.ts
+client/**/*.js
+client/**/*.d.ts
+
+# Keep original client JS files (these are source, not compiled)
+!client/assets/js/*.js
+!client/components/*.js
+!client/client-example.js
+
+# Keep shell scripts
 !server/*.sh
+!client/*.sh

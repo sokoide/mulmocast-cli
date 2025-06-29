@@ -16,9 +16,21 @@ We implemented a solution that keeps source files in their original locations bu
 #### 1. Updated .gitignore
 ```gitignore
 # Prevent committing compiled files in source directories
+src/**/*.js
+src/**/*.d.ts
 server/**/*.js
 server/**/*.d.ts
+client/**/*.js
+client/**/*.d.ts
+
+# Keep original client JS files (these are source, not compiled)
+!client/assets/js/*.js
+!client/components/*.js
+!client/client-example.js
+
+# Keep shell scripts
 !server/*.sh
+!client/*.sh
 ```
 
 #### 2. Build Scripts
@@ -26,7 +38,7 @@ server/**/*.d.ts
 {
   "build": "npm run build:main && npm run clean:source-dirs",
   "build:main": "tsc",
-  "clean:source-dirs": "find ./server -name '*.js' -delete && find ./server -name '*.d.ts' -delete",
+  "clean:source-dirs": "find ./src -name '*.js' -delete && find ./src -name '*.d.ts' -delete && find ./server -name '*.js' -delete && find ./server -name '*.d.ts' -delete",
   "clean": "npm run clean:source-dirs && rm -rf lib/"
 }
 ```
@@ -57,8 +69,9 @@ server/**/*.d.ts
 
 ### 2. Source Directory Hygiene
 - `.gitignore` prevents committing compiled files in source directories
-- Build process automatically removes any `.js`/`.d.ts` files from `./server`
+- Build process automatically removes any `.js`/`.d.ts` files from `./src`, `./server`, and `./client`
 - Client directory contains source JavaScript files (not compiled TypeScript)
+- All TypeScript compilation artifacts are cleaned after build
 
 ### 3. Distribution
 - All compiled code goes to `lib/` directory

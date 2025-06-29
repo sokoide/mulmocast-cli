@@ -1,8 +1,12 @@
-.PHONY: build run clean
+.PHONY: install build run clean
 
 dev:
 	@echo "Starting development server..."
 	npm run api-server
+
+install:
+	@echo "Installing dependencies..."
+	yarn install
 
 build:
 	@echo "Building the project..."
@@ -14,7 +18,7 @@ run:
 
 clean:
 	@echo "Cleaning up..."
-	rm -rf dist
+	npm run clean
 	rm -rf node_modules
 	npm cache clean --force
 	@echo "Clean complete."
