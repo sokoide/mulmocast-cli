@@ -39,7 +39,11 @@ PORT=3000
 
 ### 2. REST APIサーバーを起動
 ```bash
+# 開発版（TypeScriptファイル直接実行）
 npm run api-server
+
+# ビルド版（コンパイル済みファイル使用）
+npm run api-server-built
 ```
 
 ### 3. クライアント例の実行
@@ -204,3 +208,9 @@ const result = await client.generateAll("story...", {
 - **既存API**: 全ての既存エンドポイントを維持
 - **互換ブリッジ**: `client-example.js`で既存インターフェース保持
 - **段階的移行**: 新旧両方の方法をサポート
+
+### 5. ビルド版サーバーの利点
+- **高速起動**: TypeScriptコンパイルなしで即座に起動
+- **本番環境向け**: `npm run build`後に`npm run api-server-built`でデプロイ可能
+- **依存関係**: `lib/`ディレクトリのコンパイル済みファイルを活用
+- **パッケージング**: `npm pack`時に全ての必要ファイルが含まれる

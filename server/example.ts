@@ -11,7 +11,7 @@ async function example(): Promise<void> {
       "風を追いかけて──ユーシャンの道\n山に囲まれた小さな村に、サッカーが大好きな少年ユーシャンがいた。",
       {
         templateName: 'familyday_jpn',
-        llm: 'openAI',
+        llm: 'openai',
         filename: 'example'
       }
     );

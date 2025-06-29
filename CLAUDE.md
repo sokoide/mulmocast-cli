@@ -31,6 +31,9 @@ yarn format
 # Start the Express API server
 yarn api-server
 
+# Start the Express API server (built version)
+yarn api-server-built
+
 # Start client development
 yarn api-client
 

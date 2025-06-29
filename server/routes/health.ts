@@ -23,7 +23,9 @@ export function createHealthRoutes(mulmocastAPIService: MulmocastAPIService, con
           MULMOCAST_BASE_PATH: process.env.MULMOCAST_BASE_PATH || 'default',
           MULMOCAST_OUTPUT_PATH: process.env.MULMOCAST_OUTPUT_PATH || 'default',
           MULMOCAST_CACHE_PATH: process.env.MULMOCAST_CACHE_PATH || 'default',
-          MULMOCAST_EXAMPLES_PATH: process.env.MULMOCAST_EXAMPLES_PATH || 'default'
+          MULMOCAST_EXAMPLES_PATH: process.env.MULMOCAST_EXAMPLES_PATH || 'default',
+          GOOGLE_PROJECT_ID: process.env.GOOGLE_PROJECT_ID ? 'SET' : 'NOT_SET',
+          OPENAI_API_KEY: process.env.OPENAI_API_KEY ? 'SET' : 'NOT_SET'
         }
       }
     });

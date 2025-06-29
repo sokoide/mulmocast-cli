@@ -7,7 +7,7 @@ export function createFileRoutes(mulmocastAPIService: MulmocastAPIService, fileS
   const router = Router();
 
   // Get user's JSON files
-  router.get('/user-files/:userName', async (req: Request, res: Response) => {
+  router.get('/user-files/:userName', async (req: any, res: any) => {
     try {
       const { userName } = req.params;
 
@@ -31,7 +31,7 @@ export function createFileRoutes(mulmocastAPIService: MulmocastAPIService, fileS
   });
 
   // Get user's media files (MP4, PDF)
-  router.get('/user-media/:userName', async (req: Request, res: Response) => {
+  router.get('/user-media/:userName', async (req: any, res: any) => {
     try {
       const { userName } = req.params;
 
@@ -55,7 +55,7 @@ export function createFileRoutes(mulmocastAPIService: MulmocastAPIService, fileS
   });
 
   // Download file endpoint
-  router.get('/download/:userName/:fileName', async (req: Request, res: Response) => {
+  router.get('/download/:userName/:fileName', async (req: any, res: any) => {
     await fileService.handleFileDownload(req, res);
   });
 

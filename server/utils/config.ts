@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 import { ServerConfig } from '../types/interfaces.js';
 
 // Load environment variables from .env file
-dotenv.config();
+dotenv.config({ path: path.join(process.cwd(), '.env') });
 
 export function getServerConfig(): ServerConfig {
   const BASE_PATH = process.env.MULMOCAST_BASE_PATH || process.cwd();

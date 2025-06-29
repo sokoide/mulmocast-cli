@@ -137,6 +137,7 @@ server/                     server/
 ```json
 {
   "api-server": "npx tsx ./server/app.ts",
+  "api-server-built": "node ./lib-server.js",
   "api-server-example": "npx tsx ./server/example.ts",
   "api-open-client": "open http://localhost:3000/client/index.html"
 }
@@ -177,10 +178,12 @@ Original files reorganized:
 
 ## Testing Results
 - ✅ Server starts successfully via `npm run api-server`
+- ✅ Built server starts successfully via `npm run api-server-built`
 - ✅ API health endpoint responds correctly
 - ✅ All TypeScript compilation succeeds
 - ✅ Client loads with modular structure
 - ✅ Backward compatibility maintained
+- ✅ Built distribution includes all necessary files
 
 ## Future Benefits
 

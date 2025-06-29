@@ -5,3 +5,12 @@ node_modules
 *~
 lib/
 output/
+cache/
+scratchpad/
+.vscode/
+.claude/
+
+# Prevent committing compiled files in source directories
+server/**/*.js
+server/**/*.d.ts
+!server/*.sh
