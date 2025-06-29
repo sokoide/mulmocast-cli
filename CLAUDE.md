@@ -13,6 +13,9 @@ MulmoCast is an AI-native multi-modal presentation platform that generates video
 # Build TypeScript to JavaScript
 yarn build
 
+# Build for production (with API_BASE replacement)
+make prod
+
 # Run TypeScript compilation for development (excludes lib changes from git)
 yarn build_test
 
@@ -28,6 +31,12 @@ yarn format
 
 ### Local Development Server
 ```bash
+# Install dependencies
+make install
+
+# Start development server
+make dev
+
 # Start the Express API server
 yarn api-server
 
@@ -172,6 +181,21 @@ The script generation workflow includes sophisticated retry logic:
 - Caption overlay support for multiple languages
 
 ## Environment Configuration
+
+### Makefile Configuration
+The project includes a Makefile with build-time API base URL configuration:
+- `MULMOCAST_API_BASE` - Default development API base URL (http://localhost:3000)
+- `MULMOCAST_API_BASE_PROD` - Production API base URL (https://tmp1.sokoide.com)
+
+Available make targets:
+```bash
+make install    # Install dependencies
+make dev        # Start development server
+make build      # Build the project
+make prod       # Build for production with API_BASE replacement
+make run        # Run the built project
+make clean      # Clean up build artifacts and dependencies
+```
 
 ### Base Path Configuration
 The API server supports configurable paths via environment variables:

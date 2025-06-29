@@ -35,10 +35,22 @@
 OPENAI_API_KEY=your_openai_key
 GOOGLE_PROJECT_ID=your_google_project_id
 PORT=3000
+
+# (オプション) ベースパス設定
+MULMOCAST_BASE_PATH=/path/to/project
+MULMOCAST_OUTPUT_PATH=/path/to/output
+MULMOCAST_CACHE_PATH=/path/to/cache
 ```
 
-### 2. REST APIサーバーを起動
+### 2. プロジェクトセットアップと開発
 ```bash
+# 依存関係をインストール
+make install
+
+# 開発サーバーを起動
+make dev
+
+# または、従来のnpmコマンド:
 # 開発版（TypeScriptファイル直接実行）
 npm run api-server
 
@@ -46,7 +58,16 @@ npm run api-server
 npm run api-server-built
 ```
 
-### 3. クライアント例の実行
+### 3. 本番ビルド
+```bash
+# 本番用ビルド（API_BASE設定込み）
+make prod
+
+# 本番サーバー起動
+make run
+```
+
+### 4. クライアント例の実行
 
 #### A. ワンコマンド起動（推奨）
 ```bash
@@ -106,7 +127,7 @@ curl -X POST http://localhost:3000/api/mulmocast/generate-all \
   }'
 ```
 
-### 4. サーバーサイド例（開発者向け）
+### 5. サーバーサイド例（開発者向け）
 ```bash
 npm run api-server-example
 ```
@@ -161,15 +182,42 @@ app.post('/my-api/create-story', async (req, res) => {
 - 他のサービスから HTTP でコンテンツ生成を依頼
 - スケーラブルで疎結合なアーキテクチャ
 
+## 🔧 ビルド設定とカスタマイズ
+
+### Makefileによるビルド設定
+プロジェクトには新しいMakefileが追加され、API_BASE URLの設定が自動化されました：
+
+```bash
+# 利用可能なmakeコマンド
+make install    # 依存関係のインストール
+make dev        # 開発サーバー起動 (API_BASE=http://localhost:3000)
+make build      # 基本ビルド
+make prod       # 本番ビルド (API_BASE=https://tmp1.sokoide.com)
+make run        # ビルド済みサーバー起動
+make clean      # ビルド成果物とnode_modulesのクリーンアップ
+```
+
+### API_BASE設定
+- **開発環境**: `MULMOCAST_API_BASE` (デフォルト: http://localhost:3000)
+- **本番環境**: `MULMOCAST_API_BASE_PROD` (デフォルト: https://tmp1.sokoide.com)
+- ビルド時にクライアントコードの`API_BASE`変数が自動的に置換されます
+
 ## 🔧 カスタマイズ
 
 ### LLMプロバイダーの変更
 ```javascript
 const result = await client.generateScript("story...", {
   llm: 'anthropic',  // openAI, anthropic, gemini, groq
-  template: 'familyday_jpn'
+  template: 'familyday_jpn'  // familyday用の日本語テンプレート
 });
 ```
+
+### Familyдayテンプレートについて
+このブランチでは`familyday_jpn`テンプレートが中心的に使用されています：
+- **対象**: 家族向けストーリー生成
+- **言語**: 日本語（`familyday_eng`も利用可能）
+- **特徴**: 子供と大人が一緒に楽しめるコンテンツ生成に最適化
+- **スクリプト生成**: `src/tools/create_mulmo_script_familyday.ts`で実装
 
 ### 出力形式の選択
 ```javascript
