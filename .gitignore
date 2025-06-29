@@ -23,6 +23,9 @@ client/**/*.d.ts
 !client/components/*.js
 !client/client-example.js
 
+# Ignore generated config file (use config.template.js instead)
+client/assets/js/config.js
+
 # Keep shell scripts
 !server/*.sh
 !client/*.sh

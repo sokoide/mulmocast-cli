@@ -1,7 +1,7 @@
 // Configuration for Mulmocast Client
 const CONFIG = {
   // API Configuration - replaced at build time
-  API_BASE: "http://production.example.com:3000/api",
+  API_BASE: "__API_BASE_URL__",
 
   // Default LLM Settings
   DEFAULT_LLM: "openAI",
