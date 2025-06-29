@@ -13,13 +13,13 @@ import { createMulmocastRoutes } from './routes/mulmocast.js';
 const config = getServerConfig();
 logServerConfig(config);
 
+// Setup enhanced logging BEFORE initializing services
+setupEnhancedLogging();
+setupGraphAILogger();
+
 // Initialize services
 const mulmocastAPIService = new MulmocastAPIService(config);
 const fileService = new FileService(config.outputPath);
-
-// Setup enhanced logging
-setupEnhancedLogging();
-setupGraphAILogger();
 
 // Create Express app
 const app = express();
