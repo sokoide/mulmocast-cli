@@ -14,8 +14,8 @@ const DEFAULT_API_BASE = 'http://localhost:3000/api';
 const apiBase = process.env.MULMOCAST_API_BASE || DEFAULT_API_BASE;
 
 // Paths
-const templatePath = path.join(__dirname, '../../client/assets/js/config.template.js');
-const outputPath = path.join(__dirname, '../../client/assets/js/config.js');
+const templatePath = path.join(__dirname, '../../src/client/assets/js/config.template.js');
+const outputPath = path.join(__dirname, '../../src/client/assets/js/config.js');
 
 try {
   // Read template file

@@ -1,5 +1,5 @@
 // Usage example for MulmocastService
-import { MulmocastService } from '../src/lib/mulmocast-service.js';
+import { MulmocastService } from '../lib/mulmocast-service.js';
 
 async function example(): Promise<void> {
   const service = new MulmocastService();

@@ -10,7 +10,7 @@ export function getServerConfig(): ServerConfig {
   const BASE_PATH = process.env.MULMOCAST_BASE_PATH || process.cwd();
   const OUTPUT_PATH = process.env.MULMOCAST_OUTPUT_PATH || path.join(BASE_PATH, 'output');
   const CACHE_PATH = process.env.MULMOCAST_CACHE_PATH || path.join(OUTPUT_PATH, 'cache');
-  const CLIENT_PATH = process.env.MULMOCAST_EXAMPLES_PATH || './client';
+  const CLIENT_PATH = process.env.MULMOCAST_EXAMPLES_PATH || './lib/client';
   const PORT = parseInt(process.env.PORT || '3000', 10);
 
   return {

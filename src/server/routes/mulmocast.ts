@@ -17,11 +17,11 @@ export function createMulmocastRoutes(mulmocastAPIService: MulmocastAPIService):
   const router = Router();
 
   // Generate script only
-  router.post('/script', async (req: Request<{}, ApiResponse, ScriptRequest>, res: Response<ApiResponse>) => {
+  (router.post as any)('/script', async (req: Request, res: Response) => {
     const { input, template, options = {} } = req.body;
 
     if (!input) {
-      return res.status(400).json({ error: 'Input text is required' });
+      return res.status(400).json({ success: false, error: 'Input text is required' });
     }
 
     const userId = options.uniqueUserName;
@@ -74,11 +74,11 @@ export function createMulmocastRoutes(mulmocastAPIService: MulmocastAPIService):
   });
 
   // Generate video from existing script
-  router.post('/video', async (req: Request<{}, ApiResponse, VideoRequest>, res: Response<ApiResponse>) => {
+  (router.post as any)('/video', async (req: Request, res: Response) => {
     const { scriptPath, caption, userName, options = {} } = req.body;
 
     if (!scriptPath) {
-      return res.status(400).json({ error: 'Script path is required' });
+      return res.status(400).json({ success: false, error: 'Script path is required' });
     }
 
     return userContextStorage.run(userName, async () => {
@@ -107,11 +107,11 @@ export function createMulmocastRoutes(mulmocastAPIService: MulmocastAPIService):
   });
 
   // Generate PDF from existing script
-  router.post('/pdf', async (req: Request<{}, ApiResponse, PdfRequest>, res: Response<ApiResponse>) => {
+  (router.post as any)('/pdf', async (req: Request, res: Response) => {
     const { scriptPath, pdfMode = 'slide', pdfSize = 'letter', userName } = req.body;
 
     if (!scriptPath) {
-      return res.status(400).json({ error: 'Script path is required' });
+      return res.status(400).json({ success: false, error: 'Script path is required' });
     }
 
     return userContextStorage.run(userName, async () => {
@@ -134,7 +134,7 @@ export function createMulmocastRoutes(mulmocastAPIService: MulmocastAPIService):
   });
 
   // Generate all outputs at once
-  router.post('/generate-all', async (req: Request<{}, ApiResponse, GenerateAllRequest>, res: Response<ApiResponse>) => {
+  (router.post as any)('/generate-all', async (req: Request, res: Response) => {
     const {
       input,
       template,
@@ -143,7 +143,7 @@ export function createMulmocastRoutes(mulmocastAPIService: MulmocastAPIService):
     } = req.body;
 
     if (!input) {
-      return res.status(400).json({ error: 'Input text is required' });
+      return res.status(400).json({ success: false, error: 'Input text is required' });
     }
 
     const userId = options.uniqueUserName;
@@ -190,17 +190,17 @@ export function createMulmocastRoutes(mulmocastAPIService: MulmocastAPIService):
   });
 
   // Generate video from existing script file
-  router.post('/video-from-file', async (req: Request<{}, ApiResponse, FileBasedRequest>, res: Response<ApiResponse>) => {
+  (router.post as any)('/video-from-file', async (req: Request, res: Response) => {
     try {
       const { fileId, caption, options = {} } = req.body;
 
       if (!fileId) {
-        return res.status(400).json({ error: 'File ID is required' });
+        return res.status(400).json({ success: false, error: 'File ID is required' });
       }
 
       const generatedFile = mulmocastAPIService.getGeneratedFile(fileId);
       if (!generatedFile) {
-        return res.status(404).json({ error: 'File not found' });
+        return res.status(404).json({ success: false, error: 'File not found' });
       }
 
       const videoOptions = {
@@ -231,17 +231,17 @@ export function createMulmocastRoutes(mulmocastAPIService: MulmocastAPIService):
   });
 
   // Generate PDF from existing script file
-  router.post('/pdf-from-file', async (req: Request<{}, ApiResponse, FileBasedRequest>, res: Response<ApiResponse>) => {
+  (router.post as any)('/pdf-from-file', async (req: Request, res: Response) => {
     try {
       const { fileId, pdfMode = 'slide', pdfSize = 'letter', options = {} } = req.body;
 
       if (!fileId) {
-        return res.status(400).json({ error: 'File ID is required' });
+        return res.status(400).json({ success: false, error: 'File ID is required' });
       }
 
       const generatedFile = mulmocastAPIService.getGeneratedFile(fileId);
       if (!generatedFile) {
-        return res.status(404).json({ error: 'File not found' });
+        return res.status(404).json({ success: false, error: 'File not found' });
       }
 
       const result = await mulmocastAPIService.getMulmocastService().generatePdf(generatedFile.scriptPath, pdfMode, pdfSize);

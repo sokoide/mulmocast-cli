@@ -1,5 +1,5 @@
 // Mulmocast API Service
-import { MulmocastService } from '../../src/lib/mulmocast-service.js';
+import { MulmocastService } from '../../lib/mulmocast-service.js';
 import { ServerConfig, GeneratedFile } from '../types/interfaces.js';
 
 export class MulmocastAPIService {
