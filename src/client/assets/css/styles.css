@@ -1,4 +1,13 @@
 /* Mulmocast Client Styles */
+:root {
+  --video-color: #7c3aed;
+  --video-color-dark: #5b21b6;
+  --video-color-light: #c4b5fd;
+  --pdf-color: #3b82f6;
+  --pdf-color-dark: #1d4ed8;
+  --pdf-color-light: #bfdbfe;
+}
+
 body {
   font-family: Arial, sans-serif;
   max-width: 1024px;
@@ -297,11 +306,11 @@ button:disabled {
 }
 
 .media-item.media-video {
-  border-left: 4px solid #dc3545;
+  border-left: 4px solid var(--video-color);
 }
 
 .media-item.media-pdf {
-  border-left: 4px solid #28a745;
+  border-left: 4px solid var(--pdf-color);
 }
 
 .media-icon {
@@ -318,13 +327,13 @@ button:disabled {
 }
 
 .media-video .media-icon {
-  background: linear-gradient(135deg, #ffe6e6 0%, #ffcccc 100%);
-  border-color: #dc3545;
+  background: linear-gradient(135deg, #f3f0ff 0%, var(--video-color-light) 100%);
+  border-color: var(--video-color);
 }
 
 .media-pdf .media-icon {
-  background: linear-gradient(135deg, #e6f7e6 0%, #ccf2cc 100%);
-  border-color: #28a745;
+  background: linear-gradient(135deg, #e6f7e6 0%, var(--pdf-color-light) 100%);
+  border-color: var(--pdf-color);
 }
 
 .file-icon {
@@ -363,13 +372,13 @@ button:disabled {
 }
 
 .video-badge {
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  background: linear-gradient(135deg, var(--video-color) 0%, var(--video-color-dark) 100%);
   color: white;
-  box-shadow: 0 1px 3px rgba(220, 53, 69, 0.3);
+  box-shadow: 0 1px 3px rgba(124, 58, 237, 0.3);
 }
 
 .pdf-badge {
-  background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+  background: linear-gradient(135deg, var(--pdf-color) 0%, var(--pdf-color-dark) 100%);
   color: white;
   box-shadow: 0 1px 3px rgba(40, 167, 69, 0.3);
 }
