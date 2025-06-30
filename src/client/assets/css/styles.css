@@ -56,8 +56,12 @@ input {
 }
 
 textarea {
-  height: 120px;
+  height: 80px;
   resize: vertical;
+}
+
+#storyInput {
+  height: 90px;
 }
 
 button {
@@ -286,14 +290,14 @@ button:disabled {
 /* Enhanced Media List Styles */
 .media-item {
   background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-  padding: 20px;
-  margin: 15px 0;
-  border-radius: 12px;
+  padding: 12px;
+  margin: 8px 0;
+  border-radius: 8px;
   border: 1px solid #e0e0e0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 12px;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
@@ -315,14 +319,14 @@ button:disabled {
 
 .media-icon {
   flex-shrink: 0;
-  width: 60px;
-  height: 60px;
+  width: 40px;
+  height: 40px;
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 18px;
   border: 2px solid #dee2e6;
 }
 
@@ -344,7 +348,7 @@ button:disabled {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
 .media-header {
@@ -356,7 +360,7 @@ button:disabled {
 
 .filename {
   color: #212529;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   margin: 0;
   line-height: 1.2;
@@ -415,21 +419,21 @@ button:disabled {
 .media-actions {
   flex-shrink: 0;
   display: flex;
-  gap: 8px;
+  gap: 6px;
   flex-direction: column;
 }
 
 .btn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
+  gap: 4px;
+  padding: 6px 12px;
   text-decoration: none;
-  border-radius: 8px;
-  font-size: 13px;
+  border-radius: 6px;
+  font-size: 12px;
   font-weight: 500;
   transition: all 0.2s ease;
-  min-width: 100px;
+  min-width: 80px;
   justify-content: center;
   border: 1px solid transparent;
   cursor: pointer;
@@ -478,18 +482,18 @@ button:disabled {
     text-align: center;
     padding: 15px;
   }
-  
+
   .media-info {
     text-align: center;
     margin: 10px 0;
   }
-  
+
   .media-actions {
     flex-direction: row;
     justify-content: center;
     width: 100%;
   }
-  
+
   .btn {
     flex: 1;
     min-width: auto;
