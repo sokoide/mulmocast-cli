@@ -83,13 +83,23 @@ export function createMulmocastRoutes(mulmocastAPIService: MulmocastAPIService):
 
     return userContextStorage.run(userName, async () => {
       try {
+        broadcastToClients("🎬 Starting video generation from existing script...", userName);
+        
         const videoOptions = {
           ...options,
           ...(caption && { c: caption })
         };
         console.info('videoOptions:', videoOptions);
 
-        const result = await mulmocastAPIService.getMulmocastService().generateVideo(scriptPath, videoOptions);
+        // Add progress callback for detailed video generation steps
+        const result = await mulmocastAPIService.getMulmocastService().generateVideo(scriptPath, {
+          ...videoOptions,
+          progressCallback: (step: string, progress: string) => {
+            broadcastToClients(`${step}: ${progress}`, userName);
+          }
+        });
+
+        broadcastToClients("✅ Video generation completed!", userName);
 
         res.json({
           success: true,
@@ -97,6 +107,7 @@ export function createMulmocastRoutes(mulmocastAPIService: MulmocastAPIService):
         });
       } catch (error) {
         console.error('Video generation error:', error);
+        broadcastToClients("❌ Video generation failed", userName);
         res.status(500).json({
           success: false,
           error: 'Failed to generate video',
@@ -116,7 +127,16 @@ export function createMulmocastRoutes(mulmocastAPIService: MulmocastAPIService):
 
     return userContextStorage.run(userName, async () => {
       try {
-        const result = await mulmocastAPIService.getMulmocastService().generatePdf(scriptPath, pdfMode, pdfSize);
+        broadcastToClients(`📄 Starting PDF generation (${pdfMode}, ${pdfSize})...`, userName);
+        
+        // Add progress callback for detailed PDF generation steps
+        const result = await mulmocastAPIService.getMulmocastService().generatePdf(scriptPath, pdfMode, pdfSize, {
+          progressCallback: (step: string, progress: string) => {
+            broadcastToClients(`${step}: ${progress}`, userName);
+          }
+        });
+
+        broadcastToClients("✅ PDF generation completed!", userName);
 
         res.json({
           success: true,
@@ -124,6 +144,7 @@ export function createMulmocastRoutes(mulmocastAPIService: MulmocastAPIService):
         });
       } catch (error) {
         console.error('PDF generation error:', error);
+        broadcastToClients("❌ PDF generation failed", userName);
         res.status(500).json({
           success: false,
           error: 'Failed to generate PDF',

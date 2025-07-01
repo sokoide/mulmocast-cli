@@ -30,6 +30,13 @@ export interface ScriptGenerationOptions extends MulmocastServiceOptions {
 
 export interface VideoGenerationOptions extends MulmocastServiceOptions {
   c?: string; // caption language
+  progressCallback?: (step: string, progress: string) => void;
+  skipImageGeneration?: boolean;
+}
+
+export interface PdfGenerationOptions extends MulmocastServiceOptions {
+  progressCallback?: (step: string, progress: string) => void;
+  skipImageGeneration?: boolean;
 }
 
 export interface UserFile {
@@ -229,15 +236,24 @@ export class MulmocastService {
     }
 
     // Run translation if needed (for multilingual captions)
+    options.progressCallback?.("🔄 Translation", "Processing multilingual captions...");
     await runTranslateIfNeeded(context, { c: options.c });
 
     // For generateVideo, run the complete pipeline
+    options.progressCallback?.("🔄 Audio", "Generating audio from script...");
     console.log(`DEBUG: Before audio - context.studio.beats[0].duration:`, context.studio.beats[0]?.duration);
     const updatedContext = await audio(context);
     console.log(`DEBUG: After audio - updatedContext.studio.beats[0].duration:`, updatedContext.studio.beats[0]?.duration);
     
-    await images(updatedContext);
+    if (!options.skipImageGeneration) {
+      options.progressCallback?.("🔄 Images", "Generating images...");
+      await images(updatedContext);
+    }
+    
+    options.progressCallback?.("🔄 Captions", "Adding captions...");
     await captions(updatedContext);
+    
+    options.progressCallback?.("🔄 Video", "Compositing final video...");
     await movie(updatedContext);
 
     const timestamp = this.getTimestamp();
@@ -264,6 +280,7 @@ export class MulmocastService {
     scriptPath: string,
     pdfMode: string = "slide",
     pdfSize: string = "letter",
+    options: PdfGenerationOptions = {},
   ): Promise<{
     pdfPath: string;
     timestamp: string;
@@ -282,6 +299,13 @@ export class MulmocastService {
       throw new Error("Failed to initialize context for PDF generation");
     }
 
+    // Generate images first unless explicitly skipped
+    if (!options.skipImageGeneration) {
+      options.progressCallback?.("🔄 Images", "Generating images for PDF...");
+      await images(context);
+    }
+
+    options.progressCallback?.("🔄 PDF", `Generating PDF (${pdfMode}, ${pdfSize})...`);
     await pdf(context, pdfMode as PDFMode, pdfSize as PDFSize);
 
     const timestamp = this.getTimestamp();
@@ -315,9 +339,9 @@ export class MulmocastService {
     const progressCallback = options.progressCallback;
 
     // Generate script first
-    progressCallback?.("🔄 Step 1/3", "Generating script...");
+    progressCallback?.("🔄 Step 1/4", "Generating script...");
     const scriptResult = await this.generateScript(input, options);
-    progressCallback?.("✅ Step 1/3", "Script generated successfully");
+    progressCallback?.("✅ Step 1/4", "Script generated successfully");
     
     console.log(`DEBUG: Script generated at: ${scriptResult.scriptPath}`);
 
@@ -327,15 +351,55 @@ export class MulmocastService {
       filename: scriptResult.filename,
     };
 
-    // Generate video if requested
+    // Generate images first (needed for both PDF and video)
+    if (outputs.includes("pdf") || outputs.includes("video")) {
+      progressCallback?.("🔄 Step 2/4", "Generating images...");
+      
+      const context = await initializeContext({
+        b: this.basePath,
+        o: this.outputPath,
+        file: scriptResult.scriptPath,
+        _: [],
+        $0: "mulmocast-service",
+      });
+
+      if (!context) {
+        throw new Error("Failed to initialize context for image generation");
+      }
+
+      await images(context);
+      progressCallback?.("✅ Step 2/4", "Images generated successfully");
+    }
+
+    // Generate PDF if requested (now with images available)
+    if (outputs.includes("pdf")) {
+      progressCallback?.("🔄 Step 3/4", "Generating PDF (handout, A4)...");
+      const pdfResult = await this.generatePdf(scriptResult.scriptPath, "handout", "a4", {
+        progressCallback,
+        skipImageGeneration: true // Images already generated
+      });
+      result.pdfPath = pdfResult.pdfPath;
+      
+      // Add PDF to moderation
+      if (options.uniqueUserName && pdfResult.pdfPath) {
+        const pdfFilename = path.basename(pdfResult.pdfPath);
+        this.addToModeration(options.uniqueUserName, pdfFilename);
+      }
+      
+      progressCallback?.("✅ Step 3/4", "PDF generated successfully");
+    }
+
+    // Generate video if requested (audio + captions + movie, images already done)
     if (outputs.includes("video")) {
-      progressCallback?.("🔄 Step 2/3", "Generating video (audio + images + captions + movie)...");
+      progressCallback?.("🔄 Step 4/4", "Generating video (audio + captions + movie)...");
       console.log(`DEBUG: About to generate video for script: ${scriptResult.scriptPath}`);
       const videoOptions: VideoGenerationOptions = {
         basePath: options.basePath,
         outputPath: options.outputPath,
         cachePath: options.cachePath,
         c: options.c || this.detectLanguageFromTemplate(options.templateName || 'familyday_jpn'), // Detect language from template
+        progressCallback,
+        skipImageGeneration: true // Images already generated
       };
       const videoResult = await this.generateVideo(scriptResult.scriptPath, videoOptions);
       result.videoPath = videoResult.videoPath;
@@ -346,22 +410,7 @@ export class MulmocastService {
         this.addToModeration(options.uniqueUserName, videoFilename);
       }
       
-      progressCallback?.("✅ Step 2/3", "Video generated successfully");
-    }
-
-    // Generate PDF if requested
-    if (outputs.includes("pdf")) {
-      progressCallback?.("🔄 Step 3/3", "Generating PDF (handout, A4)...");
-      const pdfResult = await this.generatePdf(scriptResult.scriptPath, "handout", "a4");
-      result.pdfPath = pdfResult.pdfPath;
-      
-      // Add PDF to moderation
-      if (options.uniqueUserName && pdfResult.pdfPath) {
-        const pdfFilename = path.basename(pdfResult.pdfPath);
-        this.addToModeration(options.uniqueUserName, pdfFilename);
-      }
-      
-      progressCallback?.("✅ Step 3/3", "PDF generated successfully");
+      progressCallback?.("✅ Step 4/4", "Video generated successfully");
     }
 
     return result;

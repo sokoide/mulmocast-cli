@@ -412,12 +412,12 @@
             stopAutoRefresh(); // Clear any existing interval
             autoRefreshInterval = setInterval(() => {
                 fetchPendingFiles();
-            }, 15000); // Refresh every 15 seconds
+            }, 3000); // Refresh every 3 seconds
             
             // Update refresh button text
             const refreshButton = document.querySelector('button[onclick="refreshFiles()"]');
             if (refreshButton) {
-                refreshButton.innerHTML = '🔄 Auto-Refresh (15s)';
+                refreshButton.innerHTML = '🔄 Auto-Refresh (3s)';
                 refreshButton.style.background = '#28a745';
                 refreshButton.style.color = 'white';
                 refreshButton.onclick = stopAutoRefresh;
