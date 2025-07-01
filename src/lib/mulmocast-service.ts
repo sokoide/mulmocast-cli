@@ -45,6 +45,19 @@ export interface UserMediaFile {
   type: "video" | "pdf";
   timestamp: number;
   size: number;
+  moderationStatus: "pending" | "approved" | "rejected";
+  moderatedAt?: number;
+  moderatedBy?: string;
+}
+
+export interface MediaFileGroup {
+  baseName: string; // e.g., "story-1751357924434"
+  userName: string;
+  timestamp: number;
+  files: UserMediaFile[];
+  moderationStatus: "pending" | "approved" | "rejected";
+  moderatedAt?: number;
+  moderatedBy?: string;
 }
 
 export class MulmocastService {
@@ -68,6 +81,44 @@ export class MulmocastService {
     if (!fs.existsSync(this.cachePath)) {
       fs.mkdirSync(this.cachePath, { recursive: true });
     }
+  }
+
+  private getModerationFilePath(userName: string): string {
+    return path.join(this.outputPath, userName, '.moderation.json');
+  }
+
+  private getModerationData(userName: string): Record<string, { status: string; moderatedAt?: number; moderatedBy?: string }> {
+    const moderationFile = this.getModerationFilePath(userName);
+    if (!fs.existsSync(moderationFile)) {
+      return {};
+    }
+    try {
+      return JSON.parse(fs.readFileSync(moderationFile, 'utf-8'));
+    } catch {
+      return {};
+    }
+  }
+
+  private saveModerationData(userName: string, data: Record<string, { status: string; moderatedAt?: number; moderatedBy?: string }>): void {
+    const moderationFile = this.getModerationFilePath(userName);
+    fs.writeFileSync(moderationFile, JSON.stringify(data, null, 2));
+  }
+
+  private addToModeration(userName: string, filename: string): void {
+    const moderationData = this.getModerationData(userName);
+    if (!moderationData[filename]) {
+      moderationData[filename] = { status: 'pending' };
+      this.saveModerationData(userName, moderationData);
+    }
+  }
+
+  private getBaseName(filename: string): string {
+    // Extract base name without extensions and suffixes
+    // e.g., "story-1751357924434_ja.mp4" -> "story-1751357924434"
+    // e.g., "story-1751357924434_handout_ja.pdf" -> "story-1751357924434"
+    return filename.replace(/_(handout|slide|talk)_[a-z]{2}\.pdf$/, '')
+                  .replace(/_[a-z]{2}(__[a-z]{2})?\.mp4$/, '')
+                  .replace(/\.(mp4|pdf)$/, '');
   }
 
   private getTimestamp(): string {
@@ -288,6 +339,13 @@ export class MulmocastService {
       };
       const videoResult = await this.generateVideo(scriptResult.scriptPath, videoOptions);
       result.videoPath = videoResult.videoPath;
+      
+      // Add video to moderation
+      if (options.uniqueUserName && videoResult.videoPath) {
+        const videoFilename = path.basename(videoResult.videoPath);
+        this.addToModeration(options.uniqueUserName, videoFilename);
+      }
+      
       progressCallback?.("✅ Step 2/3", "Video generated successfully");
     }
 
@@ -296,6 +354,13 @@ export class MulmocastService {
       progressCallback?.("🔄 Step 3/3", "Generating PDF (handout, A4)...");
       const pdfResult = await this.generatePdf(scriptResult.scriptPath, "handout", "a4");
       result.pdfPath = pdfResult.pdfPath;
+      
+      // Add PDF to moderation
+      if (options.uniqueUserName && pdfResult.pdfPath) {
+        const pdfFilename = path.basename(pdfResult.pdfPath);
+        this.addToModeration(options.uniqueUserName, pdfFilename);
+      }
+      
       progressCallback?.("✅ Step 3/3", "PDF generated successfully");
     }
 
@@ -348,11 +413,15 @@ export class MulmocastService {
 
     const mediaFiles: UserMediaFile[] = [];
     const entries = fs.readdirSync(userDir, { withFileTypes: true });
+    const moderationData = this.getModerationData(userName);
 
     for (const entry of entries) {
       if (entry.isFile() && (entry.name.endsWith(".mp4") || entry.name.endsWith(".pdf"))) {
         const filePath = path.join(userDir, entry.name);
         const stats = fs.statSync(filePath);
+
+        // Get moderation status
+        const moderation = moderationData[entry.name] || { status: 'pending' };
 
         // Return path relative to base for web access
         const relativePath = `output/${userName}/${entry.name}`;
@@ -362,6 +431,9 @@ export class MulmocastService {
           type: entry.name.endsWith(".mp4") ? "video" : "pdf",
           timestamp: stats.mtime.getTime(),
           size: stats.size,
+          moderationStatus: moderation.status as "pending" | "approved" | "rejected",
+          moderatedAt: moderation.moderatedAt,
+          moderatedBy: moderation.moderatedBy,
         });
       }
     }
@@ -395,5 +467,88 @@ export class MulmocastService {
     }
 
     this.ensureDirectories();
+  }
+
+  // Moderation methods
+  async getAllPendingFiles(): Promise<Array<UserMediaFile & { userName: string }>> {
+    const pendingFiles: Array<UserMediaFile & { userName: string }> = [];
+    
+    if (!fs.existsSync(this.outputPath)) {
+      return pendingFiles;
+    }
+
+    const userDirs = fs.readdirSync(this.outputPath, { withFileTypes: true })
+      .filter(dirent => dirent.isDirectory())
+      .map(dirent => dirent.name);
+
+    for (const userName of userDirs) {
+      const userMediaFiles = await this.getUserMediaFiles(userName);
+      const userPendingFiles = userMediaFiles
+        .filter(file => file.moderationStatus === 'pending')
+        .map(file => ({ ...file, userName }));
+      pendingFiles.push(...userPendingFiles);
+    }
+
+    return pendingFiles.sort((a, b) => b.timestamp - a.timestamp);
+  }
+
+  async getAllPendingFileGroups(): Promise<MediaFileGroup[]> {
+    const pendingFiles = await this.getAllPendingFiles();
+    const groupMap = new Map<string, MediaFileGroup>();
+
+    for (const file of pendingFiles) {
+      const baseName = this.getBaseName(file.filename);
+      const groupKey = `${file.userName}:${baseName}`;
+
+      if (!groupMap.has(groupKey)) {
+        groupMap.set(groupKey, {
+          baseName,
+          userName: file.userName,
+          timestamp: file.timestamp,
+          files: [],
+          moderationStatus: 'pending'
+        });
+      }
+
+      const group = groupMap.get(groupKey)!;
+      group.files.push(file);
+      // Use the earliest timestamp for the group
+      group.timestamp = Math.min(group.timestamp, file.timestamp);
+    }
+
+    return Array.from(groupMap.values()).sort((a, b) => b.timestamp - a.timestamp);
+  }
+
+  async moderateFile(userName: string, filename: string, status: 'approved' | 'rejected', moderatorId: string): Promise<void> {
+    const moderationData = this.getModerationData(userName);
+    moderationData[filename] = {
+      status,
+      moderatedAt: Date.now(),
+      moderatedBy: moderatorId,
+    };
+    this.saveModerationData(userName, moderationData);
+  }
+
+  async moderateFileGroup(userName: string, baseName: string, status: 'approved' | 'rejected', moderatorId: string): Promise<void> {
+    const userMediaFiles = await this.getUserMediaFiles(userName);
+    const groupFiles = userMediaFiles.filter(file => this.getBaseName(file.filename) === baseName);
+    
+    const moderationData = this.getModerationData(userName);
+    const moderationInfo = {
+      status,
+      moderatedAt: Date.now(),
+      moderatedBy: moderatorId,
+    };
+
+    // Apply the same moderation status to all files in the group
+    for (const file of groupFiles) {
+      moderationData[file.filename] = moderationInfo;
+    }
+
+    this.saveModerationData(userName, moderationData);
+  }
+
+  getFilePreviewPath(userName: string, filename: string): string {
+    return path.join(this.outputPath, userName, filename);
   }
 }

@@ -8,6 +8,7 @@ import { FileService } from './services/file-service.js';
 import { createHealthRoutes } from './routes/health.js';
 import { createFileRoutes } from './routes/files.js';
 import { createMulmocastRoutes } from './routes/mulmocast.js';
+import { createModeratorRoutes } from './routes/moderator.js';
 
 // Initialize configuration
 const config = getServerConfig();
@@ -30,12 +31,14 @@ app.use(corsMiddleware);
 
 // Serve static files
 app.use('/client', express.static(config.clientPath));
+app.use('/moderator', express.static('./src/moderator'));
 app.use('/output', express.static(config.outputPath));
 
 // Routes
 app.use('/api', createHealthRoutes(mulmocastAPIService, config));
 app.use('/api/mulmocast', createFileRoutes(mulmocastAPIService, fileService));
 app.use('/api/mulmocast', createMulmocastRoutes(mulmocastAPIService));
+app.use('/api/moderator', createModeratorRoutes(mulmocastAPIService));
 
 // Start server
 app.listen(config.port, () => {
@@ -48,7 +51,10 @@ app.listen(config.port, () => {
   console.log(`   - Video (from file): http://localhost:${config.port}/api/mulmocast/video-from-file`);
   console.log(`   - PDF (from file): http://localhost:${config.port}/api/mulmocast/pdf-from-file`);
   console.log(`   - All: http://localhost:${config.port}/api/mulmocast/generate-all`);
+  console.log(`   - Moderator Pending: http://localhost:${config.port}/api/moderator/pending`);
+  console.log(`   - Moderate File: http://localhost:${config.port}/api/moderator/moderate`);
   console.log(`🌐 Web Client: http://localhost:${config.port}/client/index.html`);
+  console.log(`🛡️  Moderator Panel: http://localhost:${config.port}/moderator/index.html`);
   console.log('');
 });
 

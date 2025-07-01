@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mulmocast Moderator Panel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            flex: 1;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+
+        .pending-files {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: #34495e;
+            color: white;
+            padding: 15px 20px;
+            font-weight: bold;
+        }
+
+        .file-item {
+            border-bottom: 1px solid #ecf0f1;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .file-item:last-child {
+            border-bottom: none;
+        }
+
+        .file-info {
+            flex: 1;
+        }
+
+        .file-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .file-meta {
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+
+        .file-type {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .file-type.video {
+            background: #3498db;
+            color: white;
+        }
+
+        .file-type.pdf {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-preview {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-approve {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-reject {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.8;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+        }
+
+        .no-files {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+        }
+
+        .preview-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+        }
+
+        .preview-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 8px;
+            max-width: 90%;
+            max-height: 90%;
+            overflow: auto;
+        }
+
+        .preview-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #ecf0f1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .preview-body {
+            padding: 20px;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .file-details {
+            margin-top: 8px;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #6c757d;
+            border-left: 3px solid #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛡️ Mulmocast Moderator Panel</h1>
+            <p>Review and moderate generated videos and PDFs</p>
+        </div>
+
+        <div class="success-message" id="successMessage"></div>
+        <div class="error-message" id="errorMessage"></div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="pendingCount">-</div>
+                <div class="stat-label">Pending Files</div>
+            </div>
+        </div>
+
+        <div class="pending-files">
+            <div class="section-header">
+                📋 File Groups Pending Moderation (Auto-Refresh Active)
+                <button onclick="refreshFiles()" style="float: right; background: none; border: 1px solid white; color: white; padding: 5px 10px; border-radius: 3px; cursor: pointer;">🔄 Refresh</button>
+            </div>
+            <div id="filesList">
+                <div class="loading">Loading files...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preview Modal -->
+    <div class="preview-modal" id="previewModal">
+        <div class="preview-content">
+            <div class="preview-header">
+                <h3 id="previewTitle">File Preview</h3>
+                <button class="close-btn" onclick="closePreview()">&times;</button>
+            </div>
+            <div class="preview-body" id="previewBody">
+                <!-- Preview content will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let pendingFileGroups = [];
+        let autoRefreshInterval = null;
+        const moderatorId = 'moderator-' + Date.now(); // Simple moderator ID
+
+        async function fetchPendingFiles() {
+            try {
+                const response = await fetch('/api/moderator/pending');
+                const data = await response.json();
+                
+                if (data.success) {
+                    pendingFileGroups = data.data;
+                    renderFiles();
+                    updateStats();
+                } else {
+                    showError('Failed to load pending file groups');
+                }
+            } catch (error) {
+                showError('Error fetching file groups: ' + error.message);
+            }
+        }
+
+        function renderFiles() {
+            const filesList = document.getElementById('filesList');
+            
+            if (pendingFileGroups.length === 0) {
+                filesList.innerHTML = '<div class="no-files">✅ No file groups pending moderation</div>';
+                return;
+            }
+
+            filesList.innerHTML = pendingFileGroups.map(group => {
+                const videoFile = group.files.find(f => f.type === 'video');
+                const pdfFile = group.files.find(f => f.type === 'pdf');
+                const totalSize = group.files.reduce((sum, f) => sum + f.size, 0);
+                
+                return `
+                <div class="file-item" data-user="${group.userName}" data-basename="${group.baseName}">
+                    <div class="file-info">
+                        <div class="file-name">${group.baseName}</div>
+                        <div class="file-meta">
+                            <span class="file-type video">📹 VIDEO</span>
+                            ${pdfFile ? '<span class="file-type pdf">📄 PDF</span>' : ''}
+                            User: ${group.userName} | 
+                            Total Size: ${(totalSize / 1024 / 1024).toFixed(1)} MB | 
+                            Created: ${new Date(group.timestamp).toLocaleString()}
+                        </div>
+                        <div class="file-details">
+                            ${videoFile ? `Video: ${videoFile.filename}` : ''}<br>
+                            ${pdfFile ? `PDF: ${pdfFile.filename}` : ''}
+                        </div>
+                    </div>
+                    <div class="actions">
+                        ${videoFile ? `<button class="btn btn-preview" onclick="previewFile('${group.userName}', '${videoFile.filename}', 'video')">🎬 Preview Video</button>` : ''}
+                        ${pdfFile ? `<button class="btn btn-preview" onclick="previewFile('${group.userName}', '${pdfFile.filename}', 'pdf')">📄 Preview PDF</button>` : ''}
+                        <button class="btn btn-approve" onclick="moderateFileGroup('${group.userName}', '${group.baseName}', 'approved')">✅ Approve Both</button>
+                        <button class="btn btn-reject" onclick="moderateFileGroup('${group.userName}', '${group.baseName}', 'rejected')">❌ Reject Both</button>
+                    </div>
+                </div>
+            `;
+            }).join('');
+        }
+
+        function updateStats() {
+            document.getElementById('pendingCount').textContent = pendingFileGroups.length;
+        }
+
+        async function moderateFileGroup(userName, baseName, status) {
+            try {
+                const response = await fetch('/api/moderator/moderate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userName,
+                        baseName,
+                        status,
+                        moderatorId
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showSuccess(`File group ${status} successfully`);
+                    // Remove the file group from the list
+                    pendingFileGroups = pendingFileGroups.filter(g => !(g.userName === userName && g.baseName === baseName));
+                    renderFiles();
+                    updateStats();
+                } else {
+                    showError('Failed to moderate file group: ' + data.error);
+                }
+            } catch (error) {
+                showError('Error moderating file group: ' + error.message);
+            }
+        }
+
+        function previewFile(userName, filename, type) {
+            const previewUrl = `/api/moderator/preview/${userName}/${filename}`;
+            const previewTitle = document.getElementById('previewTitle');
+            const previewBody = document.getElementById('previewBody');
+            
+            previewTitle.textContent = `Preview: ${filename}`;
+            
+            if (type === 'video') {
+                previewBody.innerHTML = `
+                    <video controls style="width: 100%; max-width: 800px;">
+                        <source src="${previewUrl}" type="video/mp4">
+                        Your browser does not support video playback.
+                    </video>
+                `;
+            } else if (type === 'pdf') {
+                previewBody.innerHTML = `
+                    <iframe src="${previewUrl}" style="width: 100%; height: 600px; border: none;"></iframe>
+                `;
+            }
+            
+            document.getElementById('previewModal').style.display = 'block';
+        }
+
+        function closePreview() {
+            document.getElementById('previewModal').style.display = 'none';
+        }
+
+        function refreshFiles() {
+            fetchPendingFiles();
+        }
+
+        function startAutoRefresh() {
+            stopAutoRefresh(); // Clear any existing interval
+            autoRefreshInterval = setInterval(() => {
+                fetchPendingFiles();
+            }, 15000); // Refresh every 15 seconds
+            
+            // Update refresh button text
+            const refreshButton = document.querySelector('button[onclick="refreshFiles()"]');
+            if (refreshButton) {
+                refreshButton.innerHTML = '🔄 Auto-Refresh (15s)';
+                refreshButton.style.background = '#28a745';
+                refreshButton.style.color = 'white';
+                refreshButton.onclick = stopAutoRefresh;
+            }
+        }
+
+        function stopAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+            }
+            
+            // Update refresh button text
+            const refreshButton = document.querySelector('button[onclick="stopAutoRefresh()"]');
+            if (refreshButton) {
+                refreshButton.innerHTML = '🔄 Refresh';
+                refreshButton.style.background = 'none';
+                refreshButton.style.color = 'white';
+                refreshButton.onclick = refreshFiles;
+            }
+        }
+
+        function showSuccess(message) {
+            const successMsg = document.getElementById('successMessage');
+            successMsg.textContent = message;
+            successMsg.style.display = 'block';
+            setTimeout(() => {
+                successMsg.style.display = 'none';
+            }, 3000);
+        }
+
+        function showError(message) {
+            const errorMsg = document.getElementById('errorMessage');
+            errorMsg.textContent = message;
+            errorMsg.style.display = 'block';
+            setTimeout(() => {
+                errorMsg.style.display = 'none';
+            }, 5000);
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('previewModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closePreview();
+            }
+        });
+
+        // Initialize
+        fetchPendingFiles();
+
+        // Start auto-refresh immediately
+        startAutoRefresh();
+    </script>
+</body>
+</html>

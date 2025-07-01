@@ -521,3 +521,50 @@ button:disabled {
 #pdfOptions {
   display: none;
 }
+
+/* Recently updated file styles */
+.media-item.recently-updated {
+  animation: gentle-pulse 2s ease-in-out;
+  border: 2px solid #28a745;
+  box-shadow: 0 0 10px rgba(40, 167, 69, 0.3);
+}
+
+@keyframes gentle-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+.update-indicator {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  font-size: 16px;
+  animation: sparkle 1.5s infinite;
+}
+
+@keyframes sparkle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.2); }
+}
+
+.recent-update-badge {
+  font-size: 9px;
+  font-weight: bold;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+  margin-left: 8px;
+  animation: badge-flash 3s ease-in-out;
+}
+
+@keyframes badge-flash {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+.media-icon {
+  position: relative;
+}

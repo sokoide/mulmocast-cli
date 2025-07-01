@@ -6,6 +6,18 @@ import { Request, Response } from 'express';
 export class FileService {
   constructor(private outputPath: string) {}
 
+  private getModerationData(userName: string): Record<string, { status: string; moderatedAt?: number; moderatedBy?: string }> {
+    const moderationFile = path.join(this.outputPath, userName, '.moderation.json');
+    if (!fs.existsSync(moderationFile)) {
+      return {};
+    }
+    try {
+      return JSON.parse(fs.readFileSync(moderationFile, 'utf-8'));
+    } catch {
+      return {};
+    }
+  }
+
   async handleFileDownload(req: Request, res: Response): Promise<void> {
     try {
       const { userName, fileName } = req.params;
@@ -18,6 +30,19 @@ export class FileService {
       // Security check: only allow mp4 and pdf files
       if (!fileName.endsWith('.mp4') && !fileName.endsWith('.pdf')) {
         res.status(400).json({ error: 'Only MP4 and PDF files are allowed for download' });
+        return;
+      }
+
+      // Check moderation status
+      const moderationData = this.getModerationData(userName);
+      const moderation = moderationData[fileName] || { status: 'pending' };
+      
+      if (moderation.status !== 'approved') {
+        res.status(403).json({ 
+          error: 'File access restricted', 
+          status: moderation.status,
+          message: moderation.status === 'pending' ? 'File is pending moderation' : 'File has been rejected'
+        });
         return;
       }
 
