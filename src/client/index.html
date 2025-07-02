@@ -117,13 +117,17 @@ e.g.: A small round alien named Puni comes to Earth and becomes friends with a h
         <h2>Generated Media Files</h2>
         <div class="form-group" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap">
           <button onclick="loadUserMediaWithAutoRefresh()" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 4px">
-            🔄 Auto-Refresh Media List
+            🔄 Auto-Refresh (Default)
           </button>
           <button onclick="loadUserMedia()" style="padding: 10px 20px">📱 Manual Refresh</button>
           <button onclick="stopAutoRefresh()" style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 4px">
             ⏹️ Stop Auto-Refresh
           </button>
-          <span id="refreshStatus" style="color: #666; font-size: 12px"></span>
+          <span id="refreshStatus" style="color: #666; font-size: 12px">Auto-refresh starts automatically when username is entered</span>
+          <span id="autoRefreshIndicator" style="display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: bold; margin-left: 10px;">
+            <span id="refreshIcon">⏸️</span>
+            <span id="refreshText">Disabled</span>
+          </span>
         </div>
         <div id="mediaList"></div>
       </div>

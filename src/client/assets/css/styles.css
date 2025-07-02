@@ -569,3 +569,27 @@ button:disabled {
 .media-icon {
   position: relative;
 }
+
+/* Auto-refresh status indicator */
+#autoRefreshIndicator {
+  transition: all 0.3s ease;
+}
+
+#autoRefreshIndicator.enabled {
+  color: #28a745;
+  animation: pulse-green 2s infinite;
+}
+
+#autoRefreshIndicator.disabled {
+  color: #6c757d;
+}
+
+@keyframes pulse-green {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+#refreshIcon {
+  font-size: 14px;
+}
