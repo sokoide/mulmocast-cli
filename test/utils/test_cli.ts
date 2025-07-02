@@ -60,7 +60,7 @@ test("test createOrUpdateStudioData", async () => {
           text: "",
           image: {
             type: "image",
-            source: { kind: "url", url: "https://github.com/receptron/mulmocast-cli/raw/refs/heads/main/assets/images/mulmocast_credit.png" },
+            source: { kind: "url", url: "https://github.com/sokoide/familyday/raw/main/2025/assets/bg2.png" },
           },
           audio: { type: "audio", source: { kind: "url", url: "https://github.com/receptron/mulmocast-cli/raw/refs/heads/main/assets/audio/silent300.mp3" } },
         },

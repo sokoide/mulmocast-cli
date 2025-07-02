@@ -50,13 +50,13 @@ export const imagePrompt = (beat: MulmoBeat, style?: string, allBeats?: MulmoBea
 
   // If we have all beats and this isn't the first beat, add character consistency
   let finalPrompt = basePrompt;
-  if (allBeats && currentIndex !== undefined && currentIndex > 0 && allBeats[0].imagePrompt) {
+  if (allBeats && allBeats.length > 0 && currentIndex !== undefined && currentIndex > 0 && allBeats[0]?.imagePrompt) {
     const characterDescriptions = extractCharacterDescriptions(allBeats[0].imagePrompt);
     finalPrompt = addCharacterConsistency(basePrompt, characterDescriptions);
   }
 
   // Append style to the prompt if provided
-  return style ? `${finalPrompt}\n${style}` : finalPrompt;
+  return style ? `${finalPrompt}\n${style}` : `${finalPrompt}\n`;
 };
 
 // sourceTextInput: ${:sourceText.text}

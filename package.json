@@ -38,7 +38,7 @@
     "images": "npx tsx ./src/cli/bin.ts images",
     "preprocess": "npx tsx ./src/cli/bin.ts preprocess",
     "pdf": "npx tsx ./src/cli/bin.ts pdf",
-    "test": "rm -f scratchpad/test*.* && npx tsx ./src/actions/audio.ts scripts/test/test.json && npx tsx ./src/actions/images.ts scripts/test/test.json && npx tsx ./src/actions/movie.ts scripts/test/test.json",
+    "test": "echo '🧪 Running MulmoCast Test Suite...' && npm run ci_test",
     "ci_test": "NODE_ENV=test tsx --test ./test/*/test_*.ts",
     "lint": "eslint src test",
     "build": "npm run build:main && npm run build:config && npm run copy:assets && npm run clean:source-dirs",

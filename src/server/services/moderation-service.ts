@@ -279,6 +279,8 @@ export class ModerationService extends BaseService {
    * Get moderation status for a specific file
    */
   getFileStatus(userName: string, filename: string): ModerationRecord {
+    // Clear cache to ensure fresh data
+    this.moderationCache.delete(userName);
     const moderationData = this.getModerationData(userName);
     return moderationData[filename] || { status: ModerationStatus.PENDING };
   }

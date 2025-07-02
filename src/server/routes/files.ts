@@ -49,14 +49,18 @@ export function createFileRoutes(mulmocastAPIService: MulmocastAPIService, fileS
       // Add moderation status to each file
       const filesWithModerationStatus = mediaFiles.map((file: any) => {
         const moderationStatus = moderationService.getFileStatus(userName, file.filename);
-        return {
+        console.log(`Debug file: ${file.filename}, timestamp: ${file.timestamp}`);
+        const result = {
           ...file,
+          lastModified: file.timestamp, // Add lastModified field for client compatibility
           moderationStatus: moderationStatus.status,
           moderatedBy: moderationStatus.moderatedBy,
           moderatedAt: moderationStatus.moderatedAt,
           canPreview: moderationStatus.status === 'approved',
           canDownload: moderationStatus.status === 'approved'
         };
+        console.log(`Debug result lastModified: ${result.lastModified}`);
+        return result;
       });
 
       res.json({

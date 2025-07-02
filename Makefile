@@ -2,7 +2,7 @@
 MULMOCAST_API_BASE ?= http://localhost:3000
 MULMOCAST_API_BASE_PROD := https://tmp1.sokoide.com
 
-.PHONY: install build run clean
+.PHONY: install build run test clean
 
 install:
 	@echo "Installing dependencies..."
@@ -23,6 +23,10 @@ prod:
 run:
 	@echo "Running the project..."
 	npm run api-server-built
+
+test:
+	@echo "Running test..."
+	npm run test
 
 clean:
 	@echo "Cleaning up..."
