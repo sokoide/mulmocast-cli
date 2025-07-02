@@ -21,6 +21,7 @@ export class FileService {
   async handleFileDownload(req: Request, res: Response): Promise<void> {
     try {
       const { userName, fileName } = req.params;
+      const isPreview = req.query.preview === 'true';
 
       if (!userName || !fileName) {
         res.status(400).json({ error: 'User name and file name are required' });
@@ -54,8 +55,14 @@ export class FileService {
         return;
       }
 
-      // Set appropriate headers for download
-      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+      // Set appropriate headers based on preview vs download
+      if (isPreview) {
+        // For preview: inline display
+        res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
+      } else {
+        // For download: attachment
+        res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+      }
       res.setHeader('Content-Type', fileName.endsWith('.mp4') ? 'video/mp4' : 'application/pdf');
 
       // Stream the file
