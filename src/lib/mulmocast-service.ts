@@ -170,7 +170,57 @@ export class MulmocastService {
       fs.mkdirSync(userDirPath, { recursive: true });
     }
 
-    const scriptingParams: ScriptingParams & { initialInput: string } = {
+    // Create callbacks for detailed script generation progress
+    const scriptCallbacks = options.progressCallback ? [
+      (log: any, isUpdate: boolean) => {
+        if (!isUpdate) {
+          // Capture node execution with detailed descriptions
+          if (log.nodeId) {
+            const scriptDescriptions: { [key: string]: string } = {
+              'llmAgent': 'Generating story content using large language model (GPT/Claude)',
+              'validateSchemaAgent': 'Validating generated JSON script against MulmoScript schema',
+              'promptAgent': 'Creating and refining prompts for optimal story generation',
+              'templateAgent': 'Applying story template and formatting guidelines',
+              'contextAnalyzer': 'Analyzing input context and extracting key story elements',
+              'storyStructureAgent': 'Building narrative structure with proper pacing and flow',
+              'characterAgent': 'Developing characters and their descriptions for visual generation',
+              'sceneAgent': 'Creating detailed scene descriptions for image and video generation',
+              'dialogueAgent': 'Crafting natural dialogue and narration text',
+              'formatAgent': 'Formatting final script into MulmoScript JSON structure'
+            };
+            
+            const description = scriptDescriptions[log.nodeId] || `Processing ${log.nodeId}`;
+            options.progressCallback?.("🔄 Script", `${description} [${log.nodeId}]`);
+          }
+          
+          // Capture detailed GraphAI transaction information
+          if (log.transactionId) {
+            options.progressCallback?.("🔄 Script", `Transaction: ${log.transactionId}`);
+          }
+          
+          // Capture agent execution results
+          if (log.result) {
+            const resultStr = typeof log.result === 'string' ? log.result : JSON.stringify(log.result);
+            if (resultStr.length > 0) {
+              options.progressCallback?.("🔄 Script", resultStr.substring(0, 200) + (resultStr.length > 200 ? "..." : ""));
+            }
+          }
+          
+          // Capture any props or state information
+          if (log.props) {
+            const propsStr = JSON.stringify(log.props);
+            options.progressCallback?.("🔄 Script", `Props: ${propsStr.substring(0, 100) + (propsStr.length > 100 ? "..." : "")}`);
+          }
+          
+          // Capture any errors
+          if (log.error) {
+            options.progressCallback?.("🔄 Script", `Error: ${log.error}`);
+          }
+        }
+      }
+    ] : undefined;
+
+    const scriptingParams: ScriptingParams & { initialInput: string; callbacks?: ((log: any, isUpdate: boolean) => void)[] } = {
       outDirPath: userDirPath,
       templateName,
       urls: [],
@@ -179,6 +229,7 @@ export class MulmocastService {
       llm_model: options.llm_model,
       llm: options.llm,
       initialInput: input,
+      callbacks: scriptCallbacks,
     };
 
     await createMulmoScriptFamilyday(scriptingParams);
@@ -242,16 +293,71 @@ export class MulmocastService {
     // For generateVideo, run the complete pipeline
     options.progressCallback?.("🔄 Audio", "Generating audio from script...");
     console.log(`DEBUG: Before audio - context.studio.beats[0].duration:`, context.studio.beats[0]?.duration);
-    const updatedContext = await audio(context);
+    
+    // Create callbacks for detailed audio generation progress
+    const audioCallbacks = options.progressCallback ? [
+      (log: any, isUpdate: boolean) => {
+        if (!isUpdate && log.nodeId) {
+          // Provide more descriptive messages for different audio processing stages
+          const audioDescriptions: { [key: string]: string } = {
+            'textToSpeech': 'Converting story text to speech using advanced TTS models',
+            'audioProcessor': 'Processing and enhancing audio quality for optimal playback',
+            'voiceGeneration': 'Generating natural-sounding voice narration',
+            'audioMixer': 'Mixing voice tracks and adjusting audio levels',
+            'audioOptimization': 'Optimizing audio format and compression for video integration',
+            'speechSynthesis': 'Synthesizing speech with proper intonation and pacing',
+            'audioValidation': 'Validating audio quality and duration matching video timing'
+          };
+          
+          const description = audioDescriptions[log.nodeId] || `Processing ${log.nodeId}`;
+          options.progressCallback?.("🔄 Audio", `${description} [${log.nodeId}]`);
+        }
+      }
+    ] : undefined;
+    
+    const updatedContext = await audio(context, undefined, audioCallbacks);
     console.log(`DEBUG: After audio - updatedContext.studio.beats[0].duration:`, updatedContext.studio.beats[0]?.duration);
     
     if (!options.skipImageGeneration) {
       options.progressCallback?.("🔄 Images", "Generating images...");
-      await images(updatedContext);
+      
+      // Create callbacks for detailed image generation progress
+      const imageCallbacks = options.progressCallback ? [
+        (log: any, isUpdate: boolean) => {
+          if (!isUpdate && log.nodeId) {
+            // Provide more descriptive messages for different node types
+            const nodeDescriptions: { [key: string]: string } = {
+              'imageFromMovie': 'Generating scene illustrations for movie frames and transitions',
+              'htmlImageAgentInfo': 'Creating HTML layout templates for image placement and composition',
+              'imageAgentInfo': 'Configuring image generation parameters, styles, and AI model settings',
+              'movieAgentInfo': 'Setting up movie composition, scene transitions, and timing sequences',
+              'context': 'Analyzing story context, character descriptions, and scene requirements',
+              'imagePromptAgent': 'Creating detailed prompts for AI image generation based on story content',
+              'imageGenerationAgent': 'Generating high-quality images using Google Vertex AI and other models',
+              'imageOptimization': 'Optimizing generated images for video production and format compatibility'
+            };
+            
+            const description = nodeDescriptions[log.nodeId] || `Processing ${log.nodeId}`;
+            options.progressCallback?.("🔄 Images", `${description} [${log.nodeId}]`);
+          }
+        }
+      ] : undefined;
+      
+      await images(updatedContext, undefined, imageCallbacks);
     }
     
     options.progressCallback?.("🔄 Captions", "Adding captions...");
-    await captions(updatedContext);
+    
+    // Create callbacks for detailed captions generation progress  
+    const captionCallbacks = options.progressCallback ? [
+      (log: any, isUpdate: boolean) => {
+        if (!isUpdate && log.nodeId) {
+          options.progressCallback?.("🔄 Captions", `Processing ${log.nodeId}...`);
+        }
+      }
+    ] : undefined;
+    
+    await captions(updatedContext, captionCallbacks);
     
     options.progressCallback?.("🔄 Video", "Compositing final video...");
     await movie(updatedContext);
@@ -302,7 +408,17 @@ export class MulmocastService {
     // Generate images first unless explicitly skipped
     if (!options.skipImageGeneration) {
       options.progressCallback?.("🔄 Images", "Generating images for PDF...");
-      await images(context);
+      
+      // Create callbacks for detailed image generation progress
+      const imageCallbacks = options.progressCallback ? [
+        (log: any, isUpdate: boolean) => {
+          if (!isUpdate && log.nodeId) {
+            options.progressCallback?.("🔄 Images", `Processing ${log.nodeId}...`);
+          }
+        }
+      ] : undefined;
+      
+      await images(context, undefined, imageCallbacks);
     }
 
     options.progressCallback?.("🔄 PDF", `Generating PDF (${pdfMode}, ${pdfSize})...`);
@@ -367,7 +483,16 @@ export class MulmocastService {
         throw new Error("Failed to initialize context for image generation");
       }
 
-      await images(context);
+      // Create callbacks for detailed image generation progress
+      const imageCallbacks = progressCallback ? [
+        (log: any, isUpdate: boolean) => {
+          if (!isUpdate && log.nodeId) {
+            progressCallback("🔄 Images", `Processing ${log.nodeId}...`);
+          }
+        }
+      ] : undefined;
+
+      await images(context, undefined, imageCallbacks);
       progressCallback?.("✅ Step 2/4", "Images generated successfully");
     }
 

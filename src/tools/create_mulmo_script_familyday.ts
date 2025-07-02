@@ -1,6 +1,40 @@
 import "dotenv/config";
 import fs from "fs";
 import { GraphAILogger, GraphAI } from "graphai";
+
+// Apply logger override when GraphAI is imported
+let loggerOverrideApplied = false;
+function applyGraphAILoggerOverrideHere() {
+  if (loggerOverrideApplied) return;
+  
+  try {
+    // Check if we're in a server environment with logger utilities
+    const loggerModule = require('../server/utils/logger.js');
+    if (loggerModule && loggerModule.getCurrentUserContext && loggerModule.broadcastToClients) {
+      console.log('[DEBUG-GRAPHAI-SCRIPT] Applying GraphAI logger override for server environment');
+      
+      const originalInfo = GraphAILogger.info;
+      GraphAILogger.info = (...args: any[]) => {
+        const message = args.map(arg =>
+          typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+        ).join(' ');
+
+        const currentUser = loggerModule.getCurrentUserContext();
+        if (currentUser && (message.includes('Agent:') || message.includes('Generating script'))) {
+          loggerModule.broadcastToClients(message, currentUser);
+        }
+
+        return originalInfo.apply(GraphAILogger, args);
+      };
+      
+      loggerOverrideApplied = true;
+      console.log('[DEBUG-GRAPHAI-SCRIPT] GraphAI logger override applied successfully');
+    }
+  } catch (error) {
+    // Not in server environment or logger not available
+    console.log('[DEBUG-GRAPHAI-SCRIPT] Logger override not applied - not in server environment');
+  }
+}
 import { textInputAgent } from "@graphai/input_agents";
 
 import { openAIAgent } from "@graphai/openai_agent";
@@ -425,7 +459,8 @@ export const createMulmoScriptFamilyday = async ({
   llm,
   llm_model,
   initialInput,
-}: ScriptingParams & { initialInput: string }) => {
+  callbacks,
+}: ScriptingParams & { initialInput: string; callbacks?: ((log: any, isUpdate: boolean) => void)[] }) => {
   mkdir(outDirPath);
 
   // if urls is not empty, scrape web content and reference it in the prompt
@@ -441,6 +476,13 @@ export const createMulmoScriptFamilyday = async ({
     { ...vanillaAgents, anthropicAgent, geminiAgent, groqAgent, openAIAgent, textInputAgent, fileWriteAgent, validateSchemaAgent },
     { agentFilters },
   );
+
+  // Register callbacks for progress reporting
+  if (callbacks) {
+    callbacks.forEach((callback) => {
+      graph.registerCallback(callback);
+    });
+  }
 
   // Load template data for fallback purposes
   const templateData = loadTemplateData(templateName);
@@ -470,6 +512,9 @@ Your response must be a valid JSON script wrapped in \`\`\`json code blocks.`;
   graph.injectValue("templateData", templateData);
   graph.injectValue("templateName", templateName);
 
+  // Apply GraphAI logger override for server environment
+  applyGraphAILoggerOverrideHere();
+  
   GraphAILogger.info(`${agentHeader} Generating script for: ${initialInput}`);
   await graph.run();
 };

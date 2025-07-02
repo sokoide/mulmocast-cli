@@ -1,7 +1,7 @@
 // Main Express Application
 import express from 'express';
 import { getServerConfig, logServerConfig } from './utils/config.js';
-import { setupEnhancedLogging, setupGraphAILogger } from './utils/logger.js';
+import { setupEnhancedLogging, setupGraphAILogger, ensureGraphAILoggerOverride } from './utils/logger.js';
 import { corsMiddleware } from './middleware/cors.js';
 import { MulmocastAPIService } from './services/mulmocast-api.js';
 import { FileService } from './services/file-service.js';
@@ -17,6 +17,7 @@ logServerConfig(config);
 // Setup enhanced logging BEFORE initializing services
 setupEnhancedLogging();
 setupGraphAILogger();
+ensureGraphAILoggerOverride();
 
 // Initialize services
 const mulmocastAPIService = new MulmocastAPIService(config);
