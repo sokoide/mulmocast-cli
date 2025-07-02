@@ -9,8 +9,8 @@ install:
 	yarn install
 
 dev:
-	@echo "Starting development server..."
-	npm run api-server
+	@echo "Starting development server with file watching..."
+	npm run dev
 
 build:
 	@echo "Building the project..."

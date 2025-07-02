@@ -35,6 +35,11 @@ app.use('/client', express.static(config.clientPath));
 app.use('/moderator', express.static('./src/moderator'));
 app.use('/output', express.static(config.outputPath));
 
+// Redirect /client/ to /client/index.html
+app.get('/client/', (req, res) => {
+  res.redirect('/client/index.html');
+});
+
 // Routes
 app.use('/api', createHealthRoutes(mulmocastAPIService, config));
 app.use('/api/mulmocast', createFileRoutes(mulmocastAPIService, fileService));
