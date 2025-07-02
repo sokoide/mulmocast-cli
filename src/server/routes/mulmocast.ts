@@ -1,8 +1,10 @@
 // Main Mulmocast Generation Routes
 import { Router, Request, Response } from 'express';
 import { MulmocastAPIService } from '../services/mulmocast-api.js';
+import { ModerationService, ModerationStatus } from '../services/moderation-service.js';
 import { userContextStorage, broadcastToClients, addActiveUser, removeActiveUser } from '../utils/logger.js';
 import { handleSSEConnection } from '../middleware/sse.js';
+import path from 'path';
 import {
   ScriptRequest,
   VideoRequest,
@@ -15,6 +17,26 @@ import {
 
 export function createMulmocastRoutes(mulmocastAPIService: MulmocastAPIService): Router {
   const router = Router();
+  
+  // Initialize moderation service
+  const config = mulmocastAPIService.getMulmocastService().getConfiguration();
+  const moderationService = new ModerationService(config.outputPath);
+  
+  // Helper function to mark generated files as pending moderation
+  async function markFilesForModeration(userName: string, filePaths: string[]): Promise<void> {
+    for (const filePath of filePaths) {
+      if (filePath && (filePath.endsWith('.mp4') || filePath.endsWith('.pdf'))) {
+        const fileName = path.basename(filePath);
+        
+        try {
+          await moderationService.markFilePending(userName, fileName);
+          console.log(`Marked for moderation: ${userName}/${fileName}`);
+        } catch (error) {
+          console.warn(`Failed to mark file for moderation: ${fileName}`, error);
+        }
+      }
+    }
+  }
 
   // Generate script only
   (router.post as any)('/script', async (req: Request, res: Response) => {
@@ -103,6 +125,12 @@ export function createMulmocastRoutes(mulmocastAPIService: MulmocastAPIService):
           }
         });
 
+        // Mark generated video for moderation
+        if (result.videoPath) {
+          await markFilesForModeration(userName, [result.videoPath]);
+          broadcastToClients("📋 Video marked for moderation", userName);
+        }
+
         broadcastToClients("✅ Video generation completed!", userName);
         removeActiveUser(userName);
 
@@ -142,6 +170,12 @@ export function createMulmocastRoutes(mulmocastAPIService: MulmocastAPIService):
             broadcastToClients(`${step}: ${progress}`, userName);
           }
         });
+
+        // Mark generated PDF for moderation
+        if (result.pdfPath) {
+          await markFilesForModeration(userName, [result.pdfPath]);
+          broadcastToClients("📋 PDF marked for moderation", userName);
+        }
 
         broadcastToClients("✅ PDF generation completed!", userName);
         removeActiveUser(userName);
@@ -191,6 +225,16 @@ export function createMulmocastRoutes(mulmocastAPIService: MulmocastAPIService):
             broadcastToClients(`${step}: ${progress}`, userId);
           }
         });
+
+        // Mark generated files for moderation
+        const filesToModerate = [];
+        if (result.videoPath) filesToModerate.push(result.videoPath);
+        if (result.pdfPath) filesToModerate.push(result.pdfPath);
+        
+        if (filesToModerate.length > 0) {
+          await markFilesForModeration(userId, filesToModerate);
+          broadcastToClients(`📋 ${filesToModerate.length} file(s) marked for moderation`, userId);
+        }
 
         broadcastToClients("✅ All generation completed successfully!", userId);
         removeActiveUser(userId);

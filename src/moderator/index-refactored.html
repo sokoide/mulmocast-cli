@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mulmocast Moderator Panel</title>
+    <link rel="stylesheet" href="assets/css/moderator.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛡️ Mulmocast Moderator Panel</h1>
+            <p>Review and moderate generated videos and PDFs</p>
+        </div>
+
+        <div class="success-message" id="successMessage"></div>
+        <div class="error-message" id="errorMessage"></div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="pendingCount">-</div>
+                <div class="stat-label">Pending Files</div>
+            </div>
+        </div>
+
+        <div class="pending-files">
+            <div class="section-header">
+                📋 File Groups Pending Moderation (Auto-Refresh Active)
+                <button class="refresh-btn" title="Toggle auto-refresh">🔄 Refresh</button>
+            </div>
+            <div id="filesList">
+                <div class="loading">Loading files...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preview Modal -->
+    <div class="preview-modal" id="previewModal">
+        <div class="preview-content">
+            <div class="preview-header">
+                <h3 id="previewTitle">File Preview</h3>
+                <button class="close-btn" onclick="closePreview()" title="Close preview">&times;</button>
+            </div>
+            <div class="preview-body" id="previewBody">
+                <!-- Preview content will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Modules -->
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/api-client.js"></script>
+    <script src="assets/js/moderator-ui.js"></script>
+    <script src="components/preview-modal.js"></script>
+    <script src="components/file-list.js"></script>
+    <script src="assets/js/app.js"></script>
+</body>
+</html>
