@@ -23,6 +23,10 @@ client/**/*.d.ts
 !client/components/*.js
 !client/client-example.js
 
+# Keep source client JS files (these are source, not compiled)
+!src/client/assets/js/*.js
+!src/client/components/*.js
+
 # Ignore generated config file (use config.template.js instead)
 client/assets/js/config.js
 
