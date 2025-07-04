@@ -132,6 +132,7 @@ export function setupEnhancedLogging(): void {
 
     // Only broadcast important messages when we have a user context
     const shouldBroadcast = !isDebugMessage && (
+      // Existing patterns
       message.includes('Agent:') ||
       message.includes('writing:') ||
       message.includes('LLM Response:') ||
@@ -142,7 +143,31 @@ export function setupEnhancedLogging(): void {
       message.includes('Language from') ||
       message.includes('Video created successfully') ||
       message.includes('PDF generated successfully') ||
-      message.includes('Audio generated successfully')
+      message.includes('Audio generated successfully') ||
+      // Image generation patterns
+      message.includes('=== IMAGE GENERATION ATTEMPT') ||
+      message.includes('Current Prompt:') ||
+      message.includes('Payload:') ||
+      message.includes('Image generated successfully') ||
+      // Progress indicators
+      message.includes('{ image') ||
+      message.includes('} caption') ||
+      message.includes('{ audio') ||
+      message.includes('} video') ||
+      message.includes('{ pdf') ||
+      message.includes('} image') ||
+      // Processing patterns
+      message.includes('Processing generate') ||
+      message.includes('🔄 Captions:') ||
+      message.includes('🔄 Images:') ||
+      message.includes('🔄 Audio:') ||
+      message.includes('🔄 Video:') ||
+      // Status and completion patterns
+      message.includes('created successfully') ||
+      message.includes('generated successfully') ||
+      message.includes('completed successfully') ||
+      // Error patterns (non-debug)
+      message.includes('Error:') && !message.includes('[DEBUG')
     );
 
     if (shouldBroadcast) {
@@ -236,7 +261,23 @@ function applyGraphAILoggerOverride(GraphAILogger: any): void {
       (message.includes('Agent:') || 
        message.includes('writing:') ||
        message.includes('LLM Response:') ||
-       message.includes('prop:'));
+       message.includes('prop:') ||
+       // Image generation patterns
+       message.includes('=== IMAGE GENERATION ATTEMPT') ||
+       message.includes('Current Prompt:') ||
+       message.includes('Payload:') ||
+       // Progress indicators
+       message.includes('{ image') ||
+       message.includes('} caption') ||
+       message.includes('{ audio') ||
+       message.includes('} video') ||
+       // Processing patterns
+       message.includes('Processing generate') ||
+       message.includes('🔄 Captions:') ||
+       message.includes('🔄 Images:') ||
+       // Success patterns
+       message.includes('generated successfully') ||
+       message.includes('created successfully'));
     
     if (shouldBroadcast) {
       const currentUser = getCurrentUserContext();
@@ -268,7 +309,23 @@ function applyGraphAILoggerOverride(GraphAILogger: any): void {
       (message.includes('Agent:') || 
        message.includes('writing:') ||
        message.includes('LLM Response:') ||
-       message.includes('prop:'));
+       message.includes('prop:') ||
+       // Image generation patterns
+       message.includes('=== IMAGE GENERATION ATTEMPT') ||
+       message.includes('Current Prompt:') ||
+       message.includes('Payload:') ||
+       // Progress indicators
+       message.includes('{ image') ||
+       message.includes('} caption') ||
+       message.includes('{ audio') ||
+       message.includes('} video') ||
+       // Processing patterns
+       message.includes('Processing generate') ||
+       message.includes('🔄 Captions:') ||
+       message.includes('🔄 Images:') ||
+       // Success patterns
+       message.includes('generated successfully') ||
+       message.includes('created successfully'));
     
     if (shouldBroadcast) {
       const currentUser = getCurrentUserContext();
