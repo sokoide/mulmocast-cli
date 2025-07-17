@@ -10,22 +10,26 @@ scratchpad/
 .vscode/
 .claude/
 
+# except for some libs
+!lib/client/assets/js/*.js
+!lib/client/components/*.js
+
 # Prevent committing compiled files in source directories
-src/**/*.js
+#src/**/*.js
 src/**/*.d.ts
-server/**/*.js
+#server/**/*.js
 server/**/*.d.ts
-client/**/*.js
+#client/**/*.js
 client/**/*.d.ts
 
 # Keep original client JS files (these are source, not compiled)
-!client/assets/js/*.js
-!client/components/*.js
-!client/client-example.js
+#!client/assets/js/*.js
+#!client/components/*.js
+#!client/client-example.js
 
 # Keep source client JS files (these are source, not compiled)
-!src/client/assets/js/*.js
-!src/client/components/*.js
+#!src/client/assets/js/*.js
+#!src/client/components/*.js
 
 # Ignore generated config file (use config.template.js instead)
 client/assets/js/config.js
