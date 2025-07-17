@@ -37,6 +37,8 @@ const getLanguageFromContext = (context: MulmoStudioContext): string => {
 };
 
 const isCI = process.env.CI === "true";
+const isLinux = process.platform === "linux";
+const needsSandboxDisabled = isCI || isLinux;
 
 type PDFOptions = {
   format?: "Letter" | "A4";
@@ -211,7 +213,7 @@ const generatePDF = async (context: MulmoStudioContext, pdfMode: PDFMode, pdfSiz
   const pdfOptions = createPDFOptions(pdfSize, pdfMode);
 
   const browser = await puppeteer.launch({
-    args: isCI ? ["--no-sandbox"] : [],
+    args: needsSandboxDisabled ? ["--no-sandbox", "--disable-setuid-sandbox"] : [],
   });
 
   try {

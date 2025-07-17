@@ -2,6 +2,8 @@ import { marked } from "marked";
 import puppeteer from "puppeteer";
 
 const isCI = process.env.CI === "true";
+const isLinux = process.platform === "linux";
+const needsSandboxDisabled = isCI || isLinux;
 
 export const renderHTMLToImage = async (
   html: string,
@@ -13,7 +15,7 @@ export const renderHTMLToImage = async (
 ) => {
   // Use Puppeteer to render HTML to an image
   const browser = await puppeteer.launch({
-    args: isCI ? ["--no-sandbox"] : [],
+    args: needsSandboxDisabled ? ["--no-sandbox", "--disable-setuid-sandbox"] : [],
   });
   const page = await browser.newPage();
 
