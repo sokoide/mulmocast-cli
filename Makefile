@@ -1,6 +1,7 @@
 # set MULMOCAST_API_BASE if it's not defined
-MULMOCAST_API_BASE ?= http://localhost:3000
-MULMOCAST_API_BASE_PROD := https://tmp1.sokoide.com
+MULMOCAST_API_BASE ?= http://localhost:3000/api
+MULMOCAST_API_BASE_PROD := https://tmp1.sokoide.com/api
+# MULMOCAST_API_BASE_PROD := http://scottmbpro:3000/api
 
 .PHONY: install build run test clean
 

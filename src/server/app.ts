@@ -47,7 +47,7 @@ app.use('/api/mulmocast', createMulmocastRoutes(mulmocastAPIService));
 app.use('/api/moderator', createModeratorRoutes(mulmocastAPIService));
 
 // Start server
-app.listen(config.port, () => {
+app.listen(config.port, '0.0.0.0', () => {
   console.log(`🚀 Mulmocast API server running on port ${config.port}`);
   console.log(`📋 API Endpoints:`);
   console.log(`   - Health: http://localhost:${config.port}/api/health`);
