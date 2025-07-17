@@ -15,7 +15,19 @@ export const renderHTMLToImage = async (
 ) => {
   // Use Puppeteer to render HTML to an image
   const browser = await puppeteer.launch({
-    args: needsSandboxDisabled ? ["--no-sandbox", "--disable-setuid-sandbox"] : [],
+    args: needsSandboxDisabled ? [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+      "--disable-gpu",
+      "--disable-background-timer-throttling",
+      "--disable-backgrounding-occluded-windows",
+      "--disable-renderer-backgrounding",
+      "--no-first-run",
+      "--no-zygote",
+      "--single-process"
+    ] : [],
+    timeout: 60000, // Increase timeout to 60 seconds
   });
   const page = await browser.newPage();
 
