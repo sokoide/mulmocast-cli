@@ -212,24 +212,39 @@ const generatePDF = async (context: MulmoStudioContext, pdfMode: PDFMode, pdfSiz
   const html = await generatePDFHTML(context, pdfMode, pdfSize);
   const pdfOptions = createPDFOptions(pdfSize, pdfMode);
 
-  const browser = await puppeteer.launch({
-    args: needsSandboxDisabled ? [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage",
-      "--disable-gpu",
-      "--disable-background-timer-throttling",
-      "--disable-backgrounding-occluded-windows",
-      "--disable-renderer-backgrounding",
-      "--no-first-run",
-      "--no-zygote",
-      "--single-process"
-    ] : [],
-    timeout: 60000, // Increase timeout to 60 seconds
-  });
-
+  let browser;
   try {
-    const page = await browser.newPage();
+    browser = await puppeteer.launch({
+      args: needsSandboxDisabled ? [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-gpu",
+        "--disable-background-timer-throttling",
+        "--disable-backgrounding-occluded-windows",
+        "--disable-renderer-backgrounding",
+        "--no-first-run",
+        "--no-zygote",
+        "--disable-extensions",
+        "--disable-plugins",
+        "--disable-default-apps",
+        "--disable-sync",
+        "--disable-translate",
+        "--hide-scrollbars",
+        "--mute-audio",
+        "--no-default-browser-check",
+        "--no-pings",
+        "--memory-pressure-off"
+      ] : [],
+      timeout: 60000, // Increase timeout to 60 seconds
+    });
+  } catch (error: any) {
+    throw new Error(`Failed to launch browser for PDF generation: ${error.message}`);
+  }
+
+  let page;
+  try {
+    page = await browser.newPage();
     await page.setContent(html, { waitUntil: "networkidle0" });
     await page.pdf({
       path: outputPdfPath,
@@ -237,8 +252,19 @@ const generatePDF = async (context: MulmoStudioContext, pdfMode: PDFMode, pdfSiz
       ...pdfOptions,
     });
     writingMessage(outputPdfPath);
+  } catch (error: any) {
+    if (error.message.includes('Target closed') || error.message.includes('Protocol error')) {
+      throw new Error(`Chrome browser crashed during PDF generation. This may be due to insufficient memory or system resources. Original error: ${error.message}`);
+    }
+    throw error;
   } finally {
-    await browser.close();
+    // Ensure browser is always closed
+    try {
+      if (page) await page.close();
+      if (browser) await browser.close();
+    } catch (closeError: any) {
+      console.warn('Failed to close browser:', closeError.message);
+    }
   }
 };
 
