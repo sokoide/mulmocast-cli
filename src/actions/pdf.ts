@@ -246,7 +246,10 @@ const generatePDF = async (context: MulmoStudioContext, pdfMode: PDFMode, pdfSiz
     page = await browser.newPage();
     
     GraphAILogger.info('PDF: Setting page content...');
-    await page.setContent(html, { waitUntil: "networkidle0", timeout: 30000 });
+    await page.setContent(html, { waitUntil: "domcontentloaded", timeout: 10000 });
+    
+    GraphAILogger.info('PDF: Waiting for content to stabilize...');
+    await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds for resources to load
     
     GraphAILogger.info('PDF: Generating PDF...');
     await Promise.race([
