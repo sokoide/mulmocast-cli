@@ -279,8 +279,7 @@ export class ModerationService extends BaseService {
    * Get moderation status for a specific file
    */
   getFileStatus(userName: string, filename: string): ModerationRecord {
-    // Clear cache to ensure fresh data
-    this.moderationCache.delete(userName);
+    // Use cached data - cache is only cleared when files are actually modified
     const moderationData = this.getModerationData(userName);
     return moderationData[filename] || { status: ModerationStatus.PENDING };
   }
@@ -299,15 +298,22 @@ export class ModerationService extends BaseService {
   async markFilePending(userName: string, fileName: string, reason = 'Automatically marked as pending after generation'): Promise<void> {
     try {
       const moderationData = this.getModerationData(userName);
-      moderationData[fileName] = {
-        status: ModerationStatus.PENDING,
-        moderatedAt: Date.now(),
-        moderatedBy: 'system',
-        reason
-      };
       
-      this.saveModerationData(userName, moderationData);
-      this.log('info', `Marked file as pending: ${userName}/${fileName}`);
+      // Only mark as pending if file is not already approved
+      const currentStatus = moderationData[fileName]?.status;
+      if (currentStatus !== ModerationStatus.APPROVED) {
+        moderationData[fileName] = {
+          status: ModerationStatus.PENDING,
+          moderatedAt: Date.now(),
+          moderatedBy: 'system',
+          reason
+        };
+        
+        this.saveModerationData(userName, moderationData);
+        this.log('info', `Marked file as pending: ${userName}/${fileName}`);
+      } else {
+        this.log('info', `File already approved, skipping pending status: ${userName}/${fileName}`);
+      }
     } catch (error) {
       this.log('error', `Failed to mark file as pending: ${fileName}`, error);
       throw error;
