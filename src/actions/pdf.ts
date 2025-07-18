@@ -226,15 +226,13 @@ const generatePDF = async (context: MulmoStudioContext, pdfMode: PDFMode, pdfSiz
         "--no-first-run",
         "--no-zygote",
         "--disable-extensions",
-        "--disable-plugins",
         "--disable-default-apps",
         "--disable-sync",
         "--disable-translate",
         "--hide-scrollbars",
         "--mute-audio",
         "--no-default-browser-check",
-        "--no-pings",
-        "--memory-pressure-off"
+        "--no-pings"
       ] : [],
       timeout: 60000, // Increase timeout to 60 seconds
     });
@@ -244,13 +242,25 @@ const generatePDF = async (context: MulmoStudioContext, pdfMode: PDFMode, pdfSiz
 
   let page;
   try {
+    GraphAILogger.info('PDF: Creating new page...');
     page = await browser.newPage();
-    await page.setContent(html, { waitUntil: "networkidle0" });
-    await page.pdf({
-      path: outputPdfPath,
-      printBackground: true,
-      ...pdfOptions,
-    });
+    
+    GraphAILogger.info('PDF: Setting page content...');
+    await page.setContent(html, { waitUntil: "networkidle0", timeout: 30000 });
+    
+    GraphAILogger.info('PDF: Generating PDF...');
+    await Promise.race([
+      page.pdf({
+        path: outputPdfPath,
+        printBackground: true,
+        ...pdfOptions,
+      }),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('PDF generation timed out after 30 seconds')), 30000)
+      )
+    ]);
+    
+    GraphAILogger.info('PDF: PDF generation completed successfully');
     writingMessage(outputPdfPath);
   } catch (error: any) {
     if (error.message.includes('Target closed') || error.message.includes('Protocol error')) {
