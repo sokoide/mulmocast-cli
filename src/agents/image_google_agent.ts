@@ -89,13 +89,21 @@ async function generateImage(
           body: errorText,
         });
 
+        // Handle rate limit errors (429) with exponential backoff
+        if (response.status === 429 && attempt < 4) {
+          const delay = Math.pow(2, attempt) * 1000; // Exponential backoff: 1s, 2s, 4s, 8s
+          GraphAILogger.info(`Rate limit exceeded (429). Retrying in ${delay}ms (attempt ${attempt + 1}/4)`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue;
+        }
+
         // If it's a 4xx error, try with simpler prompt
         if (response.status >= 400 && response.status < 500 && attempt < 4) {
           GraphAILogger.info(`HTTP ${response.status} error, trying with simpler prompt...`);
           continue;
         }
 
-        throw new Error(`Error: ${response.status} - ${response.statusText}`);
+        throw new Error(`Google Imagen API Error: ${response.status} - ${response.statusText}. ${response.status === 429 ? 'Rate limit exceeded. Please wait before making more requests.' : ''}`);
       }
 
       const responseData: PredictionResponse = await response.json();
