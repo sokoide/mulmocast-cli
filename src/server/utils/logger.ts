@@ -22,12 +22,12 @@ export function getCurrentUserContext(): string | undefined {
   if (asyncContext) {
     return asyncContext;
   }
-  
+
   // Fallback: if there's only one active user, use that
   if (currentActiveUsers.length === 1) {
     return currentActiveUsers[0];
   }
-  
+
   return undefined;
 }
 
@@ -114,11 +114,6 @@ export function setupEnhancedLogging(): void {
     const message = args.map(arg =>
       typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
     ).join(' ');
-
-    // Debug: log every console.log call to original console
-    if (originalConsole && !message.includes('[DEBUG-CONSOLE]')) {
-      originalConsole.log(`[DEBUG-CONSOLE] console.log called with: ${message.substring(0, 50)}...`);
-    }
 
     // Filter debug messages - only broadcast user-relevant messages
     const isDebugMessage = message.includes('[DEBUG-') ||
@@ -220,7 +215,7 @@ let graphAILoggerOverrideApplied = false;
 
 export function ensureGraphAILoggerOverride(): void {
   if (graphAILoggerOverrideApplied) return;
-  
+
   try {
     // Try to get GraphAI from require cache if already loaded
     const graphAIModule = require.cache[require.resolve('graphai')];
@@ -231,7 +226,7 @@ export function ensureGraphAILoggerOverride(): void {
   } catch (error) {
     // GraphAI not in cache yet
   }
-  
+
   if (originalConsole) {
     originalConsole.log('[DEBUG-GRAPHAI] GraphAI logger override setup - will apply when GraphAI is imported');
   }
@@ -239,7 +234,7 @@ export function ensureGraphAILoggerOverride(): void {
 
 function applyGraphAILoggerOverride(GraphAILogger: any): void {
   if (graphAILoggerOverrideApplied) return;
-  
+
   if (originalConsole) {
     originalConsole.log('[DEBUG-GRAPHAI] Applying GraphAI logger override');
   }
@@ -256,29 +251,29 @@ function applyGraphAILoggerOverride(GraphAILogger: any): void {
     }
 
     // Only broadcast important GraphAI messages
-    const shouldBroadcast = !message.includes('[DEBUG]') && 
+    const shouldBroadcast = !message.includes('[DEBUG]') &&
       !message.toLowerCase().includes('filtercomplex') &&
-      (message.includes('Agent:') || 
-       message.includes('writing:') ||
-       message.includes('LLM Response:') ||
-       message.includes('prop:') ||
-       // Image generation patterns
-       message.includes('=== IMAGE GENERATION ATTEMPT') ||
-       message.includes('Current Prompt:') ||
-       message.includes('Payload:') ||
-       // Progress indicators
-       message.includes('{ image') ||
-       message.includes('} caption') ||
-       message.includes('{ audio') ||
-       message.includes('} video') ||
-       // Processing patterns
-       message.includes('Processing generate') ||
-       message.includes('🔄 Captions:') ||
-       message.includes('🔄 Images:') ||
-       // Success patterns
-       message.includes('generated successfully') ||
-       message.includes('created successfully'));
-    
+      (message.includes('Agent:') ||
+        message.includes('writing:') ||
+        message.includes('LLM Response:') ||
+        message.includes('prop:') ||
+        // Image generation patterns
+        message.includes('=== IMAGE GENERATION ATTEMPT') ||
+        message.includes('Current Prompt:') ||
+        message.includes('Payload:') ||
+        // Progress indicators
+        message.includes('{ image') ||
+        message.includes('} caption') ||
+        message.includes('{ audio') ||
+        message.includes('} video') ||
+        // Processing patterns
+        message.includes('Processing generate') ||
+        message.includes('🔄 Captions:') ||
+        message.includes('🔄 Images:') ||
+        // Success patterns
+        message.includes('generated successfully') ||
+        message.includes('created successfully'));
+
     if (shouldBroadcast) {
       const currentUser = getCurrentUserContext();
       if (originalConsole) {
@@ -292,7 +287,7 @@ function applyGraphAILoggerOverride(GraphAILogger: any): void {
     return originalInfo.apply(GraphAILogger, args);
   };
 
-  // Override log method  
+  // Override log method
   const originalLog = GraphAILogger.log;
   GraphAILogger.log = (...args: any[]) => {
     const message = args.map(arg =>
@@ -303,30 +298,30 @@ function applyGraphAILoggerOverride(GraphAILogger: any): void {
       originalConsole.log(`[DEBUG-GRAPHAI-LOG] GraphAI.log called: ${message}`);
     }
 
-    // Only broadcast important GraphAI messages  
-    const shouldBroadcast = !message.includes('[DEBUG]') && 
+    // Only broadcast important GraphAI messages
+    const shouldBroadcast = !message.includes('[DEBUG]') &&
       !message.toLowerCase().includes('filtercomplex') &&
-      (message.includes('Agent:') || 
-       message.includes('writing:') ||
-       message.includes('LLM Response:') ||
-       message.includes('prop:') ||
-       // Image generation patterns
-       message.includes('=== IMAGE GENERATION ATTEMPT') ||
-       message.includes('Current Prompt:') ||
-       message.includes('Payload:') ||
-       // Progress indicators
-       message.includes('{ image') ||
-       message.includes('} caption') ||
-       message.includes('{ audio') ||
-       message.includes('} video') ||
-       // Processing patterns
-       message.includes('Processing generate') ||
-       message.includes('🔄 Captions:') ||
-       message.includes('🔄 Images:') ||
-       // Success patterns
-       message.includes('generated successfully') ||
-       message.includes('created successfully'));
-    
+      (message.includes('Agent:') ||
+        message.includes('writing:') ||
+        message.includes('LLM Response:') ||
+        message.includes('prop:') ||
+        // Image generation patterns
+        message.includes('=== IMAGE GENERATION ATTEMPT') ||
+        message.includes('Current Prompt:') ||
+        message.includes('Payload:') ||
+        // Progress indicators
+        message.includes('{ image') ||
+        message.includes('} caption') ||
+        message.includes('{ audio') ||
+        message.includes('} video') ||
+        // Processing patterns
+        message.includes('Processing generate') ||
+        message.includes('🔄 Captions:') ||
+        message.includes('🔄 Images:') ||
+        // Success patterns
+        message.includes('generated successfully') ||
+        message.includes('created successfully'));
+
     if (shouldBroadcast) {
       const currentUser = getCurrentUserContext();
       if (originalConsole) {
