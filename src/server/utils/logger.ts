@@ -53,6 +53,13 @@ export function removeActiveUser(userId: string): void {
 
 // Function to broadcast messages to all connected clients
 export function broadcastToClients(message: string, userId?: string): void {
+  // Filter out verbose processing messages to reduce noise in client
+  // These ase sent directly to the client in mulmocast-service.ts w/o using console.log
+  if (message.includes('Processing') && !message.includes('generated successfully') && !message.includes('created successfully')) {
+    // Skip broadcasting verbose processing messages
+    return;
+  }
+
   // Debug logging using original console to avoid recursion
   if (originalConsole) {
     const userPrefix = userId ? `: User: ${userId}` : '';
@@ -158,12 +165,6 @@ export function setupEnhancedLogging(): void {
       message.includes('} video') ||
       message.includes('{ pdf') ||
       message.includes('} image') ||
-      // Processing patterns - commented out to reduce log noise
-      // message.includes('Processing generate') ||
-      // message.includes('🔄 Captions:') ||
-      // message.includes('🔄 Images:') ||
-      // message.includes('🔄 Audio:') ||
-      // message.includes('🔄 Video:') ||
       // Status and completion patterns
       message.includes('created successfully') ||
       message.includes('generated successfully') ||
@@ -273,10 +274,6 @@ function applyGraphAILoggerOverride(GraphAILogger: any): void {
         message.includes('} caption') ||
         message.includes('{ audio') ||
         message.includes('} video') ||
-        // Processing patterns in mulmocast-service.ts
-        // message.includes('Processing generate') ||
-        // message.includes('🔄 Captions:') ||
-        // message.includes('🔄 Images:') ||
         // Success patterns
         message.includes('generated successfully') ||
         message.includes('created successfully'));
@@ -321,10 +318,6 @@ function applyGraphAILoggerOverride(GraphAILogger: any): void {
         message.includes('} caption') ||
         message.includes('{ audio') ||
         message.includes('} video') ||
-        // Processing patterns in mulmocast-service.ts
-        // message.includes('Processing generate') ||
-        // message.includes('🔄 Captions:') ||
-        // message.includes('🔄 Images:') ||
         // Success patterns
         message.includes('generated successfully') ||
         message.includes('created successfully'));
