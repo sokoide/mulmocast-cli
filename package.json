@@ -45,7 +45,7 @@
     "build:main": "tsc",
     "build:config": "node scripts/build/generate-config.js",
     "copy:assets": "cp -r assets lib/ && cp -r scripts lib/ && cp -r src/client lib/",
-    "clean:source-dirs": "find ./src -name '*.js' -not -name '*.template.js' -delete && find ./src -name '*.d.ts' -delete",
+    "clean:source-dirs": "find ./src -name '*.js' -not -name '*.template.js' -not -path './src/client/*' -delete && find ./src -name '*.d.ts' -delete",
     "clean": "npm run clean:source-dirs && rm -rf lib/",
     "build_test": "tsc && git checkout -- lib/*",
     "cli": "npx tsx ./src/cli/bin.ts",
