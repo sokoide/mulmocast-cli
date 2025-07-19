@@ -90,7 +90,7 @@ export class ModerationService extends BaseService {
       // Update cache with fresh data from disk
       this.moderationCache.set(userName, new Map(Object.entries(data)));
       
-      this.log('info', `Loaded moderation data for ${userName} from disk`);
+      // Removed noisy log - only log on cache miss/file changes
       return data;
     } catch (error) {
       this.log('error', `Failed to read moderation file for ${userName}`, error);
