@@ -271,8 +271,19 @@ export class ModerationService extends BaseService {
       // Save moderation data
       this.saveModerationData(userName, moderationData);
 
+      // Force clear cache to ensure fresh data on next read
+      this.clearUserCache(userName);
+
       this.log('info', `Moderated file group ${baseName} for ${userName}: ${status}`);
     }, 'moderateFileGroup');
+  }
+
+  /**
+   * Clear cache for a specific user
+   */
+  private clearUserCache(userName: string): void {
+    this.moderationCache.delete(userName);
+    this.log('info', `Cleared moderation cache for user: ${userName}`);
   }
 
   /**
