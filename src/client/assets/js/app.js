@@ -208,6 +208,34 @@ document.addEventListener("DOMContentLoaded", () => {
   window.mulmocastApp = new MulmocastApp();
 });
 
+// Send Family Day email function
+function sendFamilyDayEmail() {
+  const userName = document.getElementById("uniqueUserName")?.value?.trim() || "User";
+  const story = document.getElementById("filename")?.value?.trim() || "Story";
+
+  const subject = encodeURIComponent(`Family Day 2025: ${userName} - ${story}`);
+  const body = encodeURIComponent(`On behalf of Japan Technology, we would like to thank you for joining us on at the 2025 Family Day event 'Make your own video'.
+
+Attached is the AI generated pdf and video you created during the event. We hope you had a great time and learned what's possible with AI and programming.
+
+*****************************
+
+* Attach the generated PDF & Video here*
+
+******************************
+
+Best Regards,
+2025 Family Day Team
+`);
+  const from = "tkfamilyday@gmail.com";
+
+  // Create mailto URL with parameters
+  const mailtoUrl = `mailto:${from}?subject=${subject}&body=${body}`;
+
+  // Open default mail client
+  window.location.href = mailtoUrl;
+}
+
 // Initialize application when window loads
 window.addEventListener("load", () => {
   if (window.mulmocastApp) {

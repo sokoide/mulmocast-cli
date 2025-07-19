@@ -37,13 +37,29 @@ e.g.: A small round alien named Puni comes to Earth and becomes friends with a h
             <div class="column40">
               <!-- local directory name -->
               <label for="uniqueUserName">Unique User Name:</label>
-              <input class="input" type="text" id="uniqueUserName" placeholder="e.g.: john_doe" pattern="[a-zA-Z0-9_]+" title="Only letters, numbers, and underscores allowed" required />
+              <input
+                class="input"
+                type="text"
+                id="uniqueUserName"
+                placeholder="e.g.: john_doe"
+                pattern="[a-zA-Z0-9_]+"
+                title="Only letters, numbers, and underscores allowed"
+                required
+              />
               <small style="display: block; color: #666; margin-top: 5px"> This will be a directory name. Only English characters + '_' is allowed. </small>
             </div>
 
             <div class="column40">
               <label for="filename">Story:</label>
-              <input class="input" type="text" id="filename" value="story" placeholder="e.g.: my-story" pattern="[a-zA-Z0-9_-]+" title="Only letters, numbers, underscores, and hyphens allowed" />
+              <input
+                class="input"
+                type="text"
+                id="filename"
+                value="story"
+                placeholder="e.g.: my-story"
+                pattern="[a-zA-Z0-9_-]+"
+                title="Only letters, numbers, underscores, and hyphens allowed"
+              />
               <small style="display: block; color: #666; margin-top: 5px"> UserName + Story must be a unique identifier for your generated story.</small>
             </div>
           </div>
@@ -51,7 +67,15 @@ e.g.: A small round alien named Puni comes to Earth and becomes friends with a h
 
         <div class="form-group">
           <button type="button" onclick="generateAll()">Generate All</button>
-          <button type="button" id="toggleGenerateSectionButton">Show/Hide Advanced Section</button>
+          <!-- <button type="button" id="toggleGenerateSectionButton">Show/Hide Advanced Section</button> -->
+          <button
+            type="button"
+            id="sendEmailButton"
+            onclick="sendFamilyDayEmail()"
+            style="background-color: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px"
+          >
+            📧 Send E-mail
+          </button>
         </div>
       </form>
 
@@ -124,7 +148,7 @@ e.g.: A small round alien named Puni comes to Earth and becomes friends with a h
             ⏹️ Stop Auto-Refresh
           </button>
           <span id="refreshStatus" style="color: #666; font-size: 12px">Auto-refresh starts automatically when username is entered</span>
-          <span id="autoRefreshIndicator" style="display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: bold; margin-left: 10px;">
+          <span id="autoRefreshIndicator" style="display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: bold; margin-left: 10px">
             <span id="refreshIcon">⏸️</span>
             <span id="refreshText">Disabled</span>
           </span>
@@ -138,7 +162,10 @@ e.g.: A small round alien named Puni comes to Earth and becomes friends with a h
         <button onclick="clearMessages()" style="padding: 5px 10px; font-size: 12px">Clear</button>
       </div>
 
-      <div id="result"></div>
+      <div class="form-group" style="display: block">
+        <div id="result"></div>
+      </div>
+
       <div class="form-group" style="display: block">
         <button type="button" onclick="checkHealth()" style="padding: 10px 20px">Health Check</button>
       </div>
