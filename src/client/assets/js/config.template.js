@@ -20,7 +20,7 @@ const CONFIG = {
 
   // UI Settings
   UI: {
-    MAX_MESSAGES: 100,
+    MAX_MESSAGES: 500,
     AUTO_SCROLL: true,
     MESSAGE_DISPLAY_TIME: 1000
   },

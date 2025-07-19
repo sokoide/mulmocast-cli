@@ -55,9 +55,10 @@ export function removeActiveUser(userId: string): void {
 export function broadcastToClients(message: string, userId?: string): void {
   // Debug logging using original console to avoid recursion
   if (originalConsole) {
+    const userPrefix = userId ? `: User: ${userId}` : '';
     originalConsole.log(`[DEBUG-BROADCAST] Total SSE clients: ${sseClients.length}`);
     originalConsole.log(`[DEBUG-BROADCAST] Looking for userId: ${userId}`);
-    originalConsole.log(`[DEBUG-BROADCAST] Message: ${message.substring(0, 100)}...`);
+    originalConsole.log(`[DEBUG-BROADCAST${userPrefix}] Message: ${message.substring(0, 100)}...`);
   }
 
   const targetClients = userId
@@ -65,32 +66,38 @@ export function broadcastToClients(message: string, userId?: string): void {
     : sseClients;
 
   if (originalConsole) {
-    originalConsole.log(`[DEBUG-BROADCAST] Target clients found: ${targetClients.length}`);
+    const userPrefix = userId ? `: User: ${userId}` : '';
+    originalConsole.log(`[DEBUG-BROADCAST${userPrefix}] Target clients found: ${targetClients.length}`);
   }
 
   targetClients.forEach((client, index) => {
     try {
       if (originalConsole) {
-        originalConsole.log(`[DEBUG-BROADCAST] Sending to client ${index} (userId: ${client.userId})`);
+        const userPrefix = userId ? `: User: ${userId}` : '';
+        originalConsole.log(`[DEBUG-BROADCAST${userPrefix}] Sending to client ${index} (userId: ${client.userId})`);
       }
       const sseMessage = JSON.stringify({ message, timestamp: Date.now(), userId });
       if (originalConsole) {
-        originalConsole.log(`[DEBUG-BROADCAST] Sending SSE data: ${sseMessage}`);
+        const userPrefix = userId ? `: User: ${userId}` : '';
+        originalConsole.log(`[DEBUG-BROADCAST${userPrefix}] Sending SSE data: ${sseMessage}`);
       }
       client.response.write(`data: ${sseMessage}\n\n`);
       if (originalConsole) {
-        originalConsole.log(`[DEBUG-BROADCAST] Successfully sent to client ${index}`);
+        const userPrefix = userId ? `: User: ${userId}` : '';
+        originalConsole.log(`[DEBUG-BROADCAST${userPrefix}] Successfully sent to client ${index}`);
       }
     } catch (error) {
       if (originalConsole) {
-        originalConsole.log(`[DEBUG-BROADCAST] Error sending to client ${index}:`, error);
+        const userPrefix = userId ? `: User: ${userId}` : '';
+        originalConsole.log(`[DEBUG-BROADCAST${userPrefix}] Error sending to client ${index}:`, error);
       }
       // Remove disconnected clients
       const clientIndex = sseClients.indexOf(client);
       if (clientIndex > -1) {
         sseClients.splice(clientIndex, 1);
         if (originalConsole) {
-          originalConsole.log(`[DEBUG-BROADCAST] Removed disconnected client ${clientIndex}`);
+          const userPrefix = userId ? `: User: ${userId}` : '';
+          originalConsole.log(`[DEBUG-BROADCAST${userPrefix}] Removed disconnected client ${clientIndex}`);
         }
       }
     }
