@@ -216,13 +216,11 @@ function sendFamilyDayEmail() {
   const subject = encodeURIComponent(`Family Day 2025: ${userName} - ${story}`);
   const body = encodeURIComponent(`On behalf of Japan Technology, we would like to thank you for joining us on at the 2025 Family Day event 'Make your own video'.
 
-Attached is the AI generated pdf and video you created during the event. We hope you had a great time and learned what's possible with AI and programming.
+Attached is the AI generated pdf and video you created during the event. We hope you had a great time and experienced the power of AI in creating personalized content.
 
-*****************************
-
-* Attach the generated PDF & Video here*
-
-******************************
+*****************************************
+* Attach the generated PDF & Video here *
+*****************************************
 
 Best Regards,
 2025 Family Day Team
