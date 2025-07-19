@@ -273,10 +273,10 @@ function applyGraphAILoggerOverride(GraphAILogger: any): void {
         message.includes('} caption') ||
         message.includes('{ audio') ||
         message.includes('} video') ||
-        // Processing patterns
-        message.includes('Processing generate') ||
-        message.includes('🔄 Captions:') ||
-        message.includes('🔄 Images:') ||
+        // Processing patterns in mulmocast-service.ts
+        // message.includes('Processing generate') ||
+        // message.includes('🔄 Captions:') ||
+        // message.includes('🔄 Images:') ||
         // Success patterns
         message.includes('generated successfully') ||
         message.includes('created successfully'));
