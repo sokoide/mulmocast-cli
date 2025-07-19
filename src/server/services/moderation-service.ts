@@ -73,27 +73,29 @@ export class ModerationService extends BaseService {
    * Get moderation data for a user
    */
   private getModerationData(userName: string): Record<string, ModerationRecord> {
-    // Check cache first
-    if (this.moderationCache.has(userName)) {
-      return Object.fromEntries(this.moderationCache.get(userName)!);
-    }
-
     const sanitizedUserName = this.sanitizeUsername(userName);
     const moderationFile = path.join(this.outputPath, sanitizedUserName, '.moderation.json');
     
+    // If moderation file doesn't exist, clear cache and return empty data
     if (!fs.existsSync(moderationFile)) {
+      this.moderationCache.delete(userName);
+      this.log('info', `Moderation file not found for ${userName}, cleared cache`);
       return {};
     }
 
     try {
+      // Always read from disk to ensure consistency
       const data = JSON.parse(fs.readFileSync(moderationFile, 'utf-8'));
       
-      // Update cache
+      // Update cache with fresh data from disk
       this.moderationCache.set(userName, new Map(Object.entries(data)));
       
+      this.log('info', `Loaded moderation data for ${userName} from disk`);
       return data;
     } catch (error) {
       this.log('error', `Failed to read moderation file for ${userName}`, error);
+      // Clear cache on read error
+      this.moderationCache.delete(userName);
       return {};
     }
   }
