@@ -158,12 +158,12 @@ export function setupEnhancedLogging(): void {
       message.includes('} video') ||
       message.includes('{ pdf') ||
       message.includes('} image') ||
-      // Processing patterns
-      message.includes('Processing generate') ||
-      message.includes('🔄 Captions:') ||
-      message.includes('🔄 Images:') ||
-      message.includes('🔄 Audio:') ||
-      message.includes('🔄 Video:') ||
+      // Processing patterns - commented out to reduce log noise
+      // message.includes('Processing generate') ||
+      // message.includes('🔄 Captions:') ||
+      // message.includes('🔄 Images:') ||
+      // message.includes('🔄 Audio:') ||
+      // message.includes('🔄 Video:') ||
       // Status and completion patterns
       message.includes('created successfully') ||
       message.includes('generated successfully') ||
